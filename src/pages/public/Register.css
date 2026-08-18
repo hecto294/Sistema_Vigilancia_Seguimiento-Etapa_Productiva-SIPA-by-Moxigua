@@ -1,0 +1,327 @@
+/* src/pages/public/Register.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* { font-family: 'Poppins', sans-serif; box-sizing: border-box; }
+
+.register-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* --- COLUMNA IZQUIERDA --- */
+.register-left {
+  width: 40%;
+  background-color: #39A900; /* <--- CAMBIADO A TU VERDE DE INSTRUCTOR */
+  color: white;
+  padding: 30px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.left-top .left-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.left-top .left-logo img {
+  height: 45px;
+  width: auto;
+}
+.left-brand h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.left-brand span {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.left-hero {
+  margin-top: 40px;
+}
+.left-hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 15px;
+}
+.highlight-green {
+  color: #ffffff; /* <--- Para que resalte sobre el fondo verde brillante */
+  background-color: rgba(0,0,0,0.2);
+  padding: 0 8px;
+  border-radius: 4px;
+}
+.left-hero p {
+  font-size: 14px;
+  opacity: 0.9;
+  line-height: 1.6;
+  max-width: 350px;
+}
+
+.left-image {
+  text-align: center;
+  margin: 20px 0;
+}
+.left-image img {
+  max-width: 90%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.left-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+.feature-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 13px;
+}
+.feature-badge i {
+  color: #ffffff;
+}
+
+/* --- COLUMNA DERECHA --- */
+.register-right {
+  width: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  background-color: #f8fafc;
+}
+
+.register-card {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 700px;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.header-icon {
+  width: 60px;
+  height: 60px;
+  background-color: #e6f7ed;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px auto;
+}
+.header-icon i {
+  color: #39A900;
+  font-size: 24px;
+}
+.register-header h2 {
+  font-size: 24px;
+  color: #1f2937;
+  margin: 0;
+}
+.register-header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 5px 0 0 0;
+}
+
+/* --- INDICADOR DE PASOS --- */
+.steps-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+.step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #e5e7eb;
+  color: #6b7280;
+}
+.step.active {
+  background-color: #39A900;
+  color: white;
+}
+.step-line {
+  width: 50px;
+  height: 2px;
+  background-color: #e5e7eb;
+}
+
+.step-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  font-size: 10px;
+  color: #6b7280;
+  text-align: center;
+}
+.step-labels span {
+  width: 25%;
+}
+
+/* --- FORMULARIO --- */
+.form-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+}
+.form-title-row h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-title-row h3 i {
+  color: #39A900;
+}
+.form-title-row .step-counter {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-wrapper {
+  position: relative;
+}
+.input-wrapper i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-size: 14px;
+}
+.input-wrapper select,
+.input-wrapper input {
+  width: 100%;
+  padding: 10px 10px 10px 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background-color: white;
+}
+.input-wrapper select:focus,
+.input-wrapper input:focus {
+  border-color: #39A900;
+  box-shadow: 0 0 0 2px rgba(57, 169, 0, 0.1);
+}
+
+.info-alert {
+  background-color: #eef2ff;
+  color: #1e3a8a;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 1px solid #e5e7eb;
+}
+.btn-cancel {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-cancel:hover {
+  background-color: #f8fafc;
+}
+.btn-next {
+  background-color: #39A900;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-next:hover {
+  background-color: #2d8a00;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #6b7280;
+}
+.login-link a {
+  color: #39A900;
+  text-decoration: none;
+  font-weight: 500;
+}
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 900px) {
+  .register-wrapper { flex-direction: column; }
+  .register-left { width: 100%; padding: 30px; min-height: auto; }
+  .register-right { width: 100%; padding: 20px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .step-line { width: 30px; }
+}

@@ -1,0 +1,86 @@
+/* src/components/Bitacora.css */
+/* --- CONTENEDOR PRINCIPAL --- */
+.bitacora-container {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+.bitacora-header h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 5px 0;
+}
+.bitacora-header .subtitulo {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* --- BARRA DE BÚSQUEDA --- */
+.search-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 200px; padding: 10px 15px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; outline: none; }
+.search-input:focus { border-color: #39A900; }
+.btn-search { background-color: #39A900; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.btn-search:hover { background-color: #2d8a00; }
+.btn-clear { background-color: #e5e7eb; color: #1f2937; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+.btn-clear:hover { background-color: #d1d5db; }
+.not-found { text-align: center; padding: 40px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+.not-found h2 { color: #dc2626; margin-bottom: 10px; }
+.not-found p { color: #6b7280; }
+
+/* --- TARJETAS DE FICHAS --- */
+.fichas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.ficha-card-bitacora { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; cursor: pointer; transition: 0.2s; }
+.ficha-card-bitacora:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); border-color: #39A900; }
+.ficha-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.ficha-numero { font-size: 20px; font-weight: 700; color: #39A900; }
+.ficha-cantidad { font-size: 12px; color: #6b7280; background: #f3f4f6; padding: 2px 12px; border-radius: 12px; }
+.ficha-card-body .ficha-programa { font-size: 15px; color: #1f2937; font-weight: 500; }
+
+/* --- VISTA DE APRENDICES (NIVEL 1) --- */
+.bitacora-ficha-pantalla { display: flex; flex-direction: column; gap: 25px; }
+.ficha-header { display: flex; flex-direction: column; gap: 5px; }
+.btn-volver-lista { background: transparent; border: none; color: #39A900; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; width: fit-content; padding: 0; }
+.btn-volver-lista:hover { text-decoration: underline; }
+.ficha-titulo { font-size: 24px; font-weight: 600; color: #1f2937; margin: 0; }
+.ficha-subtitulo { font-size: 15px; color: #6b7280; margin: 0; }
+.aprendices-table-wrapper { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); overflow-x: auto; }
+.aprendices-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.aprendices-table th { text-align: left; padding: 12px 15px; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
+.aprendices-table td { padding: 15px; border-bottom: 1px solid #e5e7eb; }
+.nombre-aprendiz { font-weight: 500; color: #1f2937; }
+.badge-cantidad { background: #e6f7ed; color: #047857; padding: 3px 12px; border-radius: 15px; font-size: 13px; font-weight: 500; }
+.btn-ver-bitacoras { background: #39A900; color: white; border: none; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+.btn-ver-bitacoras:hover { background: #2d8a00; }
+
+/* --- VISTA DE BITÁCORAS DEL APRENDIZ (NIVEL 2) --- */
+.bitacora-aprendiz-pantalla { display: flex; flex-direction: column; gap: 25px; }
+.aprendiz-header { display: flex; flex-direction: column; gap: 5px; }
+.aprendiz-titulo { font-size: 24px; font-weight: 600; color: #1f2937; margin: 0; }
+.aprendiz-subtitulo { font-size: 15px; color: #6b7280; margin: 0; }
+.bitacoras-listado h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; }
+.sin-registros { color: #6b7280; padding: 20px 0; }
+.bitacoras-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+.bitacora-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 8px; }
+.bitacora-card-header { display: flex; justify-content: space-between; align-items: center; }
+.bitacora-titulo { font-size: 16px; font-weight: 500; color: #1f2937; }
+.bitacora-fecha { font-size: 12px; color: #6b7280; }
+.bitacora-card-body p { font-size: 13px; color: #6b7280; line-height: 1.5; margin: 0; }
+.bitacora-card-actions { display: flex; justify-content: flex-end; }
+.btn-ver-archivo { background: #39A900; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.btn-ver-archivo:hover { background: #2d8a00; }
+
+/* --- MODAL DE VISTA PREVIA --- */
+.bitacora-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.bitacora-modal-content { background: white; border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); padding: 25px; position: relative; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.modal-close-btn { position: absolute; top: 12px; right: 15px; background: transparent; border: none; font-size: 26px; color: #6b7280; cursor: pointer; }
+.modal-close-btn:hover { color: #dc2626; }
+.modal-title { font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 15px 0; }
+.modal-meta { display: flex; gap: 15px; color: #6b7280; font-size: 13px; margin-bottom: 15px; }
+.modal-meta i { margin-right: 4px; color: #39A900; }
+.modal-body-text p { font-size: 15px; color: #1f2937; line-height: 1.8; }
+.modal-actions { display: flex; justify-content: center; margin-top: 20px; }
+.btn-descargar-modal { background: #39A900; color: white; border: none; padding: 8px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.btn-descargar-modal:hover { background: #2d8a00; }

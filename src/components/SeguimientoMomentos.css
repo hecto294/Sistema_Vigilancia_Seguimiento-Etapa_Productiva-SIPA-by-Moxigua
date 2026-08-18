@@ -1,0 +1,213 @@
+/* src/components/SeguimientoMomentos.css */
+.momentos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.momentos-header h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 5px 0;
+}
+.momentos-header .subtitulo {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* --- VISTA PRINCIPAL (Tarjetas de momentos) --- */
+.momentos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.momento-card-link {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: 0.2s;
+}
+.momento-card-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #39A900;
+}
+
+.momento-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.momento-card-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+.momento-cantidad {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.momento-descripcion-corta {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.momento-flecha {
+  display: flex;
+  justify-content: flex-end;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* --- PANTALLA DE DETALLE (Ver seguimientos) --- */
+.momento-detalle-pantalla {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.detalle-header {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.btn-volver-lista {
+  background: transparent;
+  border: none;
+  color: #39A900;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 0;
+}
+.btn-volver-lista:hover {
+  text-decoration: underline;
+}
+.detalle-titulo {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+.detalle-subtitulo {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.detalle-seguimientos-list h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sin-registros {
+  color: #6b7280;
+  padding: 20px 0;
+}
+
+/* Grid de tarjetas de seguimiento */
+.seguimientos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.seguimiento-card-detalle {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.seg-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  font-size: 13px;
+  color: #6b7280;
+}
+.seg-header i {
+  margin-right: 4px;
+  color: #39A900;
+}
+.seg-fecha, .seg-aprendiz {
+  display: flex;
+  align-items: center;
+}
+
+.seg-body p {
+  font-size: 14px;
+  color: #1f2937;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.seg-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.btn-edit-seg {
+  background: #e6f7ed;
+  color: #047857;
+  border: none;
+  padding: 4px 14px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-delete-seg {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  padding: 4px 14px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-nuevo-seguimiento {
+  background-color: #39A900;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: fit-content;
+}
+.btn-nuevo-seguimiento:hover {
+  background-color: #2d8a00;
+}

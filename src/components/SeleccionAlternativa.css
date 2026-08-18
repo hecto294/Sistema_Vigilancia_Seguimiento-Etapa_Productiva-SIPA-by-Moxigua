@@ -1,0 +1,277 @@
+/* src/components/SeleccionAlternativa.css */
+.seleccion-container {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.seleccion-header h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 5px 0;
+}
+.seleccion-header .subtitulo {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* --- HEADER CON BOTÓN A LA DERECHA --- */
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* --- NUEVO BOTÓN CARGA VERDE --- */
+.btn-carga-masiva {
+  background-color: #39A900;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.2s;
+}
+.btn-carga-masiva:hover {
+  background-color: #2d8a00;
+}
+
+/* Botón de volver atrás */
+.header-back {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.btn-back {
+  background: transparent;
+  border: none;
+  color: #004d2e;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  width: fit-content;
+}
+.btn-back:hover {
+  text-decoration: underline;
+}
+.header-back h2 {
+  font-size: 22px;
+  margin: 0;
+}
+
+/* --- BARRA DE BÚSQUEDA --- */
+.search-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 5px; }
+.search-input { flex: 1; min-width: 200px; padding: 10px 15px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; outline: none; }
+.search-input:focus { border-color: #39A900; }
+
+.btn-search {
+  background-color: #39A900; color: white; border: none;
+  padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.btn-search:hover { background-color: #2d8a00; }
+
+.btn-clear { background-color: #e5e7eb; color: #1f2937; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+.btn-clear:hover { background-color: #d1d5db; }
+
+/* --- GRID DE FICHAS --- */
+.fichas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.ficha-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.ficha-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: #39A900;
+}
+
+.ficha-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.ficha-numero {
+  font-size: 20px;
+  font-weight: 700;
+  color: #39A900;
+}
+.ficha-cantidad {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 12px;
+  border-radius: 12px;
+}
+.ficha-card-body .ficha-programa {
+  font-size: 15px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* --- LISTA DE APRENDICES --- */
+.aprendices-list-container {
+  width: 100%;
+}
+.table-wrapper {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+th {
+  text-align: left;
+  padding: 12px 15px;
+  color: #6b7280;
+  font-weight: 600;
+  border-bottom: 2px solid #e5e7eb;
+}
+td {
+  padding: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.nombre-aprendiz {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Etiqueta de alternativa */
+.alternativa-badge {
+  display: inline-block;
+  background: #e6f7ed;
+  color: #047857;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* --- BOTÓN EMPRESA ASOCIADA --- */
+.btn-asociacion {
+  background-color: #39A900;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+.btn-asociacion:hover {
+  background-color: #2d8a00;
+}
+
+/* --- PANEL DE EMPRESA (DESPLEGABLE) --- */
+.empresa-row td {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+.empresa-panel {
+  background: #f8fafc;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 12px 12px;
+  margin: 0 20px 20px 20px;
+}
+
+.empresa-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+.empresa-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.empresa-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+.empresa-value {
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.empresa-status {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+  width: fit-content;
+}
+.status-activo {
+  background: #d1fae5;
+  color: #047857;
+}
+.status-inactivo {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Mensaje sin datos */
+.empresa-sin-datos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 14px;
+}
+.empresa-sin-datos i {
+  font-size: 20px;
+  color: #f59e0b;
+}
+
+/* Dato no encontrado */
+.not-found-row td {
+  padding: 0 !important;
+}
+.not-found {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 12px;
+  margin: 10px 0;
+}
+.not-found h2 {
+  color: #dc2626;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+.not-found p {
+  color: #6b7280;
+}
