@@ -15,6 +15,13 @@ const SidebarCoordinador = ({ onNavigate, activePage }) => {
           </li>
 
           <li 
+            className={activePage === 'parametrizacion' ? 'active' : ''} 
+            onClick={() => onNavigate('/coordinador/parametrizacion', 'parametrizacion')}
+          >
+            <i className="fas fa-cogs"></i> Parametrización
+          </li>
+
+          <li 
             className={activePage === 'fichas' ? 'active' : ''} 
             onClick={() => onNavigate('/coordinador/fichas', 'fichas')}
           >
@@ -26,6 +33,13 @@ const SidebarCoordinador = ({ onNavigate, activePage }) => {
             onClick={() => onNavigate('/coordinador/certificados', 'certificados')}
           >
             <i className="fas fa-certificate"></i> Certificaciones Masivas
+          </li>
+
+          <li 
+            className={activePage === 'reporte-bitacoras' ? 'active' : ''} 
+            onClick={() => onNavigate('/coordinador/reporte-bitacoras', 'reporte-bitacoras')}
+          >
+            <i className="fas fa-book-open"></i> Reporte de Bitácoras
           </li>
 
           <li 

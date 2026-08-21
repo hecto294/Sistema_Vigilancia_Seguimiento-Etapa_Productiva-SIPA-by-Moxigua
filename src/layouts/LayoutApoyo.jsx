@@ -5,11 +5,12 @@ import Header from '../components/Header';
 import SidebarApoyo from '../components/SidebarApoyo';
 import '../App.css';
 
-// Reutilizamos los componentes del Admin
+// REUTILIZAMOS los componentes del Admin (solo lectura por la URL /apoyo)
 import DashboardAdmin from '../pages/admin/DashboardAdmin';
 import GestionUsuarios from '../pages/admin/GestionUsuarios';
 import GestionFichas from '../pages/admin/GestionFichas';
-import ReportesGlobales from '../pages/coordinador/ReportesGlobales';
+import ReportesGlobales from '../pages/admin/ReportesGlobales';
+import MiPerfil from '../pages/apoyo/MiPerfil';
 
 const LayoutApoyo = ({ user }) => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const LayoutApoyo = ({ user }) => {
             <Route path="/usuarios" element={<GestionUsuarios />} />
             <Route path="/fichas" element={<GestionFichas />} />
             <Route path="/reportes" element={<ReportesGlobales />} />
+            <Route path="/mi-perfil" element={<MiPerfil user={user} />} />
           </Routes>
         </div>
       </div>

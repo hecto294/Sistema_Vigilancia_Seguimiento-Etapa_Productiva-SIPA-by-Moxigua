@@ -1,28 +1,29 @@
 // src/components/Sidebar.jsx
 import React, { useState } from 'react';
 import './Sidebar.css';
+import { useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ setActivePage }) => {
   const [openMenu, setOpenMenu] = useState(null);
   const [activeItem, setActiveItem] = useState('dashboard');
+  const navigate = useNavigate();
 
-  // Función para manejar clics y cambiar de página
   const handleMenuClick = (pageId, itemId) => {
-    setActivePage(pageId); // Cambia el contenido central
-    setActiveItem(itemId); // Pone verde el menú
+    setActivePage(pageId);
+    setActiveItem(itemId);
+    navigate('/instructor');
   };
 
-  // Función para abrir/cerrar submenús
   const toggleSubmenu = (menuId) => {
     setOpenMenu(openMenu === menuId ? null : menuId);
-    setActiveItem(menuId); // Pone verde el padre al abrirlo
+    setActiveItem(menuId);
+    navigate('/instructor');
   };
 
   return (
     <nav className="sidebar">
       <div className="sidebar-menu">
         <ul>
-          {/* DASHBOARD */}
           <li 
             className={activeItem === 'dashboard' ? 'active' : ''} 
             onClick={() => handleMenuClick('dashboard', 'dashboard')}
@@ -30,21 +31,13 @@ const Sidebar = ({ setActivePage }) => {
             <i className="fas fa-home"></i> Dashboard
           </li>
 
-          {/* PARAMETRIZACIÓN */}
+          {/* --- NUEVA OPCIÓN: MIS FICHAS --- */}
           <li 
-            className={activeItem === 'param' ? 'active' : ''} 
-            onClick={() => toggleSubmenu('param')}
+            className={activeItem === 'fichas' ? 'active' : ''} 
+            onClick={() => handleMenuClick('fichas', 'fichas')}
           >
-            <i className="fas fa-cogs"></i> Parametrización
-            <i className={`fas fa-chevron-down menu-arrow ${openMenu === 'param' ? 'rotate' : ''}`}></i>
+            <i className="fas fa-layer-group"></i> Mis Fichas
           </li>
-          {openMenu === 'param' && (
-            <ul className="submenu">
-              <li className={activeItem === 'fichas' ? 'active' : ''} onClick={() => handleMenuClick('fichas', 'fichas')}>Fichas</li>
-              <li className={activeItem === 'empresas' ? 'active' : ''} onClick={() => handleMenuClick('empresas', 'empresas')}>Empresas</li>
-              <li className={activeItem === 'aprendices' ? 'active' : ''} onClick={() => handleMenuClick('aprendices', 'aprendices')}>Aprendices</li>
-            </ul>
-          )}
 
           {/* CHARLAS */}
           <li 
@@ -90,9 +83,6 @@ const Sidebar = ({ setActivePage }) => {
               <li className={activeItem === 'certificaciones' ? 'active' : ''} onClick={() => handleMenuClick('certificaciones', 'certificaciones')}>Certificaciones</li>
             </ul>
           )}
-
-          {/* --- ELIMINADO EL BLOQUE DE REPORTES --- */}
-
         </ul>
       </div>
     </nav>

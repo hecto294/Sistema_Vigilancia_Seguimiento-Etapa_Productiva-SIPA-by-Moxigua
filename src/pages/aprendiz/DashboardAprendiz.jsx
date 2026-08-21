@@ -1,10 +1,11 @@
 // src/pages/aprendiz/DashboardAprendiz.jsx
-import React, { useState } from 'react';
+import React from 'react';
 
 const DashboardAprendiz = ({ user }) => {
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [tituloModal, setTituloModal] = useState('');
-  const [detalles, setDetalles] = useState({ hecho: [], falta: [] });
+  // Usamos React.useState en lugar de importar useState
+  const [modalAbierto, setModalAbierto] = React.useState(false);
+  const [tituloModal, setTituloModal] = React.useState('');
+  const [detalles, setDetalles] = React.useState({ hecho: [], falta: [] });
 
   // Datos de progreso real del aprendiz
   const progreso = {
@@ -128,9 +129,7 @@ const DashboardAprendiz = ({ user }) => {
         </div>
       </div>
 
-      {/* ========================================================== */}
       {/* MODAL DE DETALLES */}
-      {/* ========================================================== */}
       {modalAbierto && (
         <div 
           style={{ 

@@ -120,7 +120,7 @@ const SeleccionAlternativa = () => {
     setEmpresaVisible(null);
   };
 
-  // Función de búsqueda
+  // Función de búsqueda (con botones)
   const handleSearch = () => {
     setSearchQuery(searchTerm);
   };
@@ -153,6 +153,12 @@ const SeleccionAlternativa = () => {
     input.click();
   };
 
+  // Filtrar fichas por texto de búsqueda (en la vista de fichas)
+  const filteredFichas = data.filter((ficha) =>
+    ficha.idFicha.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    ficha.programa.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="seleccion-container">
       <div className="seleccion-header">
@@ -163,7 +169,6 @@ const SeleccionAlternativa = () => {
                 <h2>Selección de Alternativa</h2>
                 <p className="subtitulo">Selecciona una ficha para ver qué alternativa eligieron los aprendices.</p>
               </div>
-              {/* --- BOTÓN CARGA ALINEADO A LA DERECHA CON ESTILO VERDE --- */}
               <button className="btn-carga-masiva" onClick={handleCargaMasiva}>
                 <i className="fas fa-upload"></i> Carga
               </button>
@@ -181,44 +186,53 @@ const SeleccionAlternativa = () => {
         )}
       </div>
 
-      {/* NIVEL 1: TARJETAS DE FICHAS */}
+      {/* --- BARRA DE BÚSQUEDA (Solo visible en la vista principal) --- */}
+      {!selectedFicha && (
+        <div className="search-container">
+          <input 
+            type="text" 
+            className="search-input" 
+            placeholder="Buscar por código de ficha o programa..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          <button className="btn-search" onClick={handleSearch}>Buscar</button>
+          <button className="btn-clear" onClick={handleClear}>Limpiar</button>
+        </div>
+      )}
+
+      {/* NIVEL 1: TARJETAS DE FICHAS (con filtro aplicado) */}
       {!selectedFicha && (
         <div className="fichas-grid">
-          {data.map((ficha) => (
-            <div 
-              key={ficha.idFicha} 
-              className="ficha-card"
-              onClick={() => setSelectedFicha(ficha)}
-            >
-              <div className="ficha-card-header">
-                <span className="ficha-numero">{ficha.idFicha}</span>
-                <span className="ficha-cantidad">{ficha.aprendices.length} Aprendices</span>
-              </div>
-              <div className="ficha-card-body">
-                <span className="ficha-programa">{ficha.programa}</span>
-              </div>
+          {filteredFichas.length === 0 ? (
+            <div className="not-found" style={{ gridColumn: '1 / -1' }}>
+              <h2><i className="fas fa-exclamation-circle"></i> Dato no encontrado</h2>
+              <p>No existe ninguna ficha con el código o programa ingresado.</p>
             </div>
-          ))}
+          ) : (
+            filteredFichas.map((ficha) => (
+              <div 
+                key={ficha.idFicha} 
+                className="ficha-card"
+                onClick={() => setSelectedFicha(ficha)}
+              >
+                <div className="ficha-card-header">
+                  <span className="ficha-numero">{ficha.idFicha}</span>
+                  <span className="ficha-cantidad">{ficha.aprendices.length} Aprendices</span>
+                </div>
+                <div className="ficha-card-body">
+                  <span className="ficha-programa">{ficha.programa}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
       {/* NIVEL 2: LISTA DE APRENDICES CON SU ALTERNATIVA */}
       {selectedFicha && (
         <>
-          {/* BARRA DE BÚSQUEDA */}
-          <div className="search-container">
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Buscar por nombre del aprendiz..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <button className="btn-search" onClick={handleSearch}>Buscar</button>
-            <button className="btn-clear" onClick={handleClear}>Limpiar</button>
-          </div>
-
           <div className="aprendices-list-container">
             <div className="table-wrapper">
               <table>
@@ -231,86 +245,71 @@ const SeleccionAlternativa = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedFicha.aprendices
-                    .filter((ap) => 
-                      ap.nombre.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((aprendiz, index) => (
-                      <React.Fragment key={index}>
-                        <tr>
-                          <td>{index + 1}</td>
-                          <td className="nombre-aprendiz">{aprendiz.nombre}</td>
-                          <td>
-                            <span className="alternativa-badge">
-                              {aprendiz.alternativa}
-                            </span>
-                          </td>
-                          <td style={{ textAlign: 'center' }}>
-                            <button 
-                              className="btn-asociacion"
-                              onClick={() => toggleEmpresa(index)}
-                            >
-                              <i className="fas fa-building"></i> Empresa asociada
-                            </button>
+                  {selectedFicha.aprendices.map((aprendiz, index) => (
+                    <React.Fragment key={index}>
+                      <tr>
+                        <td>{index + 1}</td>
+                        <td className="nombre-aprendiz">{aprendiz.nombre}</td>
+                        <td>
+                          <span className="alternativa-badge">
+                            {aprendiz.alternativa}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button 
+                            className="btn-asociacion"
+                            onClick={() => toggleEmpresa(index)}
+                          >
+                            <i className="fas fa-building"></i> Empresa asociada
+                          </button>
+                        </td>
+                      </tr>
+                      {/* FILA DESPLEGABLE DE INFORMACIÓN DE EMPRESA */}
+                      {empresaVisible === index && (
+                        <tr className="empresa-row">
+                          <td colSpan="4">
+                            <div className="empresa-panel">
+                              {aprendiz.empresa ? (
+                                <div className="empresa-info-grid">
+                                  <div className="empresa-item">
+                                    <span className="empresa-label">Empresa</span>
+                                    <span className="empresa-value">{aprendiz.empresa.nombre}</span>
+                                  </div>
+                                  <div className="empresa-item">
+                                    <span className="empresa-label">NIT</span>
+                                    <span className="empresa-value">{aprendiz.empresa.nit}</span>
+                                  </div>
+                                  <div className="empresa-item">
+                                    <span className="empresa-label">ARL</span>
+                                    <span className="empresa-value">{aprendiz.empresa.arl}</span>
+                                  </div>
+                                  <div className="empresa-item">
+                                    <span className="empresa-label">Fecha de inicio</span>
+                                    <span className="empresa-value">{aprendiz.empresa.fechaInicio}</span>
+                                  </div>
+                                  <div className="empresa-item">
+                                    <span className="empresa-label">Fecha fin</span>
+                                    <span className="empresa-value">{aprendiz.empresa.fechaFin}</span>
+                                  </div>
+                                  <div className="empresa-item">
+                                    <span className="empresa-label">Estado</span>
+                                    <span className={`empresa-status ${aprendiz.empresa.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>
+                                      {aprendiz.empresa.estado}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="empresa-sin-datos">
+                                  <i className="fas fa-exclamation-circle"></i>
+                                  <p>Este aprendiz aún no tiene una empresa asociada.</p>
+                                </div>
+                              )}
+                            </div>
                           </td>
                         </tr>
-                        {/* FILA DESPLEGABLE DE INFORMACIÓN DE EMPRESA */}
-                        {empresaVisible === index && (
-                          <tr className="empresa-row">
-                            <td colSpan="4">
-                              <div className="empresa-panel">
-                                {aprendiz.empresa ? (
-                                  <div className="empresa-info-grid">
-                                    <div className="empresa-item">
-                                      <span className="empresa-label">Empresa</span>
-                                      <span className="empresa-value">{aprendiz.empresa.nombre}</span>
-                                    </div>
-                                    <div className="empresa-item">
-                                      <span className="empresa-label">NIT</span>
-                                      <span className="empresa-value">{aprendiz.empresa.nit}</span>
-                                    </div>
-                                    <div className="empresa-item">
-                                      <span className="empresa-label">ARL</span>
-                                      <span className="empresa-value">{aprendiz.empresa.arl}</span>
-                                    </div>
-                                    <div className="empresa-item">
-                                      <span className="empresa-label">Fecha de inicio</span>
-                                      <span className="empresa-value">{aprendiz.empresa.fechaInicio}</span>
-                                    </div>
-                                    <div className="empresa-item">
-                                      <span className="empresa-label">Fecha fin</span>
-                                      <span className="empresa-value">{aprendiz.empresa.fechaFin}</span>
-                                    </div>
-                                    <div className="empresa-item">
-                                      <span className="empresa-label">Estado</span>
-                                      <span className={`empresa-status ${aprendiz.empresa.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>
-                                        {aprendiz.empresa.estado}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="empresa-sin-datos">
-                                    <i className="fas fa-exclamation-circle"></i>
-                                    <p>Este aprendiz aún no tiene una empresa asociada.</p>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  {/* Mensaje de "Dato no encontrado" si la búsqueda no arroja resultados */}
-                  {selectedFicha.aprendices.filter(ap => ap.nombre.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && searchQuery !== '' && (
-                    <tr>
-                      <td colSpan="4" className="not-found-row">
-                        <div className="not-found">
-                          <h2><i className="fas fa-exclamation-circle"></i> Dato no encontrado</h2>
-                          <p>No existe ningún aprendiz con el nombre ingresado.</p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
+                      )}
+                    </React.Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>

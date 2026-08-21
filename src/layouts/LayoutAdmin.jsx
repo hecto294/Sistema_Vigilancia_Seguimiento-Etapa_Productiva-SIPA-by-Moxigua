@@ -8,7 +8,8 @@ import '../App.css';
 import DashboardAdmin from '../pages/admin/DashboardAdmin';
 import GestionUsuarios from '../pages/admin/GestionUsuarios';
 import GestionFichas from '../pages/admin/GestionFichas';
-import ReportesGlobales from '../pages/coordinador/ReportesGlobales'; // <--- REUTILIZAMOS
+import ReportesGlobales from '../pages/admin/ReportesGlobales';
+import MiPerfil from '../pages/admin/MiPerfil';
 
 const LayoutAdmin = ({ user }) => {
   const navigate = useNavigate();
@@ -36,7 +37,8 @@ const LayoutAdmin = ({ user }) => {
             <Route path="/" element={<DashboardAdmin />} />
             <Route path="/usuarios" element={<GestionUsuarios />} />
             <Route path="/fichas" element={<GestionFichas />} />
-            <Route path="/reportes" element={<ReportesGlobales />} /> {/* <--- NUEVA RUTA */}
+            <Route path="/reportes" element={<ReportesGlobales />} />
+            <Route path="/mi-perfil" element={<MiPerfil user={user} />} />
           </Routes>
         </div>
       </div>

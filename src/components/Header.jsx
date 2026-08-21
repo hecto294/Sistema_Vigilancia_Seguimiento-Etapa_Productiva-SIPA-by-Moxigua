@@ -1,12 +1,13 @@
 // src/components/Header.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Header.css';
 
 const Header = ({ user }) => {
+  const navigate = useNavigate();
   const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const toggleHelpMenu = () => setShowHelpMenu(!showHelpMenu);
   const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
@@ -19,13 +20,23 @@ const Header = ({ user }) => {
     }
   };
 
+  // --- Navegación según el rol ---
   const handleViewProfile = () => {
     setShowProfileMenu(false);
-    setShowProfileModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowProfileModal(false);
+    const role = user?.role || 'instructor';
+    
+    if (role === 'instructor') {
+      navigate('/instructor/mi-perfil');
+    } else if (role === 'aprendiz') {
+      navigate('/aprendiz/mi-perfil');
+    } else if (role === 'coordinador') {
+      navigate('/coordinador/mi-perfil');
+    } else if (role === 'admin') {
+      navigate('/admin/mi-perfil');
+    } else {
+      // Fallback: ir al perfil del instructor
+      navigate('/instructor/mi-perfil');
+    }
   };
 
   const notificaciones = [
@@ -94,7 +105,7 @@ const Header = ({ user }) => {
             <img src={user?.avatar || 'https://i.pravatar.cc/150?img=11'} alt="Profile" />
             <div>
               <strong>{user?.nombre || 'Usuario'}</strong> <br />
-              <small>{user?.role === 'aprendiz' ? 'Aprendiz' : (user?.cargo || 'Rol')}</small>
+              <small>{user?.role === 'instructor' ? 'Instructor SENA' : (user?.cargo || 'Rol')}</small>
             </div>
             <i className={`fas fa-chevron-down profile-arrow ${showProfileMenu ? 'rotate' : ''}`}></i>
           </div>
@@ -111,42 +122,6 @@ const Header = ({ user }) => {
           )}
         </div>
       </div>
-
-      {showProfileModal && (
-        <div className="profile-modal-overlay" onClick={handleCloseModal}>
-          <div className="profile-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-btn" onClick={handleCloseModal}>&times;</button>
-            <div className="profile-modal-header">
-              <div className="profile-modal-avatar">
-                <img src="https://i.pravatar.cc/150?img=11" alt="Profile" />
-              </div>
-              <h2>{user?.nombre || 'Usuario'}</h2>
-              <p className="profile-modal-role">{user?.role === 'aprendiz' ? 'Aprendiz' : (user?.cargo || 'Rol')}</p>
-            </div>
-            <div className="profile-modal-body">
-              <div className="profile-info-row">
-                <span className="info-label">Correo electrónico</span>
-                <span className="info-value">carlos.lopez@sena.edu.co</span>
-              </div>
-              <div className="profile-info-row">
-                <span className="info-label">Teléfono</span>
-                <span className="info-value">+57 310 123 4567</span>
-              </div>
-              <div className="profile-info-row">
-                <span className="info-label">Regional</span>
-                <span className="info-value">Bogotá - Cundinamarca</span>
-              </div>
-              <div className="profile-info-row">
-                <span className="info-label">Centro de formación</span>
-                <span className="info-value">Centro de Tecnología y Diseño</span>
-              </div>
-            </div>
-            <div className="profile-modal-actions">
-              <button className="btn-edit-profile">Editar perfil</button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 };

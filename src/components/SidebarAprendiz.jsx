@@ -34,13 +34,8 @@ const SidebarAprendiz = ({ setActivePage, activePage }) => {
           >
             <i className="fas fa-certificate"></i> Mis Certificados
           </li>
-
-          <li 
-            className={activePage === 'perfil' ? 'active' : ''} 
-            onClick={() => setActivePage('perfil')}
-          >
-            <i className="fas fa-user"></i> Mi Perfil
-          </li>
+          
+          {/* ELIMINAMOS LA OPCIÓN "Mi Perfil" DE AQUÍ */}
         </ul>
       </div>
     </nav>
