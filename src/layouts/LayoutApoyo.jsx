@@ -5,25 +5,32 @@ import Header from '../components/Header';
 import SidebarApoyo from '../components/SidebarApoyo';
 import '../App.css';
 
-// REUTILIZAMOS los componentes del Admin (solo lectura por la URL /apoyo)
-import DashboardAdmin from '../pages/admin/DashboardAdmin';
-import GestionUsuarios from '../pages/admin/GestionUsuarios';
-import GestionFichas from '../pages/admin/GestionFichas';
-import ReportesGlobales from '../pages/admin/ReportesGlobales';
-import MiPerfil from '../pages/apoyo/MiPerfil';
+import DashboardApoyo from '../pages/apoyo/DashboardApoyo';
+import GestionUsuariosApoyo from '../pages/apoyo/GestionUsuariosApoyo';
+import GestionFichasApoyo from '../pages/apoyo/GestionFichasApoyo';
+import ReportesGlobalesApoyo from '../pages/apoyo/ReportesGlobalesApoyo';
 
 const LayoutApoyo = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleNavigation = (url, pageId) => {
+  const handleNavigation = (url) => {
     navigate(url);
   };
 
+  // Determinar qué página está activa basado en la URL
+  const pathname = location.pathname;
   let activePage = 'dashboard';
-  if (location.pathname.includes('/usuarios')) activePage = 'usuarios';
-  else if (location.pathname.includes('/fichas')) activePage = 'fichas';
-  else if (location.pathname.includes('/reportes')) activePage = 'reportes';
+  
+  if (pathname.includes('/gestion-usuarios') || pathname.includes('/usuarios')) {
+    activePage = 'usuarios';
+  } else if (pathname.includes('/gestion-fichas') || pathname.includes('/fichas')) {
+    activePage = 'fichas';
+  } else if (pathname.includes('/reportes')) {
+    activePage = 'reportes';
+  } else if (pathname === '/apoyo' || pathname === '/apoyo/' || pathname.includes('/dashboard')) {
+    activePage = 'dashboard';
+  }
 
   return (
     <div className="app-layout">
@@ -35,11 +42,13 @@ const LayoutApoyo = ({ user }) => {
         />
         <div className="content-area" style={{ padding: '30px', boxSizing: 'border-box' }}>
           <Routes>
-            <Route path="/" element={<DashboardAdmin />} />
-            <Route path="/usuarios" element={<GestionUsuarios />} />
-            <Route path="/fichas" element={<GestionFichas />} />
-            <Route path="/reportes" element={<ReportesGlobales />} />
-            <Route path="/mi-perfil" element={<MiPerfil user={user} />} />
+            <Route path="/" element={<DashboardApoyo />} />
+            <Route path="/dashboard" element={<DashboardApoyo />} />
+            <Route path="/gestion-usuarios" element={<GestionUsuariosApoyo />} />
+            <Route path="/usuarios" element={<GestionUsuariosApoyo />} />
+            <Route path="/gestion-fichas" element={<GestionFichasApoyo />} />
+            <Route path="/fichas" element={<GestionFichasApoyo />} />
+            <Route path="/reportes" element={<ReportesGlobalesApoyo />} />
           </Routes>
         </div>
       </div>

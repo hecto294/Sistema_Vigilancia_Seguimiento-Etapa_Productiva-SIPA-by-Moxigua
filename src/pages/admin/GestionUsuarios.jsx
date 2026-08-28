@@ -1,286 +1,583 @@
 // src/pages/admin/GestionUsuarios.jsx
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import CargaMasivaUsuarios from './CargaMasivaUsuarios';
+import { useNavigate, Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import './GestionUsuarios.css';
 
 const GestionUsuarios = () => {
-  const location = useLocation();
-  const esApoyo = location.pathname.startsWith('/apoyo');
-
-  const [usuarios, setUsuarios] = useState([
-    { id: 1, nombre: 'Carlos Andrés López', rol: 'Instructor', email: 'carlos.lopez@soy.sena.edu.co' },
-    { id: 2, nombre: 'María Fernanda Ruiz', rol: 'Coordinador', email: 'maria.ruiz@soy.sena.edu.co' },
-    { id: 3, nombre: 'Andrés Felipe Castro', rol: 'Aprendiz', email: 'andres.castro@soy.sena.edu.co' },
-    { id: 4, nombre: 'Laura Sofia Martinez', rol: 'Aprendiz', email: 'laura.martinez@soy.sena.edu.co' },
-    { id: 5, nombre: 'Juan Diego Ramirez', rol: 'Instructor', email: 'juan.ramirez@soy.sena.edu.co' },
-  ]);
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [modalCargaMasiva, setModalCargaMasiva] = useState(false);
-  const [nuevoUsuario, setNuevoUsuario] = useState({
-    nombre: '',
-    rol: 'Instructor',
-    email: ''
-  });
+  const [usuarios, setUsuarios] = useState([
+    {
+      id: 1,
+      nombre: 'Carlos Andrés López',
+      rol: 'Instructor',
+      correo: 'carlos.lopez@soy.sena.edu.co',
+      estado: 'Activo'
+    },
+    {
+      id: 2,
+      nombre: 'María Fernanda Ruiz',
+      rol: 'Coordinador',
+      correo: 'maria.ruiz@soy.sena.edu.co',
+      estado: 'Activo'
+    },
+    {
+      id: 3,
+      nombre: 'Andrés Felipe Castro',
+      rol: 'Aprendiz',
+      correo: 'andres.castro@soy.sena.edu.co',
+      estado: 'Activo'
+    },
+    {
+      id: 4,
+      nombre: 'Laura Sofia Martínez',
+      rol: 'Aprendiz',
+      correo: 'laura.martinez@soy.sena.edu.co',
+      estado: 'Activo'
+    },
+    {
+      id: 5,
+      nombre: 'Juan Diego Ramirez',
+      rol: 'Instructor',
+      correo: 'juan.ramirez@soy.sena.edu.co',
+      estado: 'Inactivo'
+    }
+  ]);
 
-  // --- Funciones de búsqueda ---
+  // Navegar al inicio (Dashboard)
+  const goToInicio = () => {
+    navigate('/admin');
+    window.location.reload();
+  };
+
   const handleSearch = () => setSearchQuery(searchTerm);
   const handleClear = () => { setSearchTerm(''); setSearchQuery(''); };
 
   const filteredUsuarios = usuarios.filter(u =>
     u.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.rol.toLowerCase().includes(searchQuery.toLowerCase())
+    u.rol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.correo.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --- Función para generar el correo institucional ---
-  const generarCorreo = (nombre, rol) => {
-    if (!nombre.trim()) return '';
-    const nombreLimpio = nombre
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '.');
-    return `${nombreLimpio}@soy.sena.edu.co`;
+  // ==========================================================
+  // FUNCIÓN PARA EDITAR USUARIO
+  // ==========================================================
+  const handleEditarUsuario = (usuario) => {
+    // Opciones de roles para el select
+    const rolesOptions = ['Aprendiz', 'Instructor', 'Coordinador', 'Administrador']
+      .map(rol => `<option value="${rol}" ${usuario.rol === rol ? 'selected' : ''}>${rol}</option>`)
+      .join('');
+
+    Swal.fire({
+      title: `✏️ Editar Usuario`,
+      html: `
+        <div style="text-align: left; padding: 5px 0;">
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+              Nombre completo *
+            </label>
+            <input id="edit-nombre" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+              value="${usuario.nombre}"
+            />
+          </div>
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+              Correo institucional *
+            </label>
+            <input id="edit-correo" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+              value="${usuario.correo}"
+            />
+          </div>
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+              Rol *
+            </label>
+            <select id="edit-rol" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+            >
+              ${rolesOptions}
+            </select>
+          </div>
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+              Estado *
+            </label>
+            <select id="edit-estado" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+            >
+              <option value="Activo" ${usuario.estado === 'Activo' ? 'selected' : ''}>Activo</option>
+              <option value="Inactivo" ${usuario.estado === 'Inactivo' ? 'selected' : ''}>Inactivo</option>
+            </select>
+          </div>
+          <p style="font-size: 11px; color: #9ca3af; margin: 6px 0 0 0; text-align: left;">
+            * Campos obligatorios
+          </p>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: '💾 Guardar Cambios',
+      confirmButtonColor: '#3ca203',
+      showCancelButton: true,
+      cancelButtonText: '❌ Cancelar',
+      cancelButtonColor: '#ef4444',
+      width: '500px',
+      padding: '1.5rem',
+      preConfirm: () => {
+        const nombre = document.getElementById('edit-nombre').value;
+        const correo = document.getElementById('edit-correo').value;
+        const rol = document.getElementById('edit-rol').value;
+        const estado = document.getElementById('edit-estado').value;
+
+        if (!nombre.trim()) {
+          Swal.showValidationMessage('⚠️ Por favor ingresa el nombre');
+          return false;
+        }
+        if (!correo.trim() || !correo.includes('@')) {
+          Swal.showValidationMessage('⚠️ Por favor ingresa un correo válido');
+          return false;
+        }
+
+        return { nombre: nombre.trim(), correo: correo.trim(), rol, estado };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { nombre, correo, rol, estado } = result.value;
+
+        // Actualizar el usuario en el estado
+        setUsuarios(prevUsuarios =>
+          prevUsuarios.map(u => {
+            if (u.id === usuario.id) {
+              return {
+                ...u,
+                nombre: nombre,
+                correo: correo,
+                rol: rol,
+                estado: estado
+              };
+            }
+            return u;
+          })
+        );
+
+        Swal.fire({
+          title: '✅ ¡Usuario actualizado!',
+          html: `
+            <div style="text-align: left; padding: 10px 0;">
+              <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Nombre:</strong> ${nombre}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Correo:</strong> ${correo}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Rol:</strong> ${rol}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Estado:</strong> ${estado}
+                </p>
+              </div>
+              <p style="margin: 10px 0 0 0; font-size: 13px; color: #9ca3af; text-align: center;">
+                Los datos del usuario han sido actualizados exitosamente.
+              </p>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: '✅ Aceptar',
+          confirmButtonColor: '#3ca203',
+          timer: 3000,
+          timerProgressBar: true,
+          width: '480px'
+        });
+      }
+    });
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNuevoUsuario({ ...nuevoUsuario, [name]: value });
-    if (name === 'nombre' || name === 'rol') {
-      const nombreActual = name === 'nombre' ? value : nuevoUsuario.nombre;
-      const rolActual = name === 'rol' ? value : nuevoUsuario.rol;
-      const correoGenerado = generarCorreo(nombreActual, rolActual);
-      setNuevoUsuario(prev => ({ ...prev, email: correoGenerado }));
-    }
+  // ==========================================================
+  // FUNCIÓN PARA CARGA MASIVA DE USUARIOS
+  // ==========================================================
+  const handleCargaMasiva = () => {
+    Swal.fire({
+      title: '📤 Carga Masiva de Usuarios',
+      html: `
+        <div style="text-align: left; padding: 5px 0;">
+          <div style="margin: 15px 0; padding: 20px; border: 2px dashed #d1d5db; border-radius: 8px; text-align: center;">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #3ca203;"></i>
+            <p style="margin: 10px 0 0 0; color: #6b7280;">
+              Arrastra o haz clic para seleccionar un archivo
+            </p>
+            <p style="font-size: 12px; color: #9ca3af;">
+              Formatos permitidos: .xlsx, .xls, .csv
+            </p>
+          </div>
+          <div style="margin: 15px 0;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
+              Selecciona tu archivo *
+            </label>
+            <input type="file" id="archivo-carga" accept=".xlsx,.xls,.csv"
+              style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+            />
+          </div>
+          <div style="margin: 15px 0;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
+              Rol de los usuarios *
+            </label>
+            <select id="rol-carga" 
+              style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+            >
+              <option value="Aprendiz">Aprendiz</option>
+              <option value="Instructor">Instructor</option>
+              <option value="Coordinador">Coordinador</option>
+              <option value="Administrador">Administrador</option>
+            </select>
+          </div>
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
+              Descripción (opcional)
+            </label>
+            <textarea id="descripcion-carga" 
+              style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; min-height: 60px; resize: vertical;"
+              placeholder="Agrega una descripción para esta carga masiva..."
+            ></textarea>
+          </div>
+          <p style="font-size: 11px; color: #9ca3af; margin: 6px 0 0 0; text-align: left;">
+            * Campos obligatorios
+          </p>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: '📤 Subir Archivo',
+      confirmButtonColor: '#3ca203',
+      showCancelButton: true,
+      cancelButtonText: '❌ Cancelar',
+      cancelButtonColor: '#ef4444',
+      width: '520px',
+      padding: '1.5rem',
+      preConfirm: () => {
+        const fileInput = document.getElementById('archivo-carga');
+        const file = fileInput?.files[0];
+        const rol = document.getElementById('rol-carga').value;
+        const descripcion = document.getElementById('descripcion-carga').value;
+
+        if (!file) {
+          Swal.showValidationMessage('⚠️ Por favor selecciona un archivo');
+          return false;
+        }
+
+        const tiposPermitidos = [
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-excel',
+          'text/csv'
+        ];
+        if (!tiposPermitidos.includes(file.type) && !file.name.endsWith('.csv')) {
+          Swal.showValidationMessage('⚠️ Solo se permiten archivos Excel (.xlsx, .xls) o CSV');
+          return false;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+          Swal.showValidationMessage('⚠️ El archivo no debe superar los 10MB');
+          return false;
+        }
+
+        return { file, fileName: file.name, rol, descripcion };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { file, fileName, rol, descripcion } = result.value;
+
+        Swal.fire({
+          title: '✅ ¡Carga masiva iniciada!',
+          html: `
+            <div style="text-align: left; padding: 10px 0;">
+              <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Archivo:</strong> ${fileName}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Rol:</strong> ${rol}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Tamaño:</strong> ${(file.size / 1024).toFixed(2)} KB
+                </p>
+                ${descripcion ? `
+                  <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                    <strong>Descripción:</strong> ${descripcion}
+                  </p>
+                ` : ''}
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <i class="fas fa-spinner fa-pulse" style="color: #3ca203;"></i>
+                  Procesando usuarios...
+                </p>
+              </div>
+              <p style="margin: 10px 0 0 0; font-size: 13px; color: #9ca3af; text-align: center;">
+                Los usuarios se están cargando en el sistema.
+              </p>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: '✅ Aceptar',
+          confirmButtonColor: '#3ca203',
+          timer: 2500,
+          timerProgressBar: true,
+          width: '480px'
+        });
+      }
+    });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!nuevoUsuario.nombre || !nuevoUsuario.email) {
-      alert('Por favor, completa todos los campos.');
-      return;
-    }
-    const nuevoId = usuarios.length + 1;
-    setUsuarios([...usuarios, { id: nuevoId, ...nuevoUsuario }]);
-    setModalAbierto(false);
-    setNuevoUsuario({ nombre: '', rol: 'Instructor', email: '' });
+  // ==========================================================
+  // FUNCIÓN PARA NUEVO USUARIO
+  // ==========================================================
+  const handleNuevoUsuario = () => {
+    Swal.fire({
+      title: '👤 Nuevo Usuario',
+      html: `
+        <div style="text-align: left; padding: 5px 0;">
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+              Nombre completo *
+            </label>
+            <input id="nombre-usuario" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+              placeholder="Ej: Juan Pérez"
+            />
+          </div>
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+              Correo institucional *
+            </label>
+            <input id="correo-usuario" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+              placeholder="juan.perez@soy.sena.edu.co"
+            />
+          </div>
+          <div style="margin: 12px 0;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+              Rol *
+            </label>
+            <select id="rol-usuario" 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+            >
+              <option value="Aprendiz">Aprendiz</option>
+              <option value="Instructor">Instructor</option>
+              <option value="Coordinador">Coordinador</option>
+              <option value="Administrador">Administrador</option>
+            </select>
+          </div>
+          <p style="font-size: 11px; color: #9ca3af; margin: 6px 0 0 0; text-align: left;">
+            * Campos obligatorios
+          </p>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: '✅ Crear Usuario',
+      confirmButtonColor: '#3ca203',
+      showCancelButton: true,
+      cancelButtonText: '❌ Cancelar',
+      cancelButtonColor: '#ef4444',
+      width: '480px',
+      padding: '1.5rem',
+      preConfirm: () => {
+        const nombre = document.getElementById('nombre-usuario').value;
+        const correo = document.getElementById('correo-usuario').value;
+        const rol = document.getElementById('rol-usuario').value;
+
+        if (!nombre.trim()) {
+          Swal.showValidationMessage('⚠️ Por favor ingresa el nombre');
+          return false;
+        }
+        if (!correo.trim() || !correo.includes('@')) {
+          Swal.showValidationMessage('⚠️ Por favor ingresa un correo válido');
+          return false;
+        }
+
+        return { nombre: nombre.trim(), correo: correo.trim(), rol };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { nombre, correo, rol } = result.value;
+
+        const nuevoUsuario = {
+          id: usuarios.length + 1,
+          nombre: nombre,
+          rol: rol,
+          correo: correo,
+          estado: 'Activo'
+        };
+
+        setUsuarios([...usuarios, nuevoUsuario]);
+
+        Swal.fire({
+          title: '✅ ¡Usuario creado exitosamente!',
+          html: `
+            <div style="text-align: left; padding: 10px 0;">
+              <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Nombre:</strong> ${nombre}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Correo:</strong> ${correo}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Rol:</strong> ${rol}
+                </p>
+              </div>
+              <p style="margin: 10px 0 0 0; font-size: 13px; color: #9ca3af; text-align: center;">
+                El usuario ha sido creado exitosamente.
+              </p>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: '✅ Aceptar',
+          confirmButtonColor: '#3ca203',
+          timer: 3000,
+          timerProgressBar: true,
+          width: '480px'
+        });
+      }
+    });
   };
 
-  const abrirModal = () => setModalAbierto(true);
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setNuevoUsuario({ nombre: '', rol: 'Instructor', email: '' });
-  };
-
-  const abrirModalCargaMasiva = () => setModalCargaMasiva(true);
-  const cerrarModalCargaMasiva = () => setModalCargaMasiva(false);
-
-  const handleUsuariosCargados = (nuevosUsuarios) => {
-    const usuariosConId = nuevosUsuarios.map((u, index) => ({
-      ...u,
-      id: usuarios.length + index + 1,
-    }));
-    setUsuarios([...usuarios, ...usuariosConId]);
+  // Función para obtener el color del estado
+  const getColorEstado = (estado) => {
+    if (estado === 'Activo') return '#10b981';
+    return '#ef4444';
   };
 
   return (
-    <div style={{ width: '100%', padding: '20px 0' }}>
-      {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div className="gestion-usuarios-container">
+      {/* ========================================================== */}
+      {/* MIGA DE PAN */}
+      {/* ========================================================== */}
+      <nav className="breadcrumb">
+        <ol>
+          <li>
+            <Link to="/admin" className="breadcrumb-link">
+              <i className="fas fa-home"></i> Inicio
+            </Link>
+            <span className="separator"> &gt; </span>
+          </li>
+          <li>
+            <Link to="/admin/panel-global" className="breadcrumb-link">
+              <i className="fas fa-th-large"></i> Panel Global
+            </Link>
+            <span className="separator"> &gt; </span>
+          </li>
+          <li className="active">
+            <i className="fas fa-users"></i> Gestión de Usuarios
+          </li>
+        </ol>
+      </nav>
+
+      {/* ========================================================== */}
+      {/* ENCABEZADO CON BOTONES */}
+      {/* ========================================================== */}
+      <div className="usuarios-header">
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>Gestión de Usuarios</h2>
-          <p style={{ color: '#6b7280' }}>
-            {esApoyo ? 'Consulta de usuarios del sistema.' : 'Administra los usuarios del sistema.'}
-          </p>
+          <h2>Gestión de Usuarios</h2>
+          <p className="subtitulo">Administra los usuarios del sistema.</p>
         </div>
-        {/* --- BOTONES OCULTOS PARA APOYO --- */}
-        {!esApoyo && (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={abrirModalCargaMasiva}
-              style={{
-                background: '#0ea5e9',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: 'bold'
-              }}
-            >
-              <i className="fas fa-upload" /> Carga Masiva
-            </button>
-            <button
-              onClick={abrirModal}
-              style={{
-                background: '#3ca203',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: 'bold'
-              }}
-            >
-              <i className="fas fa-user-plus" /> Nuevo Usuario
-            </button>
-          </div>
-        )}
+        <div className="header-buttons">
+          <button 
+            className="btn-carga-masiva"
+            onClick={handleCargaMasiva}
+          >
+            <i className="fas fa-upload"></i> Carga Masiva
+          </button>
+          <button 
+            className="btn-nuevo-usuario"
+            onClick={handleNuevoUsuario}
+          >
+            <i className="fas fa-plus"></i> Nuevo Usuario
+          </button>
+        </div>
       </div>
 
-      {/* BARRA DE BÚSQUEDA */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      {/* ========================================================== */}
+      {/* BUSCADOR */}
+      {/* ========================================================== */}
+      <div className="search-container">
         <input
           type="text"
+          className="search-input"
           placeholder="Buscar por nombre, rol o correo..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          style={{
-            flex: 1,
-            padding: '10px 15px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '6px',
-            fontSize: '14px',
-            outline: 'none'
-          }}
         />
-        <button
-          onClick={handleSearch}
-          style={{
-            background: '#3ca203',
-            color: 'white',
-            border: 'none',
-            padding: '10px 24px',
-            borderRadius: '6px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <i className="fas fa-search" /> Buscar
+        <button className="btn-search" onClick={handleSearch}>
+          <i className="fas fa-search"></i> Buscar
         </button>
-        <button
-          onClick={handleClear}
-          style={{
-            background: '#e5e7eb',
-            color: '#1f2937',
-            border: 'none',
-            padding: '10px 24px',
-            borderRadius: '6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <i className="fas fa-eraser" /> Limpiar
+        <button className="btn-clear" onClick={handleClear}>
+          <i className="fas fa-times"></i> Limpiar
         </button>
       </div>
 
+      {/* ========================================================== */}
       {/* TABLA DE USUARIOS */}
-      {filteredUsuarios.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          background: 'white',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb'
-        }}>
-          <i className="fas fa-exclamation-circle" style={{ fontSize: '48px', color: '#dc2626', marginBottom: '15px' }} />
-          <h3 style={{ color: '#dc2626', fontSize: '22px', marginBottom: '10px' }}>Dato no encontrado</h3>
-          <p style={{ color: '#6b7280', fontSize: '16px' }}>
-            No se encontraron usuarios con el criterio de búsqueda: <strong>"{searchQuery}"</strong>
-          </p>
-        </div>
-      ) : (
-        <div style={{ background: 'white', borderRadius: '12px', padding: '20px', border: '1px solid #e5e7eb' }}>
-          {searchQuery && (
-            <div style={{ marginBottom: '15px', fontSize: '14px', color: '#6b7280' }}>
-              <i className="fas fa-list" /> Mostrando {filteredUsuarios.length} de {usuarios.length} usuarios
-            </div>
-          )}
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Nombre</th>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Rol</th>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Correo institucional</th>
-                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Acciones</th>
+      {/* ========================================================== */}
+      <div className="table-wrapper">
+        <table className="usuarios-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Correo institucional</th>
+              <th style={{ textAlign: 'center' }}>Estado</th>
+              <th style={{ textAlign: 'center' }}>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsuarios.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
+                  <i className="fas fa-exclamation-circle" style={{ color: '#dc2626', fontSize: '24px' }}></i>
+                  <h3 style={{ color: '#dc2626', margin: '10px 0 5px 0' }}>Dato no encontrado</h3>
+                  <p style={{ color: '#6b7280' }}>No se encontraron usuarios con ese criterio.</p>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filteredUsuarios.map(u => (
-                <tr key={u.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '12px', fontWeight: '500' }}>{u.nombre}</td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{
-                      background: u.rol === 'Instructor' ? '#d1fae5' : u.rol === 'Coordinador' ? '#e0f2fe' : '#fef3c7',
-                      color: u.rol === 'Instructor' ? '#047857' : u.rol === 'Coordinador' ? '#0ea5e9' : '#d97706',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 'bold'
-                    }}>
-                      {u.rol}
+            ) : (
+              filteredUsuarios.map((usuario) => (
+                <tr key={usuario.id}>
+                  <td className="usuario-nombre">{usuario.nombre}</td>
+                  <td>
+                    <span className={`rol-badge ${usuario.rol.toLowerCase()}`}>
+                      {usuario.rol}
                     </span>
                   </td>
-                  <td style={{ padding: '12px' }}>{u.email}</td>
-                  <td style={{ textAlign: 'center', padding: '12px' }}>
-                    {esApoyo ? (
-                      <span style={{ color: '#9ca3af', fontSize: '13px' }}>
-                        <i className="fas fa-eye" style={{ marginRight: '6px' }} /> Solo lectura
-                      </span>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => alert(`Editando usuario ${u.nombre}`)}
-                          style={{ background: '#e6f7ed', color: '#047857', border: 'none', padding: '4px 12px', borderRadius: '6px', marginRight: '5px', cursor: 'pointer' }}
-                        >
-                          <i className="fas fa-edit" /> Editar
-                        </button>
-                        <button
-                          onClick={() => alert(`Eliminando usuario ${u.nombre}`)}
-                          style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer' }}
-                        >
-                          <i className="fas fa-trash" /> Eliminar
-                        </button>
-                      </>
-                    )}
+                  <td>{usuario.correo}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span 
+                      className={`estado-badge ${usuario.estado.toLowerCase()}`}
+                      style={{ 
+                        background: `${getColorEstado(usuario.estado)}15`, 
+                        color: getColorEstado(usuario.estado) 
+                      }}
+                    >
+                      <i className={`fas ${usuario.estado === 'Activo' ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
+                      {usuario.estado}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button 
+                      className="btn-editar"
+                      onClick={() => handleEditarUsuario(usuario)}
+                    >
+                      <i className="fas fa-pen"></i> Editar
+                    </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* ========================================================== */}
-      {/* MODALES (SOLO PARA ADMIN) */}
-      {/* ========================================================== */}
-      {!esApoyo && modalAbierto && (
-        // ... tu modal de creación de usuario ...
-        <div>Modal de creación</div>
-      )}
-
-      {!esApoyo && modalCargaMasiva && (
-        // ... tu modal de carga masiva ...
-        <div>Modal de carga masiva</div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

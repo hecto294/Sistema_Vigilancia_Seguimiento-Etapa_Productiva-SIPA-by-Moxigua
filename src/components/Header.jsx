@@ -1,6 +1,7 @@
 // src/components/Header.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import './Header.css';
 
 const Header = ({ user }) => {
@@ -13,11 +14,29 @@ const Header = ({ user }) => {
   const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
   const toggleNotifications = () => setShowNotifications(!showNotifications);
 
+  // ==========================================================
+  // FUNCIÓN PARA CERRAR SESIÓN CON SWEETALERT
+  // ==========================================================
   const handleLogout = () => {
-    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      alert('Sesión cerrada correctamente.');
-      setShowProfileMenu(false);
-    }
+    Swal.fire({
+      title: '¿Estás seguro de que quieres cerrar sesión?',
+      text: 'Se cerrará tu sesión actual y serás redirigido a la página principal.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: '✅ Sí, cerrar sesión',
+      cancelButtonText: '❌ Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Limpiar sesión
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // ✅ Redirigir al Landing Page SIN poder volver atrás
+        window.location.replace('/');
+      }
+    });
   };
 
   // --- Navegación según el rol ---
@@ -34,7 +53,6 @@ const Header = ({ user }) => {
     } else if (role === 'admin') {
       navigate('/admin/mi-perfil');
     } else {
-      // Fallback: ir al perfil del instructor
       navigate('/instructor/mi-perfil');
     }
   };

@@ -1,13 +1,17 @@
 // src/components/HistorialCharlas.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import './HistorialCharlas.css';
 
 const HistorialCharlas = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [charlaSeleccionada, setCharlaSeleccionada] = useState(null);
+  const [visorAbierto, setVisorAbierto] = useState(false);
+  const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
 
-  // Datos del historial con soportes, listados y fotos
   const historial = [
     {
       id: 1,
@@ -16,14 +20,14 @@ const HistorialCharlas = () => {
       instructor: 'Carlos Andrés López',
       asistencia: 22,
       soportes: [
-        { nombre: 'Guía Normatividad.pdf', tipo: 'pdf' },
-        { nombre: 'Presentación Intro.pptx', tipo: 'ppt' }
+        { nombre: 'Guía Normatividad.pdf', tipo: 'pdf', contenido: 'Documento PDF con la guía completa de normatividad SENA. Incluye todos los procedimientos y requisitos para la etapa productiva.' },
+        { nombre: 'Presentación Intro.pptx', tipo: 'ppt', contenido: 'Presentación en PowerPoint con la introducción a la normatividad SENA. 15 diapositivas con los puntos clave.' }
       ],
       listados: [
-        { nombre: 'Lista_Asistencia_Junio.xlsx', tipo: 'excel' }
+        { nombre: 'Lista_Asistencia_Junio.xlsx', tipo: 'excel', contenido: 'Archivo Excel con la lista de asistencia de los 22 aprendices. Incluye fecha, hora y firma de cada participante.' }
       ],
       fotos: [
-        { nombre: 'Foto_Charla_1.jpg', tipo: 'imagen' }
+        { nombre: 'Foto_Charla_1.jpg', tipo: 'imagen', url: 'https://picsum.photos/seed/charla1/800/500', contenido: 'Foto grupal de los aprendices durante la charla de Normatividad SENA. Se observa la participación activa del grupo.' }
       ]
     },
     {
@@ -33,13 +37,13 @@ const HistorialCharlas = () => {
       instructor: 'Ana María Pérez',
       asistencia: 18,
       soportes: [
-        { nombre: 'Reglamento Seguridad.pdf', tipo: 'pdf' }
+        { nombre: 'Reglamento Seguridad.pdf', tipo: 'pdf', contenido: 'Reglamento interno de seguridad industrial. Normas y procedimientos obligatorios para todos los aprendices en etapa productiva.' }
       ],
       listados: [
-        { nombre: 'Lista_Asistencia_Seguridad.xlsx', tipo: 'excel' }
+        { nombre: 'Lista_Asistencia_Seguridad.xlsx', tipo: 'excel', contenido: 'Lista de asistencia con 18 aprendices registrados. Incluye observaciones de cada participante.' }
       ],
       fotos: [
-        { nombre: 'Foto_Charla_2.jpg', tipo: 'imagen' }
+        { nombre: 'Foto_Charla_2.jpg', tipo: 'imagen', url: 'https://picsum.photos/seed/charla2/800/500', contenido: 'Foto de los aprendices durante la charla de Seguridad Industrial. Se realizaron demostraciones prácticas.' }
       ]
     },
     {
@@ -49,7 +53,7 @@ const HistorialCharlas = () => {
       instructor: 'Pedro Gómez',
       asistencia: 20,
       soportes: [
-        { nombre: 'Manual_Prevencion.pdf', tipo: 'pdf' }
+        { nombre: 'Manual_Prevencion.pdf', tipo: 'pdf', contenido: 'Manual completo de prevención de riesgos laborales. Incluye identificación de peligros y medidas de control.' }
       ],
       listados: [],
       fotos: []
@@ -70,15 +74,106 @@ const HistorialCharlas = () => {
 
   const handleCerrarDetalles = () => {
     setCharlaSeleccionada(null);
+    setVisorAbierto(false);
+    setArchivoSeleccionado(null);
+  };
+
+  const handleVerArchivo = (archivo, tipoSeccion) => {
+    setCharlaSeleccionada(null);
+    setTimeout(() => {
+      setArchivoSeleccionado({ ...archivo, tipoSeccion });
+      setVisorAbierto(true);
+    }, 150);
+  };
+
+  const handleCerrarVisor = () => {
+    setVisorAbierto(false);
+    setArchivoSeleccionado(null);
+  };
+
+  const goToInicio = () => {
+    navigate('/instructor');
+    window.location.reload();
+  };
+
+  const goToCharlas = () => {
+    navigate('/instructor/charlas-programadas');
+    window.location.reload();
+  };
+
+  const getIconoArchivo = (tipo) => {
+    switch(tipo) {
+      case 'pdf': return 'fa-file-pdf';
+      case 'ppt': return 'fa-file-powerpoint';
+      case 'excel': return 'fa-file-excel';
+      case 'imagen': return 'fa-file-image';
+      default: return 'fa-file';
+    }
+  };
+
+  const getColorArchivo = (tipo) => {
+    switch(tipo) {
+      case 'pdf': return '#dc2626';
+      case 'ppt': return '#f59e0b';
+      case 'excel': return '#10b981';
+      case 'imagen': return '#8b5cf6';
+      default: return '#6b7280';
+    }
+  };
+
+  // Verificar si el archivo es una imagen
+  const esImagen = (archivo) => {
+    return archivo.tipo === 'imagen' || 
+           archivo.nombre.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)$/);
   };
 
   return (
     <div className="historial-charlas-container">
+      {/* MIGA DE PAN */}
+      <nav style={{ 
+        padding: '10px 0', 
+        marginBottom: '15px', 
+        fontSize: '14px',
+        background: 'transparent',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <ol style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          alignItems: 'center', 
+          listStyle: 'none', 
+          margin: 0, 
+          padding: 0, 
+          gap: '4px' 
+        }}>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+            <span 
+              onClick={goToInicio}
+              style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+            >
+              Inicio
+            </span>
+            <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+          </li>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+            <span 
+              onClick={goToCharlas}
+              style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+            >
+              Charlas
+            </span>
+            <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+          </li>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
+            Historial de Charlas
+          </li>
+        </ol>
+      </nav>
+
       <div className="historial-charlas-header">
         <h2>Historial de Charlas</h2>
       </div>
 
-      {/* Buscador */}
       <div className="search-container">
         <input 
           type="text" 
@@ -92,7 +187,6 @@ const HistorialCharlas = () => {
         <button className="btn-clear" onClick={handleClear}>Limpiar</button>
       </div>
 
-      {/* Tabla de historial */}
       {filteredHistorial.length === 0 ? (
         <div className="not-found">
           <h2><i className="fas fa-exclamation-circle"></i> Dato no encontrado</h2>
@@ -103,22 +197,20 @@ const HistorialCharlas = () => {
           <table>
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Tema</th>
                 <th>Fecha</th>
                 <th>Instructor</th>
-                <th>Asistencia</th>
+                <th style={{ textAlign: 'center' }}>Asistencia</th>
                 <th style={{ textAlign: 'center' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filteredHistorial.map((item) => (
                 <tr key={item.id}>
-                  <td className="codigo">{item.id}</td>
-                  <td>{item.tema}</td>
+                  <td className="tema">{item.tema}</td>
                   <td>{item.fecha}</td>
                   <td>{item.instructor}</td>
-                  <td>{item.asistencia}</td>
+                  <td style={{ textAlign: 'center' }}>{item.asistencia}</td>
                   <td style={{ textAlign: 'center' }}>
                     <button 
                       className="btn-ver-detalles"
@@ -134,9 +226,7 @@ const HistorialCharlas = () => {
         </div>
       )}
 
-      {/* ========================================================== */}
-      {/* MODAL DE DETALLES DE LA CHARLA */}
-      {/* ========================================================== */}
+      {/* MODAL DE DETALLES */}
       {charlaSeleccionada && (
         <div className="modal-overlay" onClick={handleCerrarDetalles}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -154,9 +244,14 @@ const HistorialCharlas = () => {
               {charlaSeleccionada.soportes.length > 0 ? (
                 <div className="file-list">
                   {charlaSeleccionada.soportes.map((s, idx) => (
-                    <span key={idx} className="file-tag">
-                      <i className={`fas ${s.tipo === 'pdf' ? 'fa-file-pdf' : 'fa-file'}`} />
+                    <span 
+                      key={idx} 
+                      className="file-tag clickable"
+                      onClick={() => handleVerArchivo(s, 'Soportes')}
+                    >
+                      <i className={`fas ${getIconoArchivo(s.tipo)}`} style={{ color: getColorArchivo(s.tipo) }} />
                       {s.nombre}
+                      <i className="fas fa-eye" style={{ fontSize: '10px', marginLeft: '6px', opacity: 0.6 }} />
                     </span>
                   ))}
                 </div>
@@ -170,9 +265,14 @@ const HistorialCharlas = () => {
               {charlaSeleccionada.listados.length > 0 ? (
                 <div className="file-list">
                   {charlaSeleccionada.listados.map((s, idx) => (
-                    <span key={idx} className="file-tag">
-                      <i className="fas fa-file-excel" />
+                    <span 
+                      key={idx} 
+                      className="file-tag clickable"
+                      onClick={() => handleVerArchivo(s, 'Listados')}
+                    >
+                      <i className="fas fa-file-excel" style={{ color: '#10b981' }} />
                       {s.nombre}
+                      <i className="fas fa-eye" style={{ fontSize: '10px', marginLeft: '6px', opacity: 0.6 }} />
                     </span>
                   ))}
                 </div>
@@ -186,15 +286,163 @@ const HistorialCharlas = () => {
               {charlaSeleccionada.fotos.length > 0 ? (
                 <div className="file-list">
                   {charlaSeleccionada.fotos.map((s, idx) => (
-                    <span key={idx} className="file-tag">
-                      <i className="fas fa-file-image" />
+                    <span 
+                      key={idx} 
+                      className="file-tag clickable"
+                      onClick={() => handleVerArchivo(s, 'Fotos')}
+                    >
+                      <i className="fas fa-file-image" style={{ color: '#8b5cf6' }} />
                       {s.nombre}
+                      <i className="fas fa-eye" style={{ fontSize: '10px', marginLeft: '6px', opacity: 0.6 }} />
                     </span>
                   ))}
                 </div>
               ) : (
                 <p className="sin-archivos">No se subieron fotos.</p>
               )}
+            </div>
+
+            <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '10px', fontStyle: 'italic' }}>
+              <i className="fas fa-info-circle" style={{ color: '#3ca203', marginRight: '4px' }} />
+              Haz clic en cualquier archivo para ver su contenido.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================== */}
+      {/* VISOR DE ARCHIVOS - CON VISOR DE IMÁGENES */}
+      {/* ========================================================== */}
+      {visorAbierto && archivoSeleccionado && (
+        <div 
+          className="visor-fullscreen-overlay" 
+          onClick={handleCerrarVisor}
+          style={{ zIndex: 9999 }}
+        >
+          <div className="visor-fullscreen-content" onClick={(e) => e.stopPropagation()}>
+            {/* Cabecera */}
+            <div className="visor-fullscreen-header">
+              <div className="visor-fullscreen-left">
+                <div className="visor-fullscreen-icon" style={{ color: getColorArchivo(archivoSeleccionado.tipo) }}>
+                  <i className={`fas ${getIconoArchivo(archivoSeleccionado.tipo)}`} />
+                </div>
+                <div>
+                  <h2 className="visor-fullscreen-title">{archivoSeleccionado.nombre}</h2>
+                  <p className="visor-fullscreen-subtitle">
+                    {archivoSeleccionado.tipoSeccion} • {archivoSeleccionado.tipo.toUpperCase()}
+                  </p>
+                </div>
+              </div>
+              <button 
+                className="visor-fullscreen-close"
+                onClick={handleCerrarVisor}
+              >
+                <i className="fas fa-times" />
+              </button>
+            </div>
+
+            {/* Cuerpo - CON VISOR DE IMAGEN */}
+            <div className="visor-fullscreen-body">
+              {/* Si es una imagen, mostramos la imagen */}
+              {esImagen(archivoSeleccionado) ? (
+                <div className="visor-imagen-container">
+                  <img 
+                    src={archivoSeleccionado.url || 'https://picsum.photos/seed/default/800/500'} 
+                    alt={archivoSeleccionado.nombre}
+                    className="visor-imagen"
+                    onError={(e) => {
+                      e.target.src = 'https://picsum.photos/seed/error/800/500';
+                    }}
+                  />
+                  <div className="visor-imagen-footer">
+                    <p>{archivoSeleccionado.contenido || 'Imagen de la charla.'}</p>
+                  </div>
+                </div>
+              ) : (
+                /* Si no es imagen, mostramos el contenido de texto */
+                <div className="visor-fullscreen-preview">
+                  <div className="visor-preview-icon" style={{ color: getColorArchivo(archivoSeleccionado.tipo) }}>
+                    <i className={`fas ${getIconoArchivo(archivoSeleccionado.tipo)}`} />
+                  </div>
+                  <div className="visor-preview-content">
+                    <p>{archivoSeleccionado.contenido || 'No hay información adicional disponible para este archivo.'}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Metadatos */}
+              <div className="visor-fullscreen-metadata">
+                <div className="visor-metadata-grid">
+                  <div className="visor-metadata-card">
+                    <span className="visor-metadata-label">Nombre del archivo</span>
+                    <span className="visor-metadata-value">{archivoSeleccionado.nombre}</span>
+                  </div>
+                  <div className="visor-metadata-card">
+                    <span className="visor-metadata-label">Tipo de archivo</span>
+                    <span className="visor-metadata-value">{archivoSeleccionado.tipo.toUpperCase()}</span>
+                  </div>
+                  <div className="visor-metadata-card">
+                    <span className="visor-metadata-label">Sección</span>
+                    <span className="visor-metadata-value">{archivoSeleccionado.tipoSeccion}</span>
+                  </div>
+                  <div className="visor-metadata-card">
+                    <span className="visor-metadata-label">Tamaño</span>
+                    <span className="visor-metadata-value">~2.5 MB</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Acciones */}
+            <div className="visor-fullscreen-footer">
+              <button 
+                className="visor-btn-download"
+                onClick={() => {
+                  Swal.fire({
+                    title: '📥 Descargar archivo',
+                    text: `¿Deseas descargar "${archivoSeleccionado.nombre}"?`,
+                    icon: 'question',
+                    iconColor: '#3ca203',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3ca203',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Sí, descargar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                      popup: 'swal2-popup-sandbox',
+                      title: 'swal2-title-sandbox',
+                      confirmButton: 'swal2-confirm-sandbox',
+                      cancelButton: 'swal2-cancel-sandbox',
+                    }
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      Swal.fire({
+                        title: '✅ Descarga iniciada',
+                        text: `El archivo "${archivoSeleccionado.nombre}" se está descargando.`,
+                        icon: 'success',
+                        iconColor: '#3ca203',
+                        confirmButtonColor: '#3ca203',
+                        confirmButtonText: 'Aceptar',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        customClass: {
+                          popup: 'swal2-popup-sandbox',
+                          title: 'swal2-title-sandbox',
+                          confirmButton: 'swal2-confirm-sandbox',
+                        }
+                      });
+                    }
+                  });
+                }}
+              >
+                <i className="fas fa-download" /> Descargar archivo
+              </button>
+              <button 
+                className="visor-btn-close"
+                onClick={handleCerrarVisor}
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

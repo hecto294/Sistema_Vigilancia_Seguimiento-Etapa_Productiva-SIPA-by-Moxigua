@@ -20,7 +20,11 @@ import ReporteFichaBitacoras from '../pages/coordinador/ReporteFichaBitacoras';
 import ReporteAprendizBitacoras from '../pages/coordinador/ReporteAprendizBitacoras';
 import DetalleFichaGlobal from '../pages/coordinador/DetalleFichaGlobal';
 import AsignarEmpresaAprendiz from '../pages/coordinador/AsignarEmpresaAprendiz';
-import MiPerfil from '../pages/coordinador/MiPerfil'; // <--- NUEVA IMPORTACIÓN
+import SubirAlternativa from '../pages/coordinador/SubirAlternativa';
+import DetalleAprendiz from '../pages/coordinador/DetalleAprendiz';
+import ReporteFichaDetalle from '../pages/coordinador/ReporteFichaDetalle';
+import MomentosCoordinador from '../pages/coordinador/MomentosCoordinador'; // <--- NUEVA IMPORTACIÓN
+import MiPerfil from '../pages/coordinador/MiPerfil';
 
 const LayoutCoordinador = ({ user }) => {
   const navigate = useNavigate();
@@ -40,6 +44,8 @@ const LayoutCoordinador = ({ user }) => {
   else if (location.pathname.includes('/aprendices')) activePage = 'aprendices';
   else if (location.pathname.includes('/instructores')) activePage = 'instructores';
   else if (location.pathname.includes('/asignar')) activePage = 'instructores';
+  else if (location.pathname.includes('/subir-alternativa')) activePage = 'subir-alternativa';
+  else if (location.pathname.includes('/momentos')) activePage = 'momentos'; // <--- NUEVO
 
   return (
     <div className="app-layout">
@@ -57,16 +63,20 @@ const LayoutCoordinador = ({ user }) => {
             <Route path="/certificados" element={<VerCertificados />} />
             <Route path="/ficha/:idFicha" element={<VerAprendices />} />
             <Route path="/reportes" element={<ReportesGlobales />} />
+            <Route path="/reportes/ficha/:idFicha" element={<ReporteFichaDetalle />} />
             <Route path="/reporte-bitacoras" element={<ReporteBitacoras />} />
             <Route path="/reporte-bitacoras/ficha/:idFicha" element={<ReporteFichaBitacoras />} />
             <Route path="/reporte-bitacoras/aprendiz/:aprendizId" element={<ReporteAprendizBitacoras />} />
             <Route path="/empresas" element={<EmpresasGlobales />} />
             <Route path="/aprendices" element={<AprendicesGlobales />} />
+            <Route path="/aprendices/:aprendizId" element={<DetalleAprendiz />} />
             <Route path="/instructores" element={<InstructoresGlobales />} />
             <Route path="/instructores/:instructorId/asignar" element={<AsignarFichasInstructor />} />
             <Route path="/ficha-completa/:idFicha" element={<DetalleFichaGlobal />} />
             <Route path="/ficha-completa/:idFicha/aprendiz/:aprendizId/asignar-empresa" element={<AsignarEmpresaAprendiz />} />
-            <Route path="/mi-perfil" element={<MiPerfil user={user} />} /> {/* <--- NUEVA RUTA */}
+            <Route path="/subir-alternativa" element={<SubirAlternativa />} />
+            <Route path="/momentos" element={<MomentosCoordinador />} /> {/* <--- NUEVA RUTA */}
+            <Route path="/mi-perfil" element={<MiPerfil user={user} />} />
           </Routes>
         </div>
       </div>

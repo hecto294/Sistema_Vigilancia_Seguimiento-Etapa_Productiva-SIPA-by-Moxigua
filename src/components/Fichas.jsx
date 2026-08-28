@@ -21,15 +21,61 @@ const Fichas = () => {
     ficha.codigo.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleVerFicha = (codigo) => {
-    navigate(`/instructor/ficha/${codigo}`);
+  const handleVerFicha = (ficha) => {
+    if (ficha.estado === 'Inactiva') {
+      alert('⚠️ Esta ficha se encuentra inactiva. No se puede ver el detalle.');
+      return;
+    }
+    navigate(`/instructor/ficha/${ficha.codigo}`);
+  };
+
+  // Navegar al inicio (Dashboard)
+  const goToInicio = () => {
+    navigate('/instructor');
+    window.location.reload(); // Forzar recarga para que el Layout se actualice
   };
 
   return (
     <div className="fichas-container">
+      {/* MIGA DE PAN CON NAVEGACIÓN FUNCIONAL */}
+      <nav style={{ 
+        padding: '10px 0', 
+        marginBottom: '15px', 
+        fontSize: '14px',
+        background: 'transparent',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <ol style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          alignItems: 'center', 
+          listStyle: 'none', 
+          margin: 0, 
+          padding: 0, 
+          gap: '4px' 
+        }}>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+            <span 
+              onClick={goToInicio}
+              style={{ 
+                color: '#3ca203', 
+                textDecoration: 'none', 
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
+              Inicio
+            </span>
+            <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+          </li>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
+            Mis Fichas
+          </li>
+        </ol>
+      </nav>
+
       <div className="fichas-header">
         <h2>Mis Fichas de Formación</h2>
-        {/* <--- ELIMINAMOS EL BOTÓN DE NUEVA FICHA --- */}
       </div>
 
       <div className="search-container">
@@ -76,12 +122,26 @@ const Fichas = () => {
                     </span>
                   </td>
                   <td style={{ textAlign: 'center' }}>
-                    <button
-                      className="btn-ver-ficha"
-                      onClick={() => handleVerFicha(ficha.codigo)}
-                    >
-                      <i className="fas fa-eye" /> Ver
-                    </button>
+                    {ficha.estado === 'Activa' ? (
+                      <button
+                        className="btn-ver-ficha"
+                        onClick={() => handleVerFicha(ficha)}
+                      >
+                        <i className="fas fa-eye" /> Ver
+                      </button>
+                    ) : (
+                      <span style={{ 
+                        color: '#9ca3af', 
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}>
+                        <i className="fas fa-lock" style={{ fontSize: '11px' }} />
+                        Bloqueado
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

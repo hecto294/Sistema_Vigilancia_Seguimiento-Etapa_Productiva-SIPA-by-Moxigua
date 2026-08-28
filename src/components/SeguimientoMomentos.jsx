@@ -1,11 +1,13 @@
 // src/components/SeguimientoMomentos.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SeguimientoMomentos.css';
 
 const SeguimientoMomentos = () => {
+  const navigate = useNavigate();
   const [momentoSeleccionado, setMomentoSeleccionado] = useState(null);
   const [fichaSeleccionada, setFichaSeleccionada] = useState(null);
-  const [aprendizModal, setAprendizModal] = useState(null); // Para el modal
+  const [aprendizModal, setAprendizModal] = useState(null);
 
   // Estados de búsqueda
   const [searchTermFichas, setSearchTermFichas] = useState('');
@@ -121,6 +123,12 @@ const SeguimientoMomentos = () => {
   const handleSearchAprendices = () => setSearchQueryAprendices(searchTermAprendices);
   const handleClearAprendices = () => { setSearchTermAprendices(''); setSearchQueryAprendices(''); };
 
+  // Navegar al inicio (Dashboard)
+  const goToInicio = () => {
+    navigate('/instructor');
+    window.location.reload();
+  };
+
   // --- Renderizado NIVEL 3: Aprendices de una ficha ---
   if (fichaSeleccionada) {
     const filteredAprendices = fichaSeleccionada.aprendices.filter(a =>
@@ -129,6 +137,47 @@ const SeguimientoMomentos = () => {
 
     return (
       <div className="momento-detalle-pantalla">
+        {/* MIGA DE PAN - Inicio > Seguimiento por Momentos > Ficha */}
+        <nav style={{ 
+          padding: '10px 0', 
+          marginBottom: '10px', 
+          fontSize: '14px',
+          background: 'transparent',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <ol style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            alignItems: 'center', 
+            listStyle: 'none', 
+            margin: 0, 
+            padding: 0, 
+            gap: '4px' 
+          }}>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+              <span 
+                onClick={goToInicio}
+                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+              >
+                Inicio
+              </span>
+              <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+              <span 
+                onClick={handleVolverMomentos}
+                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+              >
+                Seguimiento por Momentos
+              </span>
+              <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
+              Ficha {fichaSeleccionada.idFicha}
+            </li>
+          </ol>
+        </nav>
+
         <div className="detalle-header">
           <button className="btn-volver-lista" onClick={handleVolverFichas}>
             <i className="fas fa-arrow-left" /> Volver a fichas
@@ -177,9 +226,7 @@ const SeguimientoMomentos = () => {
           )}
         </div>
 
-        {/* ========================================================== */}
         {/* MODAL DE DETALLE DEL APRENDIZ */}
-        {/* ========================================================== */}
         {aprendizModal && (
           <div className="modal-overlay" onClick={handleCerrarModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -217,6 +264,38 @@ const SeguimientoMomentos = () => {
 
     return (
       <div className="momento-detalle-pantalla">
+        {/* MIGA DE PAN - Inicio > Seguimiento por Momentos > Momento */}
+        <nav style={{ 
+          padding: '10px 0', 
+          marginBottom: '10px', 
+          fontSize: '14px',
+          background: 'transparent',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <ol style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            alignItems: 'center', 
+            listStyle: 'none', 
+            margin: 0, 
+            padding: 0, 
+            gap: '4px' 
+          }}>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+              <span 
+                onClick={goToInicio}
+                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+              >
+                Inicio
+              </span>
+              <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
+              {momentoSeleccionado.titulo}
+            </li>
+          </ol>
+        </nav>
+
         <div className="detalle-header">
           <button className="btn-volver-lista" onClick={handleVolverMomentos}>
             <i className="fas fa-arrow-left" /> Volver a momentos
@@ -266,6 +345,38 @@ const SeguimientoMomentos = () => {
   // --- Renderizado NIVEL 1: Tarjetas de los momentos ---
   return (
     <div className="momentos-container">
+      {/* MIGA DE PAN - Inicio > Seguimiento por Momentos */}
+      <nav style={{ 
+        padding: '10px 0', 
+        marginBottom: '15px', 
+        fontSize: '14px',
+        background: 'transparent',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <ol style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          alignItems: 'center', 
+          listStyle: 'none', 
+          margin: 0, 
+          padding: 0, 
+          gap: '4px' 
+        }}>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+            <span 
+              onClick={goToInicio}
+              style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+            >
+              Inicio
+            </span>
+            <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+          </li>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
+            Seguimiento por Momentos
+          </li>
+        </ol>
+      </nav>
+
       <div className="momentos-header">
         <h2>Seguimiento por Momentos</h2>
         <p className="subtitulo">Selecciona un momento para ver las fichas y sus aprendices.</p>

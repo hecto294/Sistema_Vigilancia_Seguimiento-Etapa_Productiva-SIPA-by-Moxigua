@@ -1,8 +1,11 @@
 // src/components/Certificaciones.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import './Certificaciones.css';
 
 const Certificaciones = () => {
+  const navigate = useNavigate();
   const [fichaSeleccionada, setFichaSeleccionada] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,13 +58,109 @@ const Certificaciones = () => {
     setFichaSeleccionada(null);
   };
 
-  const handleDescargarIndividual = (nombre) => {
-    alert(`📥 Descargando certificado de ${nombre}...\n(En un sistema real, aquí se descargaría el PDF)`);
+  const handleDescargarIndividual = (nombre, fichaId) => {
+    Swal.fire({
+      title: '📥 Descargando certificado',
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <p style="margin: 8px 0; font-size: 15px;">
+            <strong>Aprendiz:</strong> ${nombre}
+          </p>
+          <p style="margin: 8px 0; font-size: 15px;">
+            <strong>Ficha:</strong> ${fichaId}
+          </p>
+          <p style="margin: 8px 0; font-size: 14px; color: #6b7280;">
+            <i class="fas fa-spinner fa-pulse" style="color: #3ca203;"></i>
+            Procesando descarga del certificado...
+          </p>
+          <p style="margin: 12px 0 0 0; font-size: 13px; color: #9ca3af; font-style: italic; border-top: 1px dashed #e5e7eb; padding-top: 10px;">
+            En un sistema real, aquí se descargaría el PDF
+          </p>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: '✅ Aceptar',
+      confirmButtonColor: '#3ca203',
+      allowOutsideClick: false,
+      timer: 2500,
+      timerProgressBar: true,
+      willClose: () => {
+        // Simulación de descarga después del timer
+        setTimeout(() => {
+          Swal.fire({
+            title: '✅ ¡Descarga completada!',
+            html: `
+              <div style="text-align: left; padding: 10px 0;">
+                <p style="margin: 8px 0; font-size: 15px;">
+                  <strong>Certificado de:</strong> ${nombre}
+                </p>
+                <p style="margin: 8px 0; font-size: 14px; color: #6b7280;">
+                  El certificado se ha descargado correctamente.
+                </p>
+              </div>
+            `,
+            icon: 'success',
+            confirmButtonText: '✅ Aceptar',
+            confirmButtonColor: '#3ca203',
+            timer: 3000,
+            timerProgressBar: true
+          });
+        }, 3000);
+      }
+    });
   };
 
+  // Navegar al inicio (Dashboard)
+  const goToInicio = () => {
+    navigate('/instructor');
+    window.location.reload();
+  };
+
+  // --- PANTALLA DE DETALLE DE FICHA ---
   if (fichaSeleccionada) {
     return (
       <div className="certificaciones-ficha-pantalla">
+        {/* MIGA DE PAN - Inicio > Certificaciones > Ficha */}
+        <nav style={{ 
+          padding: '10px 0', 
+          marginBottom: '10px', 
+          fontSize: '14px',
+          background: 'transparent',
+          borderBottom: '1px solid #e5e7eb'
+        }}>
+          <ol style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            alignItems: 'center', 
+            listStyle: 'none', 
+            margin: 0, 
+            padding: 0, 
+            gap: '4px' 
+          }}>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+              <span 
+                onClick={goToInicio}
+                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+              >
+                Inicio
+              </span>
+              <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+              <span 
+                onClick={handleVolverFichas}
+                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+              >
+                Certificaciones
+              </span>
+              <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
+              Ficha {fichaSeleccionada.idFicha}
+            </li>
+          </ol>
+        </nav>
+
         <div className="ficha-header">
           <button className="btn-volver-lista" onClick={handleVolverFichas}>
             <i className="fas fa-arrow-left"></i> Volver a fichas
@@ -93,7 +192,7 @@ const Certificaciones = () => {
                   <td style={{ textAlign: 'center' }}>
                     <button 
                       className={`btn-descargar-individual ${aprendiz.completado ? 'active' : 'disabled'}`}
-                      onClick={() => aprendiz.completado && handleDescargarIndividual(aprendiz.nombre)}
+                      onClick={() => aprendiz.completado && handleDescargarIndividual(aprendiz.nombre, fichaSeleccionada.idFicha)}
                       disabled={!aprendiz.completado}
                     >
                       <i className="fas fa-download"></i> Descargar
@@ -108,12 +207,45 @@ const Certificaciones = () => {
     );
   }
 
+  // --- PANTALLA DE LISTA DE FICHAS ---
   const filteredFichas = fichas.filter((ficha) =>
     ficha.idFicha.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="certificaciones-container">
+      {/* MIGA DE PAN - Inicio > Certificaciones */}
+      <nav style={{ 
+        padding: '10px 0', 
+        marginBottom: '15px', 
+        fontSize: '14px',
+        background: 'transparent',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <ol style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          alignItems: 'center', 
+          listStyle: 'none', 
+          margin: 0, 
+          padding: 0, 
+          gap: '4px' 
+        }}>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
+            <span 
+              onClick={goToInicio}
+              style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
+            >
+              Inicio
+            </span>
+            <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
+          </li>
+          <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
+            Certificaciones
+          </li>
+        </ol>
+      </nav>
+
       <div className="certificaciones-header">
         <h2>Certificaciones</h2>
         <p className="subtitulo">Selecciona una ficha para gestionar los certificados de tus aprendices.</p>

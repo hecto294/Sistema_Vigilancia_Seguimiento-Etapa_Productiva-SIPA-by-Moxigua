@@ -1,83 +1,164 @@
 // src/pages/coordinador/VerCertificados.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fichasData } from '../../data/coordinadorData';
+import Breadcrumb from '../../components/Breadcrumb';
+import Swal from 'sweetalert2';
+import { showSuccess, showError, showWarning, showConfirm } from '../../utils/sweetAlert';
 
 const VerCertificados = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
 
-  // Estado para el modal de confirmación de descarga
-  const [modalDescarga, setModalDescarga] = useState(false);
-  const [estadisticasDescarga, setEstadisticasDescarga] = useState({ listos: 0, faltantes: 0 });
+  const [certificados, setCertificados] = useState([
+    { id: 1, aprendiz: 'Laura Sofia Martinez', ficha: '2875901', estado: 'Listo', fecha: '15/12/2025' },
+    { id: 2, aprendiz: 'Juan Diego Ramirez', ficha: '2875901', estado: 'Pendiente', fecha: '-' },
+    { id: 3, aprendiz: 'Maria Camila Torres', ficha: '2875902', estado: 'Listo', fecha: '10/01/2026' },
+  ]);
 
   const handleSearch = () => setSearchQuery(searchTerm);
   const handleClear = () => { setSearchTerm(''); setSearchQuery(''); };
 
-  // Simulamos cuántos aprendices están listos por ficha
-  const certificadosData = fichasData.map(f => ({
-    ...f,
-    // Simulación: los primeros 2 están listos, el resto no
-    listos: f.aprendices.filter((_, i) => i < 2).length
-  }));
-
-  // Calculamos el total de aprendices listos y faltantes
-  const totalListos = certificadosData.reduce((acc, f) => acc + f.listos, 0);
-  const totalAprendices = certificadosData.reduce((acc, f) => acc + f.aprendices.length, 0);
-  const totalFaltantes = totalAprendices - totalListos;
-
-  const filteredFichas = certificadosData.filter(f =>
-    f.idFicha.includes(searchQuery) || f.programa.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCertificados = certificados.filter(c =>
+    c.aprendiz.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.ficha.includes(searchQuery)
   );
 
-  const verDetalleFicha = (idFicha) => {
-    navigate(`/coordinador/ficha-completa/${idFicha}`);
-  };
-
-  // --- Lógica del botón "Descargar todos" ---
-  const handleAbrirModalDescarga = () => {
-    setEstadisticasDescarga({
-      listos: totalListos,
-      faltantes: totalFaltantes
+  const handleDescargarCertificado = async (certificado) => {
+    // Mostrar confirmación antes de descargar
+    const result = await Swal.fire({
+      title: '📄 Confirmar descarga',
+      text: `¿Deseas descargar el certificado de ${certificado.aprendiz}?`,
+      icon: 'question',
+      iconColor: '#3ca203',
+      showCancelButton: true,
+      confirmButtonColor: '#3ca203',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, descargar',
+      cancelButtonText: 'Cancelar',
+      allowOutsideClick: false,
+      allowEscapeKey: true,
+      width: '450px',
+      padding: '25px 30px',
+      background: '#ffffff',
+      color: '#1f2937',
+      customClass: {
+        popup: 'swal2-popup-sandbox',
+        title: 'swal2-title-sandbox',
+        confirmButton: 'swal2-confirm-sandbox',
+        cancelButton: 'swal2-cancel-sandbox',
+      }
     });
-    setModalDescarga(true);
+
+    if (result.isConfirmed) {
+      // Mostrar alerta de éxito simple
+      await Swal.fire({
+        title: '✅ Descarga completada',
+        text: `El certificado de ${certificado.aprendiz} se ha descargado exitosamente.`,
+        icon: 'success',
+        iconColor: '#3ca203',
+        confirmButtonColor: '#3ca203',
+        confirmButtonText: 'Aceptar',
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        width: '450px',
+        padding: '25px 30px',
+        background: '#ffffff',
+        color: '#1f2937',
+        timer: 3000,
+        timerProgressBar: true,
+        customClass: {
+          popup: 'swal2-popup-sandbox',
+          title: 'swal2-title-sandbox',
+          confirmButton: 'swal2-confirm-sandbox',
+        }
+      });
+    }
   };
 
-  const handleConfirmarDescarga = () => {
-    alert(`📦 Descargando ${estadisticasDescarga.listos} certificados...\n\n(En un sistema real, esto descargaría un ZIP con todos los PDFs.)`);
-    setModalDescarga(false);
-  };
+  const handleDescargarTodos = async () => {
+    const certificadosListos = certificados.filter(c => c.estado === 'Listo');
+    
+    if (certificadosListos.length === 0) {
+      await showWarning('No hay certificados listos para descargar.', '⚠️ Sin certificados');
+      return;
+    }
 
-  const handleCancelarDescarga = () => {
-    setModalDescarga(false);
+    const result = await Swal.fire({
+      title: '📦 Descarga masiva',
+      text: `¿Deseas descargar ${certificadosListos.length} certificados?`,
+      icon: 'question',
+      iconColor: '#3ca203',
+      showCancelButton: true,
+      confirmButtonColor: '#3ca203',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, descargar todos',
+      cancelButtonText: 'Cancelar',
+      allowOutsideClick: false,
+      allowEscapeKey: true,
+      width: '450px',
+      padding: '25px 30px',
+      background: '#ffffff',
+      color: '#1f2937',
+      customClass: {
+        popup: 'swal2-popup-sandbox',
+        title: 'swal2-title-sandbox',
+        confirmButton: 'swal2-confirm-sandbox',
+        cancelButton: 'swal2-cancel-sandbox',
+      }
+    });
+
+    if (result.isConfirmed) {
+      await Swal.fire({
+        title: '✅ Descarga masiva completada',
+        text: `${certificadosListos.length} certificados se han descargado exitosamente.`,
+        icon: 'success',
+        iconColor: '#3ca203',
+        confirmButtonColor: '#3ca203',
+        confirmButtonText: 'Aceptar',
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        width: '450px',
+        padding: '25px 30px',
+        background: '#ffffff',
+        color: '#1f2937',
+        timer: 3000,
+        timerProgressBar: true,
+        customClass: {
+          popup: 'swal2-popup-sandbox',
+          title: 'swal2-title-sandbox',
+          confirmButton: 'swal2-confirm-sandbox',
+        }
+      });
+    }
   };
 
   return (
     <div style={{ width: '100%', padding: '20px 0' }}>
-      {/* Encabezado con botón a la derecha */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+      <Breadcrumb />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Certificados Listos</h2>
-          <p style={{ color: '#6b7280', margin: '5px 0 0 0' }}>Fichas con aprendices listos para certificación.</p>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Certificados</h2>
+          <p style={{ color: '#6b7280', margin: '5px 0 0 0' }}>Gestión de certificados de los aprendices.</p>
         </div>
         <button
-          onClick={handleAbrirModalDescarga}
+          onClick={handleDescargarTodos}
           style={{
             background: '#3ca203',
             color: 'white',
             border: 'none',
-            padding: '10px 24px',
+            padding: '10px 20px',
             borderRadius: '8px',
-            fontSize: '14px',
             fontWeight: 'bold',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            transition: 'background 0.2s'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2d8a00'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3ca203'}
+          onMouseEnter={(e) => e.currentTarget.style.background = '#2d8a00'}
+          onMouseLeave={(e) => e.currentTarget.style.background = '#3ca203'}
         >
           <i className="fas fa-download" /> Descargar todos
         </button>
@@ -86,152 +167,71 @@ const VerCertificados = () => {
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
         <input
           type="text"
-          placeholder="Buscar..."
+          placeholder="Buscar por aprendiz o ficha..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{ flex: 1, padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
         />
-        <button onClick={handleSearch} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px' }}>Buscar</button>
-        <button onClick={handleClear} style={{ background: '#e5e7eb', border: 'none', padding: '10px 20px', borderRadius: '6px' }}>Limpiar</button>
+        <button onClick={handleSearch} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer' }}>Buscar</button>
+        <button onClick={handleClear} style={{ background: '#e5e7eb', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer' }}>Limpiar</button>
       </div>
 
-      {filteredFichas.length === 0 ? (
+      {filteredCertificados.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <h3 style={{ color: '#dc2626' }}>Dato no encontrado</h3>
-          <p style={{ color: '#6b7280' }}>No se encontraron fichas.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-          {filteredFichas.map(f => (
-            <div
-              key={f.idFicha}
-              onClick={() => verDetalleFicha(f.idFicha)}
-              style={{
-                background: 'white',
-                padding: '20px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: '0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-            >
-              <h4 style={{ color: '#3ca203', fontWeight: 'bold' }}>{f.idFicha}</h4>
-              <p style={{ fontWeight: 'bold' }}>{f.programa}</p>
-              <p style={{ color: '#6b7280' }}>{f.listos} / {f.aprendices.length} aprendices listos</p>
-              <div style={{
-                width: '100%',
-                height: '6px',
-                background: '#f3f4f6',
-                borderRadius: '10px',
-                marginTop: '10px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  width: `${(f.listos / f.aprendices.length) * 100}%`,
-                  height: '100%',
-                  background: f.listos === f.aprendices.length ? '#10b981' : '#f59e0b',
-                  borderRadius: '10px'
-                }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ========================================================== */}
-      {/* MODAL DE CONFIRMACIÓN DE DESCARGA */}
-      {/* ========================================================== */}
-      {modalDescarga && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 2000
-          }}
-          onClick={handleCancelarDescarga}
-        >
-          <div
-            style={{
-              background: 'white',
-              borderRadius: '16px',
-              maxWidth: '450px',
-              width: '90%',
-              padding: '30px',
-              position: 'relative',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={handleCancelarDescarga}
-              style={{
-                position: 'absolute',
-                top: '15px',
-                right: '20px',
-                background: 'transparent',
-                border: 'none',
-                fontSize: '28px',
-                color: '#6b7280',
-                cursor: 'pointer'
-              }}
-            >
-              &times;
-            </button>
-
-            <div style={{ textAlign: 'center' }}>
-              <i className="fas fa-download" style={{ fontSize: '40px', color: '#3ca203', marginBottom: '15px' }} />
-              <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1f2937', marginBottom: '10px' }}>
-                ¿Desea generar la descarga?
-              </h3>
-              <p style={{ color: '#6b7280', marginBottom: '15px' }}>
-                <strong>{estadisticasDescarga.listos}</strong> aprendices están listos para certificar.
-              </p>
-              <p style={{ color: '#ef4444', fontWeight: 'bold', marginBottom: '20px' }}>
-                Faltan <strong>{estadisticasDescarga.faltantes}</strong> aprendices por completar el proceso.
-              </p>
-
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                <button
-                  onClick={handleCancelarDescarga}
-                  style={{
-                    background: '#e5e7eb',
-                    border: 'none',
-                    padding: '10px 30px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: '500'
-                  }}
-                >
-                  No
-                </button>
-                <button
-                  onClick={handleConfirmarDescarga}
-                  style={{
-                    background: '#3ca203',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 30px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  Sí, generar descarga
-                </button>
-              </div>
-            </div>
-          </div>
+        <div style={{ background: 'white', borderRadius: '12px', padding: '20px', border: '1px solid #e5e7eb', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Aprendiz</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Ficha</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Estado</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Fecha</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCertificados.map(c => (
+                <tr key={c.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '12px', fontWeight: 'bold' }}>{c.aprendiz}</td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>{c.ficha}</td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>
+                    <span style={{
+                      background: c.estado === 'Listo' ? '#d1fae5' : '#fef3c7',
+                      color: c.estado === 'Listo' ? '#047857' : '#d97706',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}>
+                      {c.estado}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>{c.fecha}</td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>
+                    <button
+                      onClick={() => handleDescargarCertificado(c)}
+                      disabled={c.estado === 'Pendiente'}
+                      style={{
+                        background: c.estado === 'Listo' ? '#e6f7ed' : '#f3f4f6',
+                        color: c.estado === 'Listo' ? '#047857' : '#9ca3af',
+                        border: 'none',
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        cursor: c.estado === 'Listo' ? 'pointer' : 'default',
+                        opacity: c.estado === 'Listo' ? 1 : 0.6
+                      }}
+                    >
+                      <i className="fas fa-download" /> 
+                      {c.estado === 'Listo' ? 'Descargar' : 'Pendiente'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

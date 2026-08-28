@@ -1,67 +1,38 @@
 // src/pages/coordinador/AprendicesGlobales.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Breadcrumb from '../../components/Breadcrumb';
 
 const AprendicesGlobales = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   const aprendices = [
-    { nombre: 'Laura Sofia Martinez', ficha: '2875901', empresa: 'TechSoft S.A.S.' },
-    { nombre: 'Juan Diego Ramirez', ficha: '2875901', empresa: 'Innovar Solutions' },
-    { nombre: 'Carlos Mendoza', ficha: '2875902', empresa: 'Global Services LTDA' },
-    { nombre: 'Valentina Rojas', ficha: '2875902', empresa: 'DataTech Colombia' },
-    { nombre: 'Andrés Felipe Castro', ficha: '2875902', empresa: 'Soluciones Web SAS' },
-    { nombre: 'Luisa Fernanda Gomez', ficha: '2875903', empresa: 'Sin asignar' },
+    { id: 1, nombre: 'Laura Sofia Martinez', ficha: '2875901', empresa: 'TechSoft S.A.S.', estado: 'Activo' },
+    { id: 2, nombre: 'Juan Diego Ramirez', ficha: '2875901', empresa: 'Innovar Solutions', estado: 'Activo' },
+    { id: 3, nombre: 'Maria Camila Torres', ficha: '2875902', empresa: 'Global Services LTDA', estado: 'Activo' },
   ];
 
   const handleSearch = () => setSearchQuery(searchTerm);
   const handleClear = () => { setSearchTerm(''); setSearchQuery(''); };
 
-  const filtered = aprendices.filter(a =>
+  const filteredAprendices = aprendices.filter(a =>
     a.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.ficha.toLowerCase().includes(searchQuery.toLowerCase())
+    a.ficha.includes(searchQuery)
   );
 
-  // --- FUNCIÓN DE CARGA MASIVA ---
-  const handleCargaMasiva = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.xlsx,.xls,.csv'; // Formatos permitidos
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        alert(`✅ Archivo "${file.name}" seleccionado.\n\nSimulando carga masiva de aprendices...`);
-        // Aquí iría la lógica real de subida al backend
-      }
-    };
-    input.click();
+  const handleVerDetalle = (id) => {
+    navigate(`/coordinador/aprendices/${id}`);
   };
 
   return (
     <div style={{ width: '100%', padding: '20px 0' }}>
-      {/* Encabezado con botón de Carga Masiva */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Aprendices Globales</h2>
-          <p style={{ color: '#6b7280', margin: '5px 0 0 0' }}>Gestión centralizada de todos los aprendices del sistema.</p>
-        </div>
-        <button
-          onClick={handleCargaMasiva}
-          style={{
-            background: '#3ca203',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <i className="fas fa-upload" /> Carga Masiva
-        </button>
+      <Breadcrumb />
+
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Aprendices Globales</h2>
+        <p style={{ color: '#6b7280', margin: '5px 0 0 0' }}>Visualización de aprendices del sistema.</p>
       </div>
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -72,31 +43,52 @@ const AprendicesGlobales = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{ flex: 1, padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
         />
-        <button onClick={handleSearch} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px' }}>Buscar</button>
-        <button onClick={handleClear} style={{ background: '#e5e7eb', border: 'none', padding: '10px 20px', borderRadius: '6px' }}>Limpiar</button>
+        <button onClick={handleSearch} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer' }}>Buscar</button>
+        <button onClick={handleClear} style={{ background: '#e5e7eb', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer' }}>Limpiar</button>
       </div>
 
-      {filtered.length === 0 ? (
+      {filteredAprendices.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <h3 style={{ color: '#dc2626' }}>Dato no encontrado</h3>
-          <p style={{ color: '#6b7280' }}>No hay aprendices con ese criterio de búsqueda.</p>
         </div>
       ) : (
-        <div style={{ background: 'white', borderRadius: '12px', padding: '20px', border: '1px solid #e5e7eb' }}>
+        <div style={{ background: 'white', borderRadius: '12px', padding: '20px', border: '1px solid #e5e7eb', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Aprendiz</th>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Ficha</th>
+              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Nombre</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Ficha</th>
                 <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Empresa</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Estado</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((a, idx) => (
-                <tr key={idx}>
+              {filteredAprendices.map(a => (
+                <tr key={a.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                   <td style={{ padding: '12px', fontWeight: 'bold' }}>{a.nombre}</td>
-                  <td style={{ padding: '12px' }}>{a.ficha}</td>
-                  <td style={{ padding: '12px' }}>{a.empresa}</td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>{a.ficha}</td>
+                  <td style={{ padding: '12px' }}>{a.empresa || 'Sin asignar'}</td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>
+                    <span style={{
+                      background: a.estado === 'Activo' ? '#d1fae5' : '#f3f4f6',
+                      color: a.estado === 'Activo' ? '#047857' : '#6b7280',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}>
+                      {a.estado}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>
+                    <button
+                      onClick={() => handleVerDetalle(a.id)}
+                      style={{ background: '#e6f7ed', color: '#047857', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer' }}
+                    >
+                      <i className="fas fa-eye" /> Ver
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -1,12 +1,12 @@
 // src/pages/coordinador/AsignarEmpresaAprendiz.jsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { showSuccess, showError, showWarning, showConfirm, showToast } from '../../utils/sweetAlert';
 
 const AsignarEmpresaAprendiz = () => {
   const navigate = useNavigate();
   const { idFicha, aprendizId } = useParams();
 
-  // Simulación de datos del aprendiz
   const aprendiz = {
     id: parseInt(aprendizId),
     nombre: 'Maria Camila Torres',
@@ -14,7 +14,6 @@ const AsignarEmpresaAprendiz = () => {
     programa: 'Análisis y Desarrollo de Software'
   };
 
-  // Empresas disponibles
   const [empresas] = useState([
     { id: 1, nombre: 'TechSoft S.A.S.', arl: 'SURA' },
     { id: 2, nombre: 'Innovar Solutions', arl: 'Positiva' },
@@ -24,13 +23,28 @@ const AsignarEmpresaAprendiz = () => {
 
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState('');
 
-  const handleAsignar = () => {
+  const handleAsignar = async () => {
     if (!empresaSeleccionada) {
-      alert('Por favor, selecciona una empresa.');
+      await showWarning('Por favor, selecciona una empresa.', '⚠️ Campo requerido');
       return;
     }
-    alert(`✅ Empresa "${empresaSeleccionada}" asignada a ${aprendiz.nombre}.`);
-    navigate(`/coordinador/ficha-completa/${idFicha}`);
+
+    const result = await showConfirm(
+      `¿Deseas asignar "${empresaSeleccionada}" a ${aprendiz.nombre}?`,
+      'Confirmar asignación',
+      'Sí, asignar'
+    );
+
+    if (result.isConfirmed) {
+      const empresaData = empresas.find(e => e.id.toString() === empresaSeleccionada);
+      
+      await showSuccess(
+        `Empresa "${empresaData.nombre}" (ARL: ${empresaData.arl}) asignada a ${aprendiz.nombre}.`,
+        '✅ Asignación exitosa'
+      );
+
+      navigate(`/coordinador/ficha-completa/${idFicha}`);
+    }
   };
 
   return (
@@ -59,7 +73,7 @@ const AsignarEmpresaAprendiz = () => {
         >
           <option value="">-- Selecciona una empresa --</option>
           {empresas.map(e => (
-            <option key={e.id} value={e.nombre}>{e.nombre} (ARL: {e.arl})</option>
+            <option key={e.id} value={e.id}>{e.nombre} (ARL: {e.arl})</option>
           ))}
         </select>
       </div>
