@@ -32,14 +32,16 @@ const Bitacora = () => {
                 descripcion: 'Inicio de actividades en la empresa', 
                 observaciones: 'Buena adaptación al entorno laboral',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'He comenzado mis labores en el área de desarrollo'
               },
               { 
                 fecha: '22/03/2025', 
                 descripcion: 'Capacitación en herramientas internas', 
                 observaciones: 'Cumplió con el horario establecido',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'La capacitación fue muy completa'
               }
             ],
             bimestre2: [
@@ -48,7 +50,8 @@ const Bitacora = () => {
                 descripcion: 'Desarrollo de módulo de facturación', 
                 observaciones: 'Avance significativo en el proyecto',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'Estoy trabajando en el módulo de facturación'
               }
             ]
           }
@@ -65,7 +68,8 @@ const Bitacora = () => {
                 descripcion: 'Inducción general a la empresa', 
                 observaciones: 'Asistió puntualmente',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'Recibí inducción sobre políticas de la empresa'
               }
             ],
             bimestre2: [
@@ -74,7 +78,8 @@ const Bitacora = () => {
                 descripcion: 'Proyecto de base de datos', 
                 observaciones: 'Buen desempeño técnico',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'Estoy diseñando la base de datos del proyecto'
               }
             ]
           }
@@ -91,7 +96,8 @@ const Bitacora = () => {
                 descripcion: 'Sesión de monitoreo académico', 
                 observaciones: 'Participación activa',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'Realicé monitoreo a los estudiantes de primer semestre'
               }
             ]
           }
@@ -114,7 +120,8 @@ const Bitacora = () => {
                 descripcion: 'Planificación del proyecto', 
                 observaciones: 'Estructura clara y detallada',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'Estoy planificando las etapas del proyecto'
               }
             ]
           }
@@ -138,7 +145,8 @@ const Bitacora = () => {
                 descripcion: 'Desarrollo de frontend', 
                 observaciones: 'Cumple con estándares de calidad',
                 instructor: 'Carlos Andrés López',
-                tipo: 'seguimiento'
+                tipo: 'seguimiento',
+                aprendizObservacion: 'Estoy desarrollando interfaces de usuario'
               }
             ]
           }
@@ -227,6 +235,17 @@ const Bitacora = () => {
               <p style="margin: 4px 0 0 22px; font-size: 14px; color: #1f2937;">${bitacora.instructor || 'Carlos Andrés López'}</p>
             </div>
           </div>
+          ${bitacora.aprendizObservacion ? `
+            <div style="margin-bottom: 12px;">
+              <p style="margin: 0; font-size: 13px; color: #6b7280;">
+                <i class="fas fa-user-graduate" style="color: #3ca203; margin-right: 6px;"></i>
+                <strong>Bitácora del Aprendiz:</strong>
+              </p>
+              <div style="background: #e8f5e9; padding: 10px 14px; border-radius: 8px; margin-top: 4px; border-left: 3px solid #43a047;">
+                <p style="margin: 0; font-size: 14px; color: #1f2937;">${bitacora.aprendizObservacion}</p>
+              </div>
+            </div>
+          ` : ''}
           <div style="margin-bottom: 12px;">
             <p style="margin: 0; font-size: 13px; color: #6b7280;">
               <i class="fas fa-file-alt" style="color: #3ca203; margin-right: 6px;"></i>
@@ -239,8 +258,8 @@ const Bitacora = () => {
           ${bitacora.observaciones ? `
             <div>
               <p style="margin: 0; font-size: 13px; color: #6b7280;">
-                <i class="fas fa-comment" style="color: #3ca203; margin-right: 6px;"></i>
-                <strong>Observaciones:</strong>
+                <i class="fas fa-comment" style="color: #f59e0b; margin-right: 6px;"></i>
+                <strong>Observaciones del Instructor:</strong>
               </p>
               <div style="background: #fefce8; padding: 10px 14px; border-radius: 8px; margin-top: 4px; border-left: 3px solid #f59e0b;">
                 <p style="margin: 0; font-size: 14px; color: #1f2937;">${bitacora.observaciones}</p>
@@ -348,6 +367,105 @@ const Bitacora = () => {
               ${observaciones ? `<p style="margin: 8px 0; font-size: 14px; color: #6b7280;"><strong>Observaciones:</strong> ${observaciones}</p>` : ''}
               <p style="margin: 12px 0 0 0; font-size: 13px; color: #9ca3af; font-style: italic; border-top: 1px dashed #e5e7eb; padding-top: 10px;">
                 El seguimiento ha sido registrado exitosamente.
+              </p>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: '✅ Aceptar',
+          confirmButtonColor: '#3ca203',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    });
+  };
+
+  // FUNCIÓN PARA AGREGAR OBSERVACIÓN A BITÁCORA DEL APRENDIZ
+  const handleAgregarObservacionBitacora = (bitacora, aprendiz, bimestreKey) => {
+    Swal.fire({
+      title: '📝 Agregar Observación a Bitácora',
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;">
+            <p style="margin: 4px 0; font-size: 14px; color: #6b7280;">
+              <strong>Aprendiz:</strong> ${aprendiz.nombre}
+            </p>
+            <p style="margin: 4px 0; font-size: 14px; color: #6b7280;">
+              <strong>Bimestre:</strong> ${getNombreBimestre(bimestreKey)}
+            </p>
+            <p style="margin: 4px 0; font-size: 14px; color: #6b7280;">
+              <strong>Fecha:</strong> ${bitacora.fecha}
+            </p>
+            ${bitacora.aprendizObservacion ? `
+              <div style="margin-top: 10px; background: #e8f5e9; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #43a047;">
+                <p style="margin: 0; font-size: 13px; color: #2e7d32;">
+                  <i class="fas fa-user-graduate"></i> <strong>Bitácora del aprendiz:</strong>
+                </p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #1f2937;">${bitacora.aprendizObservacion}</p>
+              </div>
+            ` : ''}
+            ${bitacora.observaciones ? `
+              <div style="margin-top: 10px; background: #fefce8; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #f59e0b;">
+                <p style="margin: 0; font-size: 13px; color: #d97706;">
+                  <i class="fas fa-comment"></i> <strong>Observación anterior del instructor:</strong>
+                </p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #1f2937;">${bitacora.observaciones}</p>
+              </div>
+            ` : ''}
+          </div>
+          <div style="margin: 15px 0;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
+              Nueva observación para el aprendiz
+            </label>
+            <textarea id="nueva-observacion-bitacora" 
+              style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; min-height: 100px; resize: vertical; box-sizing: border-box;"
+              placeholder="Escribe aquí la observación para el aprendiz sobre su bitácora..."
+            ></textarea>
+            <p style="font-size: 12px; color: #9ca3af; margin-top: 5px;">
+              <i class="fas fa-info-circle"></i> Esta observación será visible para el aprendiz
+            </p>
+          </div>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: '✅ Guardar Observación',
+      confirmButtonColor: '#3ca203',
+      showCancelButton: true,
+      cancelButtonText: '❌ Cancelar',
+      cancelButtonColor: '#ef4444',
+      preConfirm: () => {
+        const observacion = document.getElementById('nueva-observacion-bitacora').value;
+        if (!observacion.trim()) {
+          Swal.showValidationMessage('⚠️ Por favor ingresa una observación');
+          return false;
+        }
+        return { observacion };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { observacion } = result.value;
+        
+        // Simular guardado de observación
+        Swal.fire({
+          title: '✅ ¡Observación agregada a la bitácora!',
+          html: `
+            <div style="text-align: left; padding: 10px 0;">
+              <p style="margin: 8px 0; font-size: 15px; color: #1f2937;">
+                <strong>Aprendiz:</strong> ${aprendiz.nombre}
+              </p>
+              <div style="background: #fefce8; padding: 12px 16px; border-radius: 8px; margin: 10px 0; border-left: 3px solid #f59e0b;">
+                <p style="margin: 0; font-size: 14px; color: #1f2937;">
+                  <i class="fas fa-comment" style="color: #f59e0b; margin-right: 8px;"></i>
+                  ${observacion}
+                </p>
+              </div>
+              ${bitacora.observaciones ? `
+                <p style="margin: 8px 0; font-size: 13px; color: #9ca3af;">
+                  <strong>Observación anterior:</strong> ${bitacora.observaciones}
+                </p>
+              ` : ''}
+              <p style="margin: 12px 0 0 0; font-size: 13px; color: #9ca3af; font-style: italic; border-top: 1px dashed #e5e7eb; padding-top: 10px;">
+                La observación ha sido registrada y será visible para el aprendiz.
               </p>
             </div>
           `,
@@ -493,32 +611,56 @@ const Bitacora = () => {
                         {bitacoras.map((bitacora, index) => (
                           <div 
                             key={index} 
-                            className="bitacora-item clickable"
+                            className="bitacora-item"
                             style={{ borderLeftColor: color }}
-                            onClick={() => handleVerSeguimiento(bitacora, selectedAprendiz)}
                           >
-                            <div className="bitacora-fecha">
-                              <i className="fas fa-clock"></i>
-                              {bitacora.fecha}
-                            </div>
-                            <div className="bitacora-descripcion">
-                              <strong>{bitacora.descripcion}</strong>
-                            </div>
-                            {bitacora.observaciones && (
-                              <div className="bitacora-observaciones">
-                                <i className="fas fa-comment"></i>
-                                {bitacora.observaciones}
+                            {/* Contenido clickeable para ver detalle */}
+                            <div 
+                              className="bitacora-main-content"
+                              onClick={() => handleVerSeguimiento(bitacora, selectedAprendiz)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <div className="bitacora-fecha">
+                                <i className="fas fa-clock"></i>
+                                {bitacora.fecha}
                               </div>
-                            )}
-                            <div className="bitacora-footer">
-                              <span className="bitacora-instructor">
-                                <i className="fas fa-user"></i>
-                                {bitacora.instructor || 'Carlos Andrés López'}
-                              </span>
-                              <span className="bitacora-ver-detalle">
-                                Ver detalle <i className="fas fa-chevron-right"></i>
-                              </span>
+                              <div className="bitacora-descripcion">
+                                <strong>{bitacora.descripcion}</strong>
+                              </div>
+                              {bitacora.aprendizObservacion && (
+                                <div className="bitacora-aprendiz-obs">
+                                  <i className="fas fa-user-graduate"></i>
+                                  <span className="label">Bitácora:</span>
+                                  {bitacora.aprendizObservacion}
+                                </div>
+                              )}
+                              {bitacora.observaciones && (
+                                <div className="bitacora-observaciones">
+                                  <i className="fas fa-comment"></i>
+                                  <span className="label">Observación:</span>
+                                  {bitacora.observaciones}
+                                </div>
+                              )}
+                              <div className="bitacora-footer">
+                                <span className="bitacora-instructor">
+                                  <i className="fas fa-user"></i>
+                                  {bitacora.instructor || 'Carlos Andrés López'}
+                                </span>
+                                <span className="bitacora-ver-detalle">
+                                  Ver detalle <i className="fas fa-chevron-right"></i>
+                                </span>
+                              </div>
                             </div>
+                            {/* BOTÓN PARA AGREGAR OBSERVACIÓN A LA BITÁCORA */}
+                            <button 
+                              className="btn-agregar-observacion-bitacora"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAgregarObservacionBitacora(bitacora, selectedAprendiz, key);
+                              }}
+                            >
+                              <i className="fas fa-pen"></i> Observar Bitácora
+                            </button>
                           </div>
                         ))}
                       </div>

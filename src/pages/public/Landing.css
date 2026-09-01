@@ -10,7 +10,7 @@
 
 /* --- Barra de Navegación --- */
 .navbar-landing {
-  background-color: #39A900; /* <--- CAMBIADO A TU VERDE (#39A900) */
+  background-color:#3ca203; /* <--- CAMBIADO A TU VERDE (#39A900) */
   padding: 12px 40px;
   display: flex;
   justify-content: space-between;

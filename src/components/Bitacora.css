@@ -433,6 +433,29 @@
 }
 
 /* ========================================================== */
+/* BITÁCORA DEL APRENDIZ - SIN ÍCONOS */
+/* ========================================================== */
+.bitacora-aprendiz-obs {
+  background: #e8f5e9;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin: 4px 0;
+  font-size: 13px;
+  color: #1f2937;
+  border-left: 3px solid #43a047;
+}
+
+.bitacora-aprendiz-obs .label {
+  font-weight: 600;
+  color: #2e7d32;
+  margin-right: 4px;
+}
+
+.bitacora-aprendiz-obs i {
+  display: none;
+}
+
+/* ========================================================== */
 /* NO BITÁCORAS */
 /* ========================================================== */
 .no-bitacoras {
@@ -546,7 +569,6 @@
     font-size: 14px;
   }
 }
-/* Agregar al final del archivo Bitacora.css */
 
 /* ========================================================== */
 /* BOTÓN CREAR SEGUIMIENTO */
@@ -618,27 +640,6 @@
 }
 
 /* ========================================================== */
-/* RESPONSIVE PARA BOTONES */
-/* ========================================================== */
-@media (max-width: 600px) {
-  .header-title-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-crear-seguimiento {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .btn-crear-seguimiento-empty {
-    width: 100%;
-    justify-content: center;
-  }
-}
-/* Agregar al final del archivo Bitacora.css */
-
-/* ========================================================== */
 /* FOOTER DE BITÁCORA - VER DETALLE */
 /* ========================================================== */
 .bitacora-item.clickable {
@@ -693,75 +694,7 @@
 }
 
 /* ========================================================== */
-/* HEADER TITLE ROW */
-/* ========================================================== */
-.header-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 5px;
-}
-
-.btn-crear-seguimiento {
-  background: #3ca203;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.btn-crear-seguimiento:hover {
-  background: #2d8a00;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(60, 162, 3, 0.3);
-}
-
-.btn-crear-seguimiento:active {
-  transform: translateY(0);
-}
-
-.btn-crear-seguimiento i {
-  font-size: 16px;
-}
-
-.btn-crear-seguimiento-empty {
-  background: #3ca203;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.2s;
-  margin-top: 15px;
-}
-
-.btn-crear-seguimiento-empty:hover {
-  background: #2d8a00;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(60, 162, 3, 0.3);
-}
-
-.btn-crear-seguimiento-empty i {
-  font-size: 18px;
-}
-
-/* ========================================================== */
-/* RESPONSIVE */
+/* RESPONSIVE PARA BOTONES */
 /* ========================================================== */
 @media (max-width: 600px) {
   .header-title-row {
@@ -784,4 +717,29 @@
     align-items: flex-start;
     gap: 6px;
   }
+}
+
+/* ========================================================== */
+/* BOTÓN OBSERVAR BITÁCORA - SOLO TEXTO SIN ÍCONO */
+/* ========================================================== */
+.btn-agregar-observacion-bitacora {
+  background: transparent;
+  border: none;
+  color: #3ca203;
+  padding: 6px 0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-block;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+}
+
+.btn-agregar-observacion-bitacora:hover {
+  color: #2d8a00;
+  text-decoration: underline;
+}
+
+.btn-agregar-observacion-bitacora:active {
+  transform: scale(0.98);
 }
