@@ -3,20 +3,20 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 
-// Importar páginas públicas
-import Landing from './pages/public/Landing';
-import Login from './pages/public/Login';
-import Register from './pages/public/Register';
-import RecuperarContrasena from './pages/public/RecuperarContrasena';
-import VerificacionCodigo from './pages/public/VerificacionCodigo';
-import CambiarContrasena from './pages/public/CambiarContrasena';
+// Importar páginas públicas (AHORA ESTÁN EN modules/auth/pages)
+import Landing from './modules/auth/pages/Landing';
+import Login from './modules/auth/pages/Login';
+import Register from './modules/auth/pages/Register';
+import RecuperarContrasena from './modules/auth/pages/RecuperarContrasena';
+import VerificacionCodigo from './modules/auth/pages/VerificacionCodigo';
+import CambiarContrasena from './modules/auth/pages/CambiarContrasena';
 
-// Importar Layouts de los roles
-import LayoutInstructor from './layouts/LayoutInstructor';
-import LayoutCoordinador from './layouts/LayoutCoordinador';
-import LayoutAprendiz from './layouts/LayoutAprendiz';
-import LayoutAdmin from './layouts/LayoutAdmin';
-import LayoutApoyo from './layouts/LayoutApoyo'; // <--- NUEVO
+// Importar Layouts de los roles (AHORA ESTÁN EN modules/shared/layouts)
+import LayoutInstructor from './modules/shared/layouts/LayoutInstructor';
+import LayoutCoordinador from './modules/shared/layouts/LayoutCoordinador';
+import LayoutAprendiz from './modules/shared/layouts/LayoutAprendiz';
+import LayoutAdmin from './modules/shared/layouts/LayoutAdmin';
+import LayoutApoyo from './modules/shared/layouts/LayoutApoyo';
 
 // Datos de los 5 usuarios
 const USERS = {
@@ -44,7 +44,7 @@ const USERS = {
     role: 'admin',
     avatar: 'https://i.pravatar.cc/150?img=99'
   },
-  apoyo: { // <--- NUEVO USUARIO APOYO ADMINISTRATIVO
+  apoyo: {
     nombre: 'Asistente Administrativo',
     cargo: 'Apoyo Administrativo (Solo Lectura)',
     role: 'apoyo',
@@ -60,7 +60,7 @@ function AppContent() {
   if (location.pathname.startsWith('/coordinador')) rol = 'coordinador';
   else if (location.pathname.startsWith('/aprendiz')) rol = 'aprendiz';
   else if (location.pathname.startsWith('/admin')) rol = 'admin';
-  else if (location.pathname.startsWith('/apoyo')) rol = 'apoyo'; // <--- NUEVO
+  else if (location.pathname.startsWith('/apoyo')) rol = 'apoyo';
 
   const user = USERS[rol];
 
@@ -79,7 +79,7 @@ function AppContent() {
       <Route path="/coordinador/*" element={<LayoutCoordinador user={user} />} />
       <Route path="/aprendiz/*" element={<LayoutAprendiz user={user} />} />
       <Route path="/admin/*" element={<LayoutAdmin user={user} />} />
-      <Route path="/apoyo/*" element={<LayoutApoyo user={user} />} /> {/* <--- NUEVO */}
+      <Route path="/apoyo/*" element={<LayoutApoyo user={user} />} />
     </Routes>
   );
 }
