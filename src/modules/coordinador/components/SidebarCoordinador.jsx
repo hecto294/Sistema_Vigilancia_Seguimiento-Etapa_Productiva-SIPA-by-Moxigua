@@ -1,6 +1,6 @@
-// src/components/SidebarCoordinador.jsx
+// src/modules/coordinador/components/SidebarCoordinador.jsx
 import React from 'react';
-import './Sidebar.css';
+import '../../shared/components/Sidebar.css';
 
 const SidebarCoordinador = ({ onNavigate, activePage }) => {
   return (
@@ -77,7 +77,6 @@ const SidebarCoordinador = ({ onNavigate, activePage }) => {
             <i className="fas fa-exchange-alt"></i> Subir Alternativa
           </li>
 
-          {/* --- NUEVO: MOMENTOS --- */}
           <li 
             className={activePage === 'momentos' ? 'active' : ''} 
             onClick={() => onNavigate('/coordinador/momentos', 'momentos')}

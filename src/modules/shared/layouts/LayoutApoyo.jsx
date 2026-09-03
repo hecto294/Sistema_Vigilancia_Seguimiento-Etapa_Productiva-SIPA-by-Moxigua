@@ -1,8 +1,8 @@
-// src/layouts/LayoutApoyo.jsx
+// src/modules/shared/layouts/LayoutApoyo.jsx
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/modules/shared/components/Header';
-import SidebarApoyo from '@/modules/shared/components/SidebarApoyo';
+import SidebarApoyo from '@/modules/apoyo/components/SidebarApoyo';
 import '../../../App.css';
 
 // Importar páginas del apoyo usando el alias @
@@ -10,6 +10,7 @@ import DashboardApoyo from "@/modules/apoyo/pages/DashboardApoyo";
 import GestionUsuariosApoyo from "@/modules/apoyo/pages/GestionUsuariosApoyo";
 import GestionFichasApoyo from "@/modules/apoyo/pages/GestionFichasApoyo";
 import ReportesGlobalesApoyo from "@/modules/apoyo/pages/ReportesGlobalesApoyo";
+import MiPerfil from "@/modules/apoyo/pages/MiPerfil";
 
 const LayoutApoyo = ({ user }) => {
   const navigate = useNavigate();
@@ -35,7 +36,15 @@ const LayoutApoyo = ({ user }) => {
 
   return (
     <div className="app-layout">
-      <Header user={user} />
+      {/* 👇 DATOS ESPECÍFICOS DEL ROL APOYO + NOTIFICACIONES */}
+      <Header 
+        user={{ nombre: 'Lia Vasquez', role: 'Apoyo', avatar: 'https://i.pravatar.cc/150?img=47' }}
+        notifications={[
+          { id: 1, mensaje: 'Solicitud de consulta recibida', tiempo: 'Hoy, 10:00 a.m.' },
+          { id: 2, mensaje: 'Reporte generado exitosamente', tiempo: 'Hoy, 08:45 a.m.' },
+          { id: 3, mensaje: 'Usuario modificado', tiempo: 'Ayer, 04:20 p.m.' },
+        ]}
+      />
       <div className="main-body">
         <SidebarApoyo 
           onNavigate={handleNavigation} 
@@ -50,6 +59,8 @@ const LayoutApoyo = ({ user }) => {
             <Route path="/gestion-fichas" element={<GestionFichasApoyo />} />
             <Route path="/fichas" element={<GestionFichasApoyo />} />
             <Route path="/reportes" element={<ReportesGlobalesApoyo />} />
+            {/* 👇 PASA LOS DATOS CORRECTOS AL PERFIL */}
+            <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'Lia Vasquez', role: 'Apoyo', avatar: 'https://i.pravatar.cc/150?img=47' }} />} />
           </Routes>
         </div>
       </div>

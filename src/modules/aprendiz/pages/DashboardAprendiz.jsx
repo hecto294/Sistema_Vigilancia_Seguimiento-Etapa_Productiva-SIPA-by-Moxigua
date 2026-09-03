@@ -1,221 +1,176 @@
-// src/pages/aprendiz/DashboardAprendiz.jsx
-import React from 'react';
+// src/modules/aprendiz/pages/DashboardAprendiz.jsx
+import React, { useState, useEffect } from 'react';
+import './DashboardAprendiz.css';
 
 const DashboardAprendiz = ({ user }) => {
-  // Usamos React.useState en lugar de importar useState
-  const [modalAbierto, setModalAbierto] = React.useState(false);
-  const [tituloModal, setTituloModal] = React.useState('');
-  const [detalles, setDetalles] = React.useState({ hecho: [], falta: [] });
+  // 📅 FECHAS DE LA ETAPA PRODUCTIVA
+  const fechaInicio = new Date('2025-03-01T00:00:00'); // Ejemplo: 01/03/2025
+  const fechaLimite = new Date('2026-02-28T23:59:59'); // Ejemplo: 28/02/2026
 
-  // Datos de progreso real del aprendiz
-  const progreso = {
-    momentos: {
-      hecho: ['Momento 1 - Inducción completada', 'Momento 2 - Seguimiento en proceso'],
-      falta: ['Momento 3 - Evaluación final pendiente']
-    },
-    bitacoras: {
-      hecho: ['Bitácora Semana 1 subida', 'Bitácora Semana 2 subida'],
-      falta: ['Bitácora Semana 3 pendiente de subir']
-    },
-    certificados: {
-      hecho: ['Certificado de Análisis y Desarrollo de Software emitido'],
-      falta: ['Certificado de competencias laborales (en trámite)']
-    },
-    notificaciones: {
-      hecho: ['Leíste la notificación de cambio de horario', 'Leíste la alerta de entrega'],
-      falta: ['Tienes 2 notificaciones sin leer']
+  const [tiempoRestante, setTiempoRestante] = useState({
+    dias: 0,
+    horas: 0,
+    minutos: 0,
+    segundos: 0
+  });
+
+  const [progreso, setProgreso] = useState({
+    diasTranscurridos: 0,
+    diasRestantes: 0,
+    porcentaje: 0
+  });
+
+  // Función para calcular el tiempo restante
+  const calcularTiempo = () => {
+    const ahora = new Date();
+    const diferencia = fechaLimite - ahora;
+
+    if (diferencia <= 0) {
+      return { dias: 0, horas: 0, minutos: 0, segundos: 0 };
     }
+
+    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+    const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+
+    return { dias, horas, minutos, segundos };
   };
 
-  const abrirModal = (categoria, titulo) => {
-    setTituloModal(titulo);
-    setDetalles(progreso[categoria]);
-    setModalAbierto(true);
+  // Función para calcular el progreso total
+  const calcularProgreso = () => {
+    const ahora = new Date();
+    const duracionTotal = fechaLimite - fechaInicio;
+    const duracionTranscurrida = ahora - fechaInicio;
+    
+    // Si la fecha ya pasó, el progreso es 100%
+    if (duracionTranscurrida >= duracionTotal) {
+      return {
+        diasTranscurridos: Math.floor(duracionTotal / (1000 * 60 * 60 * 24)),
+        diasRestantes: 0,
+        porcentaje: 100
+      };
+    }
+
+    // Si aún no ha empezado, el progreso es 0%
+    if (duracionTranscurrida <= 0) {
+      return {
+        diasTranscurridos: 0,
+        diasRestantes: Math.floor(duracionTotal / (1000 * 60 * 60 * 24)),
+        porcentaje: 0
+      };
+    }
+
+    const diasTranscurridos = Math.floor(duracionTranscurrida / (1000 * 60 * 60 * 24));
+    const porcentaje = Math.round((duracionTranscurrida / duracionTotal) * 100);
+
+    return {
+      diasTranscurridos,
+      diasRestantes: Math.floor((fechaLimite - ahora) / (1000 * 60 * 60 * 24)),
+      porcentaje
+    };
   };
 
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setTituloModal('');
-    setDetalles({ hecho: [], falta: [] });
-  };
+  // Actualizar el contador y el progreso cada segundo
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setTiempoRestante(calcularTiempo());
+      setProgreso(calcularProgreso());
+    }, 1000);
+
+    return () => clearInterval(intervalo);
+  }, []);
+
+  const stats = [
+    { id: 1, titulo: 'Momentos completados', valor: '2', icono: 'fa-check-circle', color: '#3ca203', bgColor: '#e6f7ed' },
+    { id: 2, titulo: 'Bitácoras subidas', valor: '2', icono: 'fa-book', color: '#0ea5e9', bgColor: '#e0f2fe' },
+    { id: 3, titulo: 'Certificado obtenido', valor: '1', icono: 'fa-certificate', color: '#f59e0b', bgColor: '#fef3c7' },
+    { id: 4, titulo: 'Notificaciones', valor: '3', icono: 'fa-bell', color: '#ef4444', bgColor: '#fee2e2' },
+  ];
 
   return (
-    <div style={{ width: '100%' }}>
-      <div style={{ marginBottom: '25px' }}>
-        <h2 style={{ fontSize: '26px', fontWeight: 'bold', color: '#1f2937' }}>¡Hola, {user?.nombre || 'Aprendiz'}!</h2>
-        <p style={{ color: '#6b7280', fontSize: '15px' }}>Haz clic en cada tarjeta para ver tu progreso y pendientes.</p>
-      </div>
-
-      {/* Tarjetas de resumen */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
-        {/* Tarjeta 1: Momentos */}
-        <div 
-          style={{ 
-            background: 'white', 
-            padding: '25px', 
-            borderRadius: '12px', 
-            border: '1px solid #e5e7eb', 
-            textAlign: 'center',
-            transition: 'all 0.25s ease',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-          onClick={() => abrirModal('momentos', 'Mis Momentos')}
-        >
-          <i className="fas fa-check-circle" style={{ fontSize: '30px', color: '#39A900', marginBottom: '10px' }} />
-          <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0 }}>2</h3>
-          <p style={{ color: '#6b7280', margin: 0 }}>Momentos completados</p>
+    <div className="dashboard-aprendiz-container">
+      {/* ========================================================== */}
+      {/* CONTADOR REGRESIVO Y FECHA LÍMITE */}
+      {/* ========================================================== */}
+      <div className="countdown-section">
+        <div className="countdown-header">
+          <i className="fas fa-hourglass-half"></i>
+          <span>Cuenta regresiva para culminar tu etapa productiva</span>
         </div>
 
-        {/* Tarjeta 2: Bitácoras */}
-        <div 
-          style={{ 
-            background: 'white', 
-            padding: '25px', 
-            borderRadius: '12px', 
-            border: '1px solid #e5e7eb', 
-            textAlign: 'center',
-            transition: 'all 0.25s ease',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-          onClick={() => abrirModal('bitacoras', 'Mis Bitácoras')}
-        >
-          <i className="fas fa-book" style={{ fontSize: '30px', color: '#39A900', marginBottom: '10px' }} />
-          <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0 }}>2</h3>
-          <p style={{ color: '#6b7280', margin: 0 }}>Bitácoras subidas</p>
+        {/* 👇 TEXTO DESTACADO CON LOS DÍAS PENDIENTES */}
+        <div className="days-remaining">
+          <i className="fas fa-calendar-check"></i>
+          <span>
+            <strong>{tiempoRestante.dias} días</strong> pendientes por terminar
+          </span>
         </div>
 
-        {/* Tarjeta 3: Certificados */}
-        <div 
-          style={{ 
-            background: 'white', 
-            padding: '25px', 
-            borderRadius: '12px', 
-            border: '1px solid #e5e7eb', 
-            textAlign: 'center',
-            transition: 'all 0.25s ease',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-          onClick={() => abrirModal('certificados', 'Mis Certificados')}
-        >
-          <i className="fas fa-certificate" style={{ fontSize: '30px', color: '#39A900', marginBottom: '10px' }} />
-          <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0 }}>1</h3>
-          <p style={{ color: '#6b7280', margin: 0 }}>Certificado obtenido</p>
-        </div>
-
-        {/* Tarjeta 4: Notificaciones */}
-        <div 
-          style={{ 
-            background: 'white', 
-            padding: '25px', 
-            borderRadius: '12px', 
-            border: '1px solid #e5e7eb', 
-            textAlign: 'center',
-            transition: 'all 0.25s ease',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-          onClick={() => abrirModal('notificaciones', 'Mis Notificaciones')}
-        >
-          <i className="fas fa-bell" style={{ fontSize: '30px', color: '#39A900', marginBottom: '10px' }} />
-          <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0 }}>3</h3>
-          <p style={{ color: '#6b7280', margin: 0 }}>Notificaciones</p>
-        </div>
-      </div>
-
-      {/* MODAL DE DETALLES */}
-      {modalAbierto && (
-        <div 
-          style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            width: '100%', 
-            height: '100%', 
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-            backdropFilter: 'blur(4px)',
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            zIndex: 2000 
-          }}
-          onClick={cerrarModal}
-        >
-          <div 
-            style={{ 
-              background: 'white', 
-              borderRadius: '16px', 
-              maxWidth: '500px', 
-              width: '90%', 
-              maxHeight: '80vh', 
-              overflowY: 'auto', 
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)', 
-              padding: '30px', 
-              position: 'relative' 
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
-              onClick={cerrarModal}
-              style={{ 
-                position: 'absolute', 
-                top: '15px', 
-                right: '20px', 
-                background: 'transparent', 
-                border: 'none', 
-                fontSize: '28px', 
-                color: '#6b7280', 
-                cursor: 'pointer' 
-              }}
-            >
-              &times;
-            </button>
-
-            <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1f2937', marginBottom: '15px' }}>
-              {tituloModal}
-            </h3>
-
-            {/* Lo hecho */}
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: '#10b981', marginBottom: '10px' }}>
-                <i className="fas fa-check-circle" style={{ marginRight: '8px' }} /> Lo que has hecho
-              </h4>
-              <ul style={{ paddingLeft: '20px', color: '#374151', lineHeight: '1.8' }}>
-                {detalles.hecho.length > 0 ? (
-                  detalles.hecho.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))
-                ) : (
-                  <li style={{ color: '#6b7280', fontStyle: 'italic' }}>Aún no has completado nada en esta categoría.</li>
-                )}
-              </ul>
-            </div>
-
-            {/* Lo que falta */}
-            <div>
-              <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ef4444', marginBottom: '10px' }}>
-                <i className="fas fa-clock" style={{ marginRight: '8px' }} /> Lo que falta por hacer
-              </h4>
-              <ul style={{ paddingLeft: '20px', color: '#374151', lineHeight: '1.8' }}>
-                {detalles.falta.length > 0 ? (
-                  detalles.falta.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))
-                ) : (
-                  <li style={{ color: '#6b7280', fontStyle: 'italic' }}>¡Todo completo en esta categoría!</li>
-                )}
-              </ul>
-            </div>
-
+        {/* 👇 BARRA DE PROGRESO TOTAL */}
+        <div className="progress-section">
+          <div className="progress-header">
+            <span>Progreso de tu etapa productiva</span>
+            <span className="progress-percentage">{progreso.porcentaje}%</span>
+          </div>
+          <div className="progress-bar-container">
+            <div
+              className="progress-bar"
+              style={{ width: `${progreso.porcentaje}%` }}
+            ></div>
+          </div>
+          <div className="progress-details">
+            <span>
+              <i className="fas fa-play-circle"></i>
+              <strong>{progreso.diasTranscurridos} días</strong> transcurridos
+            </span>
+            <span>
+              <i className="fas fa-flag-checkered"></i>
+              <strong>{progreso.diasRestantes} días</strong> por completar
+            </span>
           </div>
         </div>
-      )}
+
+        <div className="countdown-timer">
+          <div className="countdown-box">
+            <span className="countdown-number">{tiempoRestante.dias}</span>
+            <span className="countdown-label">Días</span>
+          </div>
+          <div className="countdown-box">
+            <span className="countdown-number">{tiempoRestante.horas}</span>
+            <span className="countdown-label">Horas</span>
+          </div>
+          <div className="countdown-box">
+            <span className="countdown-number">{tiempoRestante.minutos}</span>
+            <span className="countdown-label">Minutos</span>
+          </div>
+          <div className="countdown-box">
+            <span className="countdown-number">{tiempoRestante.segundos}</span>
+            <span className="countdown-label">Segundos</span>
+          </div>
+        </div>
+        <div className="countdown-footer">
+          <i className="fas fa-calendar-alt"></i>
+          <span>Fecha límite: <strong>28 de Febrero de 2026</strong></span>
+        </div>
+      </div>
+
+      {/* ========================================================== */}
+      {/* TARJETAS DE ESTADÍSTICAS */}
+      {/* ========================================================== */}
+      <div className="stats-grid-aprendiz">
+        {stats.map((stat) => (
+          <div key={stat.id} className="stat-card-aprendiz">
+            <div className="stat-icon" style={{ background: stat.bgColor, color: stat.color }}>
+              <i className={`fas ${stat.icono}`}></i>
+            </div>
+            <div className="stat-info">
+              <span className="stat-number">{stat.valor}</span>
+              <span className="stat-label">{stat.titulo}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

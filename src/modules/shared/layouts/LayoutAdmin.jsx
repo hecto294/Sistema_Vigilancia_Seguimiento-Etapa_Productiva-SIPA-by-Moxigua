@@ -1,8 +1,8 @@
-// src/layouts/LayoutAdmin.jsx
+// src/modules/shared/layouts/LayoutAdmin.jsx
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import Header from '../components/Header';
-import SidebarAdmin from '../components/SidebarAdmin';
+import Header from '../../shared/components/Header';
+import SidebarAdmin from '../../admin/components/SidebarAdmin';
 import '../../../App.css';
 
 // ✅ TODAS LAS RUTAS CORREGIDAS USANDO EL ALIAS "@"
@@ -27,7 +27,15 @@ const LayoutAdmin = ({ user }) => {
 
   return (
     <div className="app-layout">
-      <Header user={user} />
+      {/* 👇 DATOS ESPECÍFICOS DEL ROL ADMIN + NOTIFICACIONES */}
+      <Header 
+        user={{ nombre: 'Carlos Rodríguez', role: 'Admin', avatar: 'https://i.pravatar.cc/150?img=12' }}
+        notifications={[
+          { id: 1, mensaje: 'Nuevo usuario registrado', tiempo: 'Hoy, 10:30 a.m.' },
+          { id: 2, mensaje: 'Ficha 2875901 actualizada', tiempo: 'Hoy, 09:15 a.m.' },
+          { id: 3, mensaje: 'Certificado masivo descargado', tiempo: 'Ayer, 05:00 p.m.' },
+        ]}
+      />
       <div className="main-body">
         <SidebarAdmin 
           onNavigate={handleNavigation} 
@@ -39,7 +47,7 @@ const LayoutAdmin = ({ user }) => {
             <Route path="/usuarios" element={<GestionUsuarios />} />
             <Route path="/fichas" element={<GestionFichas />} />
             <Route path="/reportes" element={<ReportesGlobales />} />
-            <Route path="/mi-perfil" element={<MiPerfil user={user} />} />
+            <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'Carlos Rodríguez', role: 'Admin', avatar: 'https://i.pravatar.cc/150?img=12' }} />} />
           </Routes>
         </div>
       </div>

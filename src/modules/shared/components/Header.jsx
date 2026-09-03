@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import './Header.css';
 
-const Header = ({ user }) => {
+const Header = ({ user, notifications = [] }) => {
   const navigate = useNavigate();
   const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -50,11 +50,8 @@ const Header = ({ user }) => {
     }
   };
 
-  const notificaciones = [
-    { id: 1, mensaje: '3 seguimientos están atrasados', tiempo: 'Hoy, 08:15 a. m.' },
-    { id: 2, mensaje: '2 evaluaciones pendientes', tiempo: 'Hoy, 07:50 a. m.' },
-    { id: 3, mensaje: 'Documentos pendientes por revisar', tiempo: 'Ayer, 05:30 p. m.' },
-  ];
+  // 🔔 Si no hay notificaciones, usamos una lista vacía
+  const notifList = notifications.length > 0 ? notifications : [];
 
   return (
     <header className="topbar">
@@ -83,7 +80,7 @@ const Header = ({ user }) => {
                 <small>Marcar todas como leídas</small>
               </div>
               <div className="dropdown-list">
-                {notificaciones.map((notif) => (
+                {notifList.map((notif) => (
                   <div key={notif.id} className="dropdown-item">
                     <div className="notif-content">
                       <div className="notif-title">{notif.mensaje}</div>
@@ -121,16 +118,22 @@ const Header = ({ user }) => {
           <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
             <img src={user?.avatar || 'https://i.pravatar.cc/150?img=47'} alt="Profile" />
             <div>
-              <strong>{user?.nombre || 'lia vasquez'}</strong>
-              <small>Coordinador</small>
+              <strong>{user?.nombre || 'Carlos Andrés López'}</strong>
+              <small>{user?.role || 'Aprendiz'}</small>
             </div>
             <i className="fas fa-chevron-down profile-arrow"></i>
           </div>
 
           {showProfileMenu && (
             <div className="profile-dropdown">
-              <div className="profile-item" onClick={handleViewProfile}>Ver mi perfil</div>
-              <div className="profile-item" onClick={handleLogout}>Cerrar sesión</div>
+              <div className="profile-item" onClick={handleViewProfile}>
+                <i className="fas fa-user-circle"></i>
+                <span>Ver mi perfil</span>
+              </div>
+              <div className="profile-item logout-item" onClick={handleLogout}>
+                <i className="fas fa-sign-out-alt"></i>
+                <span>Cerrar sesión</span>
+              </div>
             </div>
           )}
         </div>

@@ -5,27 +5,27 @@ import Header from '@/modules/shared/components/Header';
 import Sidebar from '@/modules/shared/components/Sidebar';
 import '@/App.css';
 
-// Importar todas las páginas del instructor
-import Dashboard from '@/modules/shared/components/Dashboard';
-import Fichas from '@/modules/shared/components/Fichas';
-import Empresas from '@/modules/shared/components/Empresas';
-import Aprendices from '@/modules/shared/components/Aprendices';
-import CharlasProgramadas from '@/modules/shared/components/CharlasProgramadas';
-import HistorialCharlas from '@/modules/shared/components/HistorialCharlas';
-import SeleccionAlternativa from '@/modules/shared/components/SeleccionAlternativa';
-import SeguimientoMomentos from '@/modules/shared/components/SeguimientoMomentos';
-import Bitacora from '@/modules/shared/components/Bitacora';
-import Certificaciones from '@/modules/shared/components/Certificaciones';
-
-// Páginas del instructor
-import DetalleFichaInstructor from '@/modules/instructor/pages/DetalleFichaInstructor';
-import DetalleAprendizBitacoras from '@/modules/instructor/pages/DetalleAprendizBitacoras';
-import EditarCharla from '@/modules/instructor/pages/EditarCharla';
-import MiPerfil from '@/modules/instructor/pages/MiPerfil';
+// Páginas (desde pages)
+import DashboardInstructor from '@/modules/instructor/pages/DashboardInstructor';
 import Calendario from '@/modules/instructor/pages/Calendario';
+import MiPerfil from '@/modules/instructor/pages/MiPerfil';
 import Seguimientos from '@/modules/instructor/pages/Seguimientos';
 import DetalleEvento from '@/modules/instructor/pages/DetalleEvento';
 import DetalleSeguimiento from '@/modules/instructor/pages/DetalleSeguimiento';
+import DetalleFichaInstructor from '@/modules/instructor/pages/DetalleFichaInstructor';
+import DetalleAprendizBitacoras from '@/modules/instructor/pages/DetalleAprendizBitacoras';
+import EditarCharla from '@/modules/instructor/pages/EditarCharla';
+
+// Componentes (desde components)
+import Fichas from '@/modules/instructor/components/Fichas';
+import Empresas from '@/modules/instructor/components/Empresas';
+import Aprendices from '@/modules/instructor/components/Aprendices';
+import CharlasProgramadas from '@/modules/instructor/components/CharlasProgramadas';
+import HistorialCharlas from '@/modules/instructor/components/HistorialCharlas';
+import SeleccionAlternativa from '@/modules/instructor/components/SeleccionAlternativa';
+import SeguimientoMomentos from '@/modules/instructor/components/SeguimientoMomentos';
+import Bitacora from '@/modules/instructor/components/Bitacora';
+import Certificaciones from '@/modules/instructor/components/Certificaciones';
 
 const LayoutInstructor = ({ user }) => {
   const [activePage, setActivePage] = useState('dashboard');
@@ -67,7 +67,7 @@ const LayoutInstructor = ({ user }) => {
 
   const renderContent = () => {
     switch (activePage) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <DashboardInstructor activePage={activePage} />;
       case 'fichas': return <Fichas />;
       case 'empresas': return <Empresas />;
       case 'aprendices': return <Aprendices />;
@@ -77,19 +77,21 @@ const LayoutInstructor = ({ user }) => {
       case 'momentos': return <SeguimientoMomentos />;
       case 'bitacora': return <Bitacora />;
       case 'certificaciones': return <Certificaciones />;
-      default: return <Dashboard />;
+      default: return <DashboardInstructor activePage={activePage} />;
     }
   };
 
   return (
     <div className="app-layout">
-      {/* ══════════ HEADER NORMAL (EL MISMO QUE USA APRENDIZ) ══════════ */}
-      <Header user={user} notifications={[
-        { id: 1, tipo: 'alerta', mensaje: '3 seguimientos están atrasados', descripcion: 'Requieren tu atención inmediata.', tiempo: 'Hoy, 08:15 a. m.' },
-        { id: 2, tipo: 'info', mensaje: '2 evaluaciones pendientes', descripcion: 'Tienes evaluaciones por finalizar.', tiempo: 'Hoy, 07:50 a. m.' },
-        { id: 3, tipo: 'info', mensaje: 'Documentos pendientes por revisar', descripcion: 'Hay documentos de aprendices pendientes.', tiempo: 'Ayer, 05:30 p. m.' }
-      ]} />
-
+      {/* 👇 DATOS ESPECÍFICOS DEL ROL INSTRUCTOR + NOTIFICACIONES */}
+      <Header 
+        user={{ nombre: 'Carlos Andrés López', role: 'Instructor', avatar: 'https://i.pravatar.cc/150?img=8' }}
+        notifications={[
+          { id: 1, mensaje: 'Nuevo aprendiz asignado', tiempo: 'Hoy, 12:00 p.m.' },
+          { id: 2, mensaje: 'Charla programada', tiempo: 'Hoy, 10:15 a.m.' },
+          { id: 3, mensaje: 'Bitácora pendiente por revisar', tiempo: 'Ayer, 06:30 p.m.' },
+        ]}
+      />
       <div className="main-body">
         <Sidebar setActivePage={handleSidebarClick} activePage={activePage} />
         <div className="content-area" style={{ padding: '30px', boxSizing: 'border-box', backgroundColor: '#f6f8fa' }}>
@@ -107,7 +109,7 @@ const LayoutInstructor = ({ user }) => {
               <Route path="/bitacora" element={<Bitacora />} />
               <Route path="/certificaciones" element={<Certificaciones />} />
               <Route path="/bitacora/aprendiz/:aprendizId" element={<DetalleAprendizBitacoras />} />
-              <Route path="/mi-perfil" element={<MiPerfil user={user} />} />
+              <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'Carlos Andrés López', role: 'Instructor', avatar: 'https://i.pravatar.cc/150?img=8' }} />} />
               <Route path="/calendario" element={<Calendario />} />
               <Route path="/seguimientos" element={<Seguimientos />} />
               <Route path="/evento/:id" element={<DetalleEvento />} />

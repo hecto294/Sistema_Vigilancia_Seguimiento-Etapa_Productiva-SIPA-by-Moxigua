@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/modules/shared/components/Header';
-import SidebarCoordinador from '@/modules/shared/components/SidebarCoordinador';
+import SidebarCoordinador from '@/modules/coordinador/components/SidebarCoordinador';
 import '@/App.css';
 
 // Importar páginas del coordinador
@@ -50,12 +50,15 @@ const LayoutCoordinador = ({ user }) => {
 
   return (
     <div className="app-layout">
-      {/* ⚠️ SOLO CAMBIO: role: 'coordinador' */}
-      <Header user={{ ...user, nombre: 'lia vasquez', role: 'coordinador' }} notifications={[
-        { id: 1, tipo: 'alerta', mensaje: '3 seguimientos están atrasados', descripcion: 'Requieren tu atención inmediata.', tiempo: 'Hoy, 08:15 a. m.' },
-        { id: 2, tipo: 'info', mensaje: '2 evaluaciones pendientes', descripcion: 'Tienes evaluaciones por finalizar.', tiempo: 'Hoy, 07:50 a. m.' },
-        { id: 3, tipo: 'info', mensaje: 'Documentos pendientes por revisar', descripcion: 'Hay documentos de aprendices pendientes.', tiempo: 'Ayer, 05:30 p. m.' }
-      ]} />
+      {/* 👇 DATOS ESPECÍFICOS DEL ROL COORDINADOR + NOTIFICACIONES */}
+      <Header 
+        user={{ nombre: 'María Fernanda Ruiz', role: 'Coordinador', avatar: 'https://i.pravatar.cc/150?img=32' }}
+        notifications={[
+          { id: 1, mensaje: '3 seguimientos están atrasados', tiempo: 'Hoy, 08:15 a.m.' },
+          { id: 2, mensaje: '2 evaluaciones pendientes', tiempo: 'Hoy, 07:50 a.m.' },
+          { id: 3, mensaje: 'Documentos pendientes por revisar', tiempo: 'Ayer, 05:30 p.m.' },
+        ]}
+      />
       <div className="main-body">
         <SidebarCoordinador 
           onNavigate={handleNavigation} 
@@ -82,7 +85,7 @@ const LayoutCoordinador = ({ user }) => {
             <Route path="/ficha-completa/:idFicha/aprendiz/:aprendizId/asignar-empresa" element={<AsignarEmpresaAprendiz />} />
             <Route path="/subir-alternativa" element={<SubirAlternativa />} />
             <Route path="/momentos" element={<MomentosCoordinador />} />
-            <Route path="/mi-perfil" element={<MiPerfil user={user} />} />
+            <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'María Fernanda Ruiz', role: 'Coordinador', avatar: 'https://i.pravatar.cc/150?img=32' }} />} />
           </Routes>
         </div>
       </div>
