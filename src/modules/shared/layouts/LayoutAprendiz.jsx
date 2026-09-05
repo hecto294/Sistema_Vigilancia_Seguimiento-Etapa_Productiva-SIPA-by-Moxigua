@@ -11,6 +11,8 @@ import MisMomentos from "@/modules/aprendiz/pages/MisMomentos";
 import MisBitacoras from "@/modules/aprendiz/pages/MisBitacoras";
 import MisCertificados from "@/modules/aprendiz/pages/MisCertificados";
 import MiPerfil from "@/modules/aprendiz/pages/MiPerfil";
+// ⬇️ NUEVA IMPORTACIÓN
+import Novedades from "@/modules/aprendiz/pages/Novedades";
 
 const LayoutAprendiz = ({ user }) => {
   const [activePage, setActivePage] = useState('dashboard');
@@ -28,6 +30,8 @@ const LayoutAprendiz = ({ user }) => {
       case 'momentos': return <MisMomentos />;
       case 'bitacoras': return <MisBitacoras />;
       case 'certificados': return <MisCertificados />;
+      // ⬇️ NUEVO CASO
+      case 'novedades': return <Novedades />;
       case 'dashboard':
       default:
         return <DashboardAprendiz user={user} />;

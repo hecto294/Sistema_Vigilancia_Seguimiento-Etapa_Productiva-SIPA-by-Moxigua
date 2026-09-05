@@ -12,6 +12,7 @@ const HistorialCharlas = () => {
   const [visorAbierto, setVisorAbierto] = useState(false);
   const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
 
+  // 📝 CAMBIO IMPORTANTE: Todos los archivos ahora son .pdf en los datos
   const historial = [
     {
       id: 1,
@@ -21,13 +22,13 @@ const HistorialCharlas = () => {
       asistencia: 22,
       soportes: [
         { nombre: 'Guía Normatividad.pdf', tipo: 'pdf', contenido: 'Documento PDF con la guía completa de normatividad SENA. Incluye todos los procedimientos y requisitos para la etapa productiva.' },
-        { nombre: 'Presentación Intro.pptx', tipo: 'ppt', contenido: 'Presentación en PowerPoint con la introducción a la normatividad SENA. 15 diapositivas con los puntos clave.' }
+        { nombre: 'Presentación Intro.pdf', tipo: 'pdf', contenido: 'Presentación en PDF con la introducción a la normatividad SENA. 15 diapositivas con los puntos clave.' }
       ],
       listados: [
-        { nombre: 'Lista_Asistencia_Junio.xlsx', tipo: 'excel', contenido: 'Archivo Excel con la lista de asistencia de los 22 aprendices. Incluye fecha, hora y firma de cada participante.' }
+        { nombre: 'Lista_Asistencia_Junio.pdf', tipo: 'pdf', contenido: 'Archivo PDF con la lista de asistencia de los 22 aprendices. Incluye fecha, hora y firma de cada participante.' }
       ],
       fotos: [
-        { nombre: 'Foto_Charla_1.jpg', tipo: 'imagen', url: 'https://picsum.photos/seed/charla1/800/500', contenido: 'Foto grupal de los aprendices durante la charla de Normatividad SENA. Se observa la participación activa del grupo.' }
+        { nombre: 'Foto_Charla_1.pdf', tipo: 'pdf', contenido: 'Documento PDF con la foto grupal de los aprendices durante la charla de Normatividad SENA.' }
       ]
     },
     {
@@ -40,10 +41,10 @@ const HistorialCharlas = () => {
         { nombre: 'Reglamento Seguridad.pdf', tipo: 'pdf', contenido: 'Reglamento interno de seguridad industrial. Normas y procedimientos obligatorios para todos los aprendices en etapa productiva.' }
       ],
       listados: [
-        { nombre: 'Lista_Asistencia_Seguridad.xlsx', tipo: 'excel', contenido: 'Lista de asistencia con 18 aprendices registrados. Incluye observaciones de cada participante.' }
+        { nombre: 'Lista_Asistencia_Seguridad.pdf', tipo: 'pdf', contenido: 'Lista de asistencia con 18 aprendices registrados. Incluye observaciones de cada participante.' }
       ],
       fotos: [
-        { nombre: 'Foto_Charla_2.jpg', tipo: 'imagen', url: 'https://picsum.photos/seed/charla2/800/500', contenido: 'Foto de los aprendices durante la charla de Seguridad Industrial. Se realizaron demostraciones prácticas.' }
+        { nombre: 'Foto_Charla_2.pdf', tipo: 'pdf', contenido: 'Documento PDF con la foto de los aprendices durante la charla de Seguridad Industrial.' }
       ]
     },
     {
@@ -104,9 +105,6 @@ const HistorialCharlas = () => {
   const getIconoArchivo = (tipo) => {
     switch(tipo) {
       case 'pdf': return 'fa-file-pdf';
-      case 'ppt': return 'fa-file-powerpoint';
-      case 'excel': return 'fa-file-excel';
-      case 'imagen': return 'fa-file-image';
       default: return 'fa-file';
     }
   };
@@ -114,17 +112,13 @@ const HistorialCharlas = () => {
   const getColorArchivo = (tipo) => {
     switch(tipo) {
       case 'pdf': return '#dc2626';
-      case 'ppt': return '#f59e0b';
-      case 'excel': return '#10b981';
-      case 'imagen': return '#8b5cf6';
       default: return '#6b7280';
     }
   };
 
-  // Verificar si el archivo es una imagen
+  // 🚨 CAMBIO: Ahora todo es PDF, así que esta función siempre devuelve false
   const esImagen = (archivo) => {
-    return archivo.tipo === 'imagen' || 
-           archivo.nombre.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)$/);
+    return false; // Todo es PDF, nunca mostramos imágenes
   };
 
   return (
@@ -270,7 +264,7 @@ const HistorialCharlas = () => {
                       className="file-tag clickable"
                       onClick={() => handleVerArchivo(s, 'Listados')}
                     >
-                      <i className="fas fa-file-excel" style={{ color: '#10b981' }} />
+                      <i className={`fas ${getIconoArchivo(s.tipo)}`} style={{ color: getColorArchivo(s.tipo) }} />
                       {s.nombre}
                       <i className="fas fa-eye" style={{ fontSize: '10px', marginLeft: '6px', opacity: 0.6 }} />
                     </span>
@@ -291,7 +285,7 @@ const HistorialCharlas = () => {
                       className="file-tag clickable"
                       onClick={() => handleVerArchivo(s, 'Fotos')}
                     >
-                      <i className="fas fa-file-image" style={{ color: '#8b5cf6' }} />
+                      <i className={`fas ${getIconoArchivo(s.tipo)}`} style={{ color: getColorArchivo(s.tipo) }} />
                       {s.nombre}
                       <i className="fas fa-eye" style={{ fontSize: '10px', marginLeft: '6px', opacity: 0.6 }} />
                     </span>
@@ -311,7 +305,7 @@ const HistorialCharlas = () => {
       )}
 
       {/* ========================================================== */}
-      {/* VISOR DE ARCHIVOS - CON VISOR DE IMÁGENES */}
+      {/* VISOR DE ARCHIVOS - TODO SE VE COMO PDF */}
       {/* ========================================================== */}
       {visorAbierto && archivoSeleccionado && (
         <div 
@@ -329,7 +323,7 @@ const HistorialCharlas = () => {
                 <div>
                   <h2 className="visor-fullscreen-title">{archivoSeleccionado.nombre}</h2>
                   <p className="visor-fullscreen-subtitle">
-                    {archivoSeleccionado.tipoSeccion} • {archivoSeleccionado.tipo.toUpperCase()}
+                    {archivoSeleccionado.tipoSeccion} • PDF
                   </p>
                 </div>
               </div>
@@ -341,34 +335,17 @@ const HistorialCharlas = () => {
               </button>
             </div>
 
-            {/* Cuerpo - CON VISOR DE IMAGEN */}
+            {/* Cuerpo - Visualización tipo PDF */}
             <div className="visor-fullscreen-body">
-              {/* Si es una imagen, mostramos la imagen */}
-              {esImagen(archivoSeleccionado) ? (
-                <div className="visor-imagen-container">
-                  <img 
-                    src={archivoSeleccionado.url || 'https://picsum.photos/seed/default/800/500'} 
-                    alt={archivoSeleccionado.nombre}
-                    className="visor-imagen"
-                    onError={(e) => {
-                      e.target.src = 'https://picsum.photos/seed/error/800/500';
-                    }}
-                  />
-                  <div className="visor-imagen-footer">
-                    <p>{archivoSeleccionado.contenido || 'Imagen de la charla.'}</p>
-                  </div>
+              {/* Siempre mostramos el contenido como texto (simulando un PDF) */}
+              <div className="visor-fullscreen-preview">
+                <div className="visor-preview-icon" style={{ color: getColorArchivo(archivoSeleccionado.tipo) }}>
+                  <i className={`fas ${getIconoArchivo(archivoSeleccionado.tipo)}`} />
                 </div>
-              ) : (
-                /* Si no es imagen, mostramos el contenido de texto */
-                <div className="visor-fullscreen-preview">
-                  <div className="visor-preview-icon" style={{ color: getColorArchivo(archivoSeleccionado.tipo) }}>
-                    <i className={`fas ${getIconoArchivo(archivoSeleccionado.tipo)}`} />
-                  </div>
-                  <div className="visor-preview-content">
-                    <p>{archivoSeleccionado.contenido || 'No hay información adicional disponible para este archivo.'}</p>
-                  </div>
+                <div className="visor-preview-content">
+                  <p>{archivoSeleccionado.contenido || 'No hay información adicional disponible para este archivo.'}</p>
                 </div>
-              )}
+              </div>
 
               {/* Metadatos */}
               <div className="visor-fullscreen-metadata">
@@ -379,7 +356,7 @@ const HistorialCharlas = () => {
                   </div>
                   <div className="visor-metadata-card">
                     <span className="visor-metadata-label">Tipo de archivo</span>
-                    <span className="visor-metadata-value">{archivoSeleccionado.tipo.toUpperCase()}</span>
+                    <span className="visor-metadata-value">PDF</span>
                   </div>
                   <div className="visor-metadata-card">
                     <span className="visor-metadata-label">Sección</span>

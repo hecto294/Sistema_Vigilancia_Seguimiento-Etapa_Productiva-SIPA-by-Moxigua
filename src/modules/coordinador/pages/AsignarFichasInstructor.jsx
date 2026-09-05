@@ -1,8 +1,8 @@
 // src/pages/coordinador/AsignarFichasInstructor.jsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Breadcrumb from '@/modules/shared/components/Breadcrumb'; // <--- CORREGIDO
-import { showSuccess, showError, showWarning, showConfirm, showToast } from '@/core/utils/sweetAlert'; // <--- CORREGIDO
+import Breadcrumb from '@/modules/shared/components/Breadcrumb';
+import { showSuccess, showConfirm } from '@/core/utils/sweetAlert';
 
 const AsignarFichasInstructor = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const AsignarFichasInstructor = () => {
     fichasActuales: 2,
   };
 
-  // Fichas disponibles
+  // Fichas disponibles (estado inicial)
   const [fichasDisponibles, setFichasDisponibles] = useState([
     { id: '2875901', programa: 'Análisis y Desarrollo de Software', asignada: true },
     { id: '2875902', programa: 'Gestión Empresarial', asignada: true },
@@ -29,11 +29,14 @@ const AsignarFichasInstructor = () => {
     ));
   };
 
+  // ⬇️ GUARDAR EN LOCALSTORAGE
   const handleGuardar = async () => {
     const asignadas = fichasDisponibles.filter(f => f.asignada);
     const totalFichas = asignadas.length;
 
-    // Mostrar confirmación antes de guardar
+    // Guardar en localStorage (fichas asignadas al instructor Carlos)
+    localStorage.setItem('fichasAsignadasInstructor', JSON.stringify(asignadas));
+
     const result = await showConfirm(
       `¿Estás seguro de guardar los cambios? El instructor ${instructor.nombre} tendrá ${totalFichas} fichas asignadas.`,
       'Confirmar asignación',
@@ -41,7 +44,6 @@ const AsignarFichasInstructor = () => {
     );
 
     if (result.isConfirmed) {
-      // Mostrar éxito con SweetAlert
       await showSuccess(
         `Asignaciones guardadas. El instructor ahora tiene ${totalFichas} fichas.`,
         '✅ Asignación exitosa'

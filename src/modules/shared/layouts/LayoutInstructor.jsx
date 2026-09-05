@@ -14,6 +14,7 @@ import DetalleEvento from '@/modules/instructor/pages/DetalleEvento';
 import DetalleSeguimiento from '@/modules/instructor/pages/DetalleSeguimiento';
 import DetalleFichaInstructor from '@/modules/instructor/pages/DetalleFichaInstructor';
 import DetalleAprendizBitacoras from '@/modules/instructor/pages/DetalleAprendizBitacoras';
+import BitacorasPorBimestre from '@/modules/instructor/pages/BitacorasPorBimestre';
 import EditarCharla from '@/modules/instructor/pages/EditarCharla';
 
 // Componentes (desde components)
@@ -26,6 +27,8 @@ import SeleccionAlternativa from '@/modules/instructor/components/SeleccionAlter
 import SeguimientoMomentos from '@/modules/instructor/components/SeguimientoMomentos';
 import Bitacora from '@/modules/instructor/components/Bitacora';
 import Certificaciones from '@/modules/instructor/components/Certificaciones';
+// ✅ NUEVO: REPORTES FINALES
+import ReportesFinales from '@/modules/instructor/components/ReportesFinales';
 
 const LayoutInstructor = ({ user }) => {
   const [activePage, setActivePage] = useState('dashboard');
@@ -51,6 +54,8 @@ const LayoutInstructor = ({ user }) => {
       setActivePage('bitacora');
     } else if (path.includes('/certificaciones')) {
       setActivePage('certificaciones');
+    } else if (path.includes('/reportes-finales')) {
+      setActivePage('reportes-finales');
     } else if (path.includes('/empresas')) {
       setActivePage('empresas');
     } else if (path.includes('/aprendices')) {
@@ -77,13 +82,13 @@ const LayoutInstructor = ({ user }) => {
       case 'momentos': return <SeguimientoMomentos />;
       case 'bitacora': return <Bitacora />;
       case 'certificaciones': return <Certificaciones />;
+      case 'reportes-finales': return <ReportesFinales />;
       default: return <DashboardInstructor activePage={activePage} />;
     }
   };
 
   return (
     <div className="app-layout">
-      {/* 👇 DATOS ESPECÍFICOS DEL ROL INSTRUCTOR + NOTIFICACIONES */}
       <Header 
         user={{ nombre: 'Carlos Andrés López', role: 'Instructor', avatar: 'https://i.pravatar.cc/150?img=8' }}
         notifications={[
@@ -108,7 +113,13 @@ const LayoutInstructor = ({ user }) => {
               <Route path="/momentos" element={<SeguimientoMomentos />} />
               <Route path="/bitacora" element={<Bitacora />} />
               <Route path="/certificaciones" element={<Certificaciones />} />
+              {/* ✅ NUEVA RUTA: REPORTES FINALES */}
+              <Route path="/reportes-finales" element={<ReportesFinales />} />
+              <Route path="/empresas" element={<Empresas />} />
+              {/* ✅ RUTA PARA DETALLE DE BITÁCORAS DEL APRENDIZ */}
               <Route path="/bitacora/aprendiz/:aprendizId" element={<DetalleAprendizBitacoras />} />
+              {/* ✅ RUTA PARA BITÁCORAS POR BIMESTRE */}
+              <Route path="/bitacora/aprendiz/:aprendizId/bimestre/:bimestre" element={<BitacorasPorBimestre />} />
               <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'Carlos Andrés López', role: 'Instructor', avatar: 'https://i.pravatar.cc/150?img=8' }} />} />
               <Route path="/calendario" element={<Calendario />} />
               <Route path="/seguimientos" element={<Seguimientos />} />

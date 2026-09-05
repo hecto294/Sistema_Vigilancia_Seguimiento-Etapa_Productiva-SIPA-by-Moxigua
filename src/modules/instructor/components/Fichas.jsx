@@ -1,6 +1,7 @@
 // src/components/Fichas.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import './Fichas.css';
 
 const Fichas = () => {
@@ -8,22 +9,90 @@ const Fichas = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const fichas = [
-    { codigo: '2875901', programa: 'Análisis y Desarrollo de Software', nivel: 'Tecnólogo', aprendices: 28, estado: 'Activa' },
-    { codigo: '2875902', programa: 'Gestión Empresarial', nivel: 'Tecnólogo', aprendices: 24, estado: 'Activa' },
-    { codigo: '2875903', programa: 'Contabilidad y Finanzas', nivel: 'Técnico', aprendices: 32, estado: 'Inactiva' },
+  // Fichas base (con fechas)
+  const fichasBase = [
+    { codigo: '2875901', programa: 'Análisis y Desarrollo de Software', nivel: 'Tecnólogo', aprendices: 28, fechaInicio: '01/03/2025', fechaFin: '28/02/2026' },
+    { codigo: '2875902', programa: 'Gestión Empresarial', nivel: 'Tecnólogo', aprendices: 24, fechaInicio: '10/03/2025', fechaFin: '10/03/2026' },
+    { codigo: '2875903', programa: 'Contabilidad y Finanzas', nivel: 'Técnico', aprendices: 32, fechaInicio: '20/12/2026', fechaFin: '20/12/2027' },
   ];
+
+  // Estado con las fichas
+  const [fichas, setFichas] = useState(fichasBase);
+
+  // ⬇️ 1. Leer fichas asignadas por el Coordinador (localStorage)
+  useEffect(() => {
+    const fichasGuardadas = JSON.parse(localStorage.getItem('fichasAsignadasInstructor')) || [];
+    
+    if (fichasGuardadas.length > 0) {
+      setFichas(prevFichas => {
+        const nuevasFichas = fichasGuardadas
+          .filter(f => !prevFichas.some(pf => pf.codigo === f.id))
+          .map(f => ({
+            codigo: f.id,
+            programa: f.programa,
+            nivel: 'Tecnólogo',
+            aprendices: 0,
+            fechaInicio: '01/09/2026',
+            fechaFin: '31/08/2027'
+          }));
+        
+        return [...prevFichas, ...nuevasFichas];
+      });
+    }
+  }, []);
+
+  // ⬇️ 2. Leer estado manual activado/desactivado por el Coordinador
+  useEffect(() => {
+    const fichasManuales = JSON.parse(localStorage.getItem('fichasEstadoManual')) || [];
+
+    setFichas(prev => {
+      return prev.map(ficha => {
+        const manual = fichasManuales.find(m => m.id === ficha.codigo);
+        if (manual) {
+          return { ...ficha, estadoManual: manual.estadoManual };
+        }
+        return ficha;
+      });
+    });
+  }, []);
+
+  // ⬇️ FUNCIÓN PARA DECIDIR SI UNA FICHA ESTÁ ACTIVA
+  const isFichaActiva = (ficha) => {
+    // 1. Si el coordinador la marcó manualmente como INACTIVA, siempre inactiva
+    if (ficha.estadoManual === 'inactiva') {
+      return false;
+    }
+
+    // 2. Si el coordinador la marcó manualmente como ACTIVA, siempre activa
+    if (ficha.estadoManual === 'activa') {
+      return true;
+    }
+
+    // 3. Si NO hay marcado manual, usar las fechas
+    const [day, month, year] = ficha.fechaInicio.split('/');
+    const fechaInicio = new Date(`${year}-${month}-${day}`);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    return hoy >= fechaInicio;
+  };
 
   const handleSearch = () => setSearchQuery(searchTerm);
   const handleClear = () => { setSearchTerm(''); setSearchQuery(''); };
 
   const filteredFichas = fichas.filter((ficha) =>
-    ficha.codigo.toLowerCase().includes(searchQuery.toLowerCase())
+    ficha.codigo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    ficha.programa.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleVerFicha = (ficha) => {
-    if (ficha.estado === 'Inactiva') {
-      alert('⚠️ Esta ficha se encuentra inactiva. No se puede ver el detalle.');
+    if (!isFichaActiva(ficha)) {
+      Swal.fire({
+        title: '⚠️ Ficha Inactiva',
+        text: `Esta ficha se activará el ${ficha.fechaInicio}. No se puede ver el detalle actualmente.`,
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b'
+      });
       return;
     }
     navigate(`/instructor/ficha/${ficha.codigo}`);
@@ -32,12 +101,12 @@ const Fichas = () => {
   // Navegar al inicio (Dashboard)
   const goToInicio = () => {
     navigate('/instructor');
-    window.location.reload(); // Forzar recarga para que el Layout se actualice
+    window.location.reload();
   };
 
   return (
     <div className="fichas-container">
-      {/* MIGA DE PAN CON NAVEGACIÓN FUNCIONAL */}
+      {/* MIGA DE PAN */}
       <nav style={{ 
         padding: '10px 0', 
         marginBottom: '15px', 
@@ -110,41 +179,45 @@ const Fichas = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredFichas.map((ficha) => (
-                <tr key={ficha.codigo}>
-                  <td className="codigo">{ficha.codigo}</td>
-                  <td>{ficha.programa}</td>
-                  <td>{ficha.nivel}</td>
-                  <td>{ficha.aprendices}</td>
-                  <td>
-                    <span className={`status-ficha ${ficha.estado === 'Activa' ? 'status-activa' : 'status-inactiva'}`}>
-                      {ficha.estado}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    {ficha.estado === 'Activa' ? (
-                      <button
-                        className="btn-ver-ficha"
-                        onClick={() => handleVerFicha(ficha)}
-                      >
-                        <i className="fas fa-eye" /> Ver
-                      </button>
-                    ) : (
-                      <span style={{ 
-                        color: '#9ca3af', 
-                        fontSize: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                      }}>
-                        <i className="fas fa-lock" style={{ fontSize: '11px' }} />
-                        Bloqueado
+              {filteredFichas.map((ficha) => {
+                const esActiva = isFichaActiva(ficha);
+                
+                return (
+                  <tr key={ficha.codigo}>
+                    <td className="codigo">{ficha.codigo}</td>
+                    <td>{ficha.programa}</td>
+                    <td>{ficha.nivel}</td>
+                    <td>{ficha.aprendices}</td>
+                    <td>
+                      <span className={`status-ficha ${esActiva ? 'status-activa' : 'status-inactiva'}`}>
+                        {esActiva ? 'Activa' : 'Inactiva'}
                       </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      {esActiva ? (
+                        <button
+                          className="btn-ver-ficha"
+                          onClick={() => handleVerFicha(ficha)}
+                        >
+                          <i className="fas fa-eye" /> Ver
+                        </button>
+                      ) : (
+                        <span style={{ 
+                          color: '#9ca3af', 
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}>
+                          <i className="fas fa-lock" style={{ fontSize: '11px' }} />
+                          Se activará el {ficha.fechaInicio}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

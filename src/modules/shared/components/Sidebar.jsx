@@ -39,6 +39,14 @@ const Sidebar = ({ setActivePage }) => {
             <i className="fas fa-layer-group"></i> Mis Fichas
           </li>
 
+          {/* --- NUEVA OPCIÓN: EMPRESAS --- */}
+          <li 
+            className={activeItem === 'empresas' ? 'active' : ''} 
+            onClick={() => handleMenuClick('empresas', 'empresas')}
+          >
+            <i className="fas fa-building"></i> Empresas
+          </li>
+
           {/* CHARLAS */}
           <li 
             className={activeItem === 'charlas' ? 'active' : ''} 
@@ -83,6 +91,14 @@ const Sidebar = ({ setActivePage }) => {
               <li className={activeItem === 'certificaciones' ? 'active' : ''} onClick={() => handleMenuClick('certificaciones', 'certificaciones')}>Certificaciones</li>
             </ul>
           )}
+
+          {/* --- NUEVA OPCIÓN: REPORTES FINALES --- */}
+          <li 
+            className={activeItem === 'reportes-finales' ? 'active' : ''} 
+            onClick={() => handleMenuClick('reportes-finales', 'reportes-finales')}
+          >
+            <i className="fas fa-file-signature"></i> Reportes Finales
+          </li>
         </ul>
       </div>
     </nav>

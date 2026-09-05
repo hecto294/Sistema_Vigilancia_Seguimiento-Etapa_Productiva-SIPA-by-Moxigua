@@ -1,8 +1,10 @@
-// src/pages/coordinador/SubirAlternativa.jsx
+// src/modules/coordinador/pages/SubirAlternativa.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
+// ✅ Ruta CORRECTA - Breadcrumb está en shared/components
+import Breadcrumb from '../../shared/components/Breadcrumb';
 import './SubirAlternativa.css';
 
 const SubirAlternativa = () => {
@@ -59,12 +61,6 @@ const SubirAlternativa = () => {
     'Proyecto Productivo',
     'Vínculo Laboral'
   ];
-
-  // Navegar al inicio (Dashboard)
-  const goToInicio = () => {
-    navigate('/coordinador');
-    window.location.reload();
-  };
 
   const handleSearch = () => setSearchQuery(searchTerm);
   const handleClear = () => { setSearchTerm(''); setSearchQuery(''); };
@@ -137,7 +133,6 @@ const SubirAlternativa = () => {
       if (result.isConfirmed && result.value) {
         const { alternativa } = result.value;
         
-        // Actualizar el estado del aprendiz
         setFichas(prevFichas => 
           prevFichas.map(ficha => {
             if (ficha.id === selectedFicha.id) {
@@ -152,7 +147,6 @@ const SubirAlternativa = () => {
           })
         );
 
-        // Mostrar confirmación
         Swal.fire({
           title: '✅ ¡Alternativa asignada!',
           html: `
@@ -276,20 +270,7 @@ const SubirAlternativa = () => {
 
     return (
       <div className="subir-alternativa-container">
-        {/* Miga de pan */}
-        <nav className="breadcrumb">
-          <ol>
-            <li>
-              <span onClick={goToInicio}>Inicio</span>
-              <span className="separator"> &gt; </span>
-            </li>
-            <li>
-              <span onClick={handleBackToFichas}>Subir Alternativa</span>
-              <span className="separator"> &gt; </span>
-            </li>
-            <li className="active">Ficha {selectedFicha.id}</li>
-          </ol>
-        </nav>
+        <Breadcrumb />
 
         <div className="subir-alternativa-header">
           <div className="header-left">
@@ -301,7 +282,6 @@ const SubirAlternativa = () => {
           </div>
         </div>
 
-        {/* Barra de búsqueda para aprendices */}
         <div className="search-container">
           <input
             type="text"
@@ -322,7 +302,6 @@ const SubirAlternativa = () => {
           </button>
         </div>
 
-        {/* Tabla de aprendices */}
         <div className="table-wrapper">
           <table className="alternativa-table">
             <thead>
@@ -382,16 +361,7 @@ const SubirAlternativa = () => {
 
   return (
     <div className="subir-alternativa-container">
-      {/* Miga de pan */}
-      <nav className="breadcrumb">
-        <ol>
-          <li>
-            <span onClick={goToInicio}>Inicio</span>
-            <span className="separator"> &gt; </span>
-          </li>
-          <li className="active">Subir Alternativa</li>
-        </ol>
-      </nav>
+      <Breadcrumb />
 
       <div className="subir-alternativa-header">
         <div className="header-left">
@@ -400,7 +370,6 @@ const SubirAlternativa = () => {
         </div>
       </div>
 
-      {/* Barra de búsqueda para fichas */}
       <div className="search-container">
         <input
           type="text"
@@ -421,7 +390,6 @@ const SubirAlternativa = () => {
         </button>
       </div>
 
-      {/* Lista de fichas */}
       <div className="fichas-grid">
         {filteredFichas.length === 0 ? (
           <div className="not-found">

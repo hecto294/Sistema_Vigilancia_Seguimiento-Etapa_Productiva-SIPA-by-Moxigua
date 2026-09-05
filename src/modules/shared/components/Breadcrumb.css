@@ -4,6 +4,7 @@
   margin-bottom: 15px;
   font-size: 14px;
   background: transparent;
+  border-bottom: 1px solid #e5e7eb; /* ✅ Línea inferior opcional */
 }
 
 .breadcrumb-list {
@@ -23,6 +24,7 @@
   font-size: 14px;
 }
 
+/* ✅ ENLACE "Inicio" - VERDE */
 .breadcrumb-item a {
   color: #3ca203;
   text-decoration: none;
@@ -44,8 +46,19 @@
   font-weight: 300;
 }
 
+/* ✅ PÁGINA ACTUAL - GRIS OSCURO */
 .breadcrumb-active {
   color: #1f2937;
   font-weight: 600;
   cursor: default;
+}
+
+/* ✅ NUEVO: Cuando "Inicio" es el único elemento (Dashboard) - VERDE */
+.breadcrumb-item:only-child .breadcrumb-active {
+  color: #3ca203;
+}
+
+/* ✅ NUEVO: Cuando "Inicio" es el único elemento (Dashboard) - VERDE */
+.breadcrumb-item:only-child {
+  color: #3ca203;
 }

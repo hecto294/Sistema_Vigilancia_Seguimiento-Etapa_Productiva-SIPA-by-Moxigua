@@ -10,6 +10,22 @@ const GestionFichas = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 📋 Lista de códigos predefinidos para el select
+  const codigosDisponibles = [
+    '2875901', '2875902', '2875903', '2875904', '2875905', '2875906', '2875907', '2875908'
+  ];
+
+  // 📋 Lista de programas predefinidos para el select
+  const programasDisponibles = [
+    'Análisis y Desarrollo de Software',
+    'Gestión Empresarial',
+    'Contabilidad y Finanzas',
+    'Desarrollo Web',
+    'Marketing Digital',
+    'Administración de Redes',
+    'Gastronomía'
+  ];
+
   const [fichas, setFichas] = useState([
     {
       id: 1,
@@ -72,7 +88,7 @@ const GestionFichas = () => {
   );
 
   // ==========================================================
-  // FUNCIÓN PARA EDITAR FICHA
+  // FUNCIÓN PARA EDITAR FICHA (CON FECHAS)
   // ==========================================================
   const handleEditarFicha = (ficha) => {
     Swal.fire({
@@ -83,19 +99,25 @@ const GestionFichas = () => {
             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
               Código *
             </label>
-            <input id="edit-codigo" 
+            <select id="edit-codigo" 
               style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
-              value="${ficha.codigo}"
-            />
+            >
+              ${codigosDisponibles.map(codigo => 
+                `<option value="${codigo}" ${ficha.codigo === codigo ? 'selected' : ''}>${codigo}</option>`
+              ).join('')}
+            </select>
           </div>
           <div style="margin: 12px 0;">
             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
               Programa *
             </label>
-            <input id="edit-programa" 
+            <select id="edit-programa" 
               style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
-              value="${ficha.programa}"
-            />
+            >
+              ${programasDisponibles.map(programa => 
+                `<option value="${programa}" ${ficha.programa === programa ? 'selected' : ''}>${programa}</option>`
+              ).join('')}
+            </select>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;">
             <div>
@@ -178,14 +200,6 @@ const GestionFichas = () => {
         const fechaFin = document.getElementById('edit-fecha-fin').value;
         const estado = document.getElementById('edit-estado').value;
 
-        if (!codigo.trim()) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa el código');
-          return false;
-        }
-        if (!programa.trim()) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa el programa');
-          return false;
-        }
         if (!fechaInicio || !fechaFin) {
           Swal.showValidationMessage('⚠️ Por favor selecciona las fechas');
           return false;
@@ -196,8 +210,8 @@ const GestionFichas = () => {
         const fechaFinFormateada = new Date(fechaFin).toLocaleDateString('es-ES');
 
         return { 
-          codigo: codigo.trim(), 
-          programa: programa.trim(), 
+          codigo, 
+          programa, 
           nivel, 
           jornada,
           fechaInicio: fechaInicioFormateada,
@@ -214,13 +228,13 @@ const GestionFichas = () => {
             if (f.id === ficha.id) {
               return {
                 ...f,
-                codigo: codigo,
-                programa: programa,
-                nivel: nivel,
-                jornada: jornada,
-                fechaInicio: fechaInicio,
-                fechaFin: fechaFin,
-                estado: estado
+                codigo,
+                programa,
+                nivel,
+                jornada,
+                fechaInicio,
+                fechaFin,
+                estado
               };
             }
             return f;
@@ -239,13 +253,13 @@ const GestionFichas = () => {
                   <strong>Programa:</strong> ${programa}
                 </p>
                 <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
-                  <strong>Nivel:</strong> ${nivel}
-                </p>
-                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
                   <strong>Jornada:</strong> ${jornada}
                 </p>
                 <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
-                  <strong>Estado:</strong> ${estado}
+                  <strong>Fecha Inicio:</strong> ${fechaInicio}
+                </p>
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Fecha Fin:</strong> ${fechaFin}
                 </p>
               </div>
               <p style="margin: 10px 0 0 0; font-size: 13px; color: #9ca3af; text-align: center;">
@@ -410,7 +424,7 @@ const GestionFichas = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA NUEVA FICHA
+  // FUNCIÓN PARA NUEVA FICHA (CON FECHAS Y SELECTS)
   // ==========================================================
   const handleNuevaFicha = () => {
     Swal.fire({
@@ -421,19 +435,23 @@ const GestionFichas = () => {
             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
               Código *
             </label>
-            <input id="nuevo-codigo" 
+            <select id="nuevo-codigo" 
               style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
-              placeholder="Ej: 2875905"
-            />
+            >
+              <option value="">Seleccione un código</option>
+              ${codigosDisponibles.map(codigo => `<option value="${codigo}">${codigo}</option>`).join('')}
+            </select>
           </div>
           <div style="margin: 12px 0;">
             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
               Programa *
             </label>
-            <input id="nuevo-programa" 
+            <select id="nuevo-programa" 
               style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
-              placeholder="Ej: Marketing Digital"
-            />
+            >
+              <option value="">Seleccione un programa</option>
+              ${programasDisponibles.map(programa => `<option value="${programa}">${programa}</option>`).join('')}
+            </select>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;">
             <div>
@@ -463,6 +481,24 @@ const GestionFichas = () => {
               </select>
             </div>
           </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+                Fecha Inicio *
+              </label>
+              <input id="nuevo-fecha-inicio" type="date"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+              />
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+                Fecha Fin *
+              </label>
+              <input id="nuevo-fecha-fin" type="date"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
+              />
+            </div>
+          </div>
           <div style="margin: 12px 0;">
             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">
               Cantidad de Aprendices *
@@ -490,14 +526,20 @@ const GestionFichas = () => {
         const programa = document.getElementById('nuevo-programa').value;
         const nivel = document.getElementById('nuevo-nivel').value;
         const jornada = document.getElementById('nuevo-jornada').value;
+        const fechaInicio = document.getElementById('nuevo-fecha-inicio').value;
+        const fechaFin = document.getElementById('nuevo-fecha-fin').value;
         const aprendices = document.getElementById('nuevo-aprendices').value;
 
-        if (!codigo.trim()) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa el código');
+        if (!codigo) {
+          Swal.showValidationMessage('⚠️ Por favor selecciona un código');
           return false;
         }
-        if (!programa.trim()) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa el programa');
+        if (!programa) {
+          Swal.showValidationMessage('⚠️ Por favor selecciona un programa');
+          return false;
+        }
+        if (!fechaInicio || !fechaFin) {
+          Swal.showValidationMessage('⚠️ Por favor selecciona las fechas');
           return false;
         }
         if (!aprendices || parseInt(aprendices) <= 0) {
@@ -505,28 +547,32 @@ const GestionFichas = () => {
           return false;
         }
 
-        const existe = fichas.some(f => f.codigo === codigo.trim());
+        const existe = fichas.some(f => f.codigo === codigo);
         if (existe) {
-          Swal.showValidationMessage(`⚠️ La ficha ${codigo.trim()} ya existe`);
+          Swal.showValidationMessage(`⚠️ La ficha ${codigo} ya existe`);
           return false;
         }
 
-        return { codigo: codigo.trim(), programa: programa.trim(), nivel, jornada, aprendices: parseInt(aprendices) };
+        // Formatear fechas para mostrar
+        const fechaInicioFormateada = new Date(fechaInicio).toLocaleDateString('es-ES');
+        const fechaFinFormateada = new Date(fechaFin).toLocaleDateString('es-ES');
+
+        return { codigo, programa, nivel, jornada, fechaInicio: fechaInicioFormateada, fechaFin: fechaFinFormateada, aprendices: parseInt(aprendices) };
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-        const { codigo, programa, nivel, jornada, aprendices } = result.value;
+        const { codigo, programa, nivel, jornada, fechaInicio, fechaFin, aprendices } = result.value;
 
         const nuevaFicha = {
           id: fichas.length + 1,
-          codigo: codigo,
-          programa: programa,
-          nivel: nivel,
-          aprendices: aprendices,
+          codigo,
+          programa,
+          nivel,
+          aprendices,
           estado: 'Activa',
-          jornada: jornada,
-          fechaInicio: new Date().toLocaleDateString('es-ES'),
-          fechaFin: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('es-ES')
+          jornada,
+          fechaInicio,
+          fechaFin
         };
 
         setFichas([...fichas, nuevaFicha]);
@@ -543,10 +589,10 @@ const GestionFichas = () => {
                   <strong>Programa:</strong> ${programa}
                 </p>
                 <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
-                  <strong>Nivel:</strong> ${nivel}
+                  <strong>Fecha Inicio:</strong> ${fechaInicio}
                 </p>
                 <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
-                  <strong>Jornada:</strong> ${jornada}
+                  <strong>Fecha Fin:</strong> ${fechaFin}
                 </p>
                 <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
                   <strong>Aprendices:</strong> ${aprendices}
@@ -649,13 +695,16 @@ const GestionFichas = () => {
               <th>Nivel</th>
               <th style={{ textAlign: 'center' }}>Aprendices</th>
               <th style={{ textAlign: 'center' }}>Estado</th>
+              {/* 👇 NUEVAS COLUMNAS */}
+              <th style={{ textAlign: 'center' }}>Fecha Inicio</th>
+              <th style={{ textAlign: 'center' }}>Fecha Fin</th>
               <th style={{ textAlign: 'center' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {filteredFichas.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>
+                <td colSpan="8" style={{ textAlign: 'center', padding: '40px' }}>
                   <i className="fas fa-exclamation-circle" style={{ color: '#dc2626', fontSize: '24px' }}></i>
                   <h3 style={{ color: '#dc2626', margin: '10px 0 5px 0' }}>Dato no encontrado</h3>
                   <p style={{ color: '#6b7280' }}>No se encontraron fichas con ese criterio.</p>
@@ -686,6 +735,8 @@ const GestionFichas = () => {
                       {ficha.estado}
                     </span>
                   </td>
+                  <td style={{ textAlign: 'center' }}>{ficha.fechaInicio}</td>
+                  <td style={{ textAlign: 'center' }}>{ficha.fechaFin}</td>
                   <td style={{ textAlign: 'center' }}>
                     <button 
                       className="btn-editar"

@@ -35,18 +35,21 @@ const Header = ({ user, notifications = [] }) => {
 
   const handleViewProfile = () => {
     setShowProfileMenu(false);
-    const role = user?.role || 'instructor';
+    // El rol por defecto ahora es 'aprendiz' (si no se especifica)
+    const role = user?.role || 'aprendiz';
     
-    if (role === 'instructor') {
-      navigate('/instructor/mi-perfil');
+    if (role === 'aprendiz') {
+      navigate('/aprendiz/mi-perfil');
     } else if (role === 'coordinador') {
       navigate('/coordinador/mi-perfil');
-    } else if (role === 'aprendiz') {
-      navigate('/aprendiz/mi-perfil');
     } else if (role === 'admin') {
       navigate('/admin/mi-perfil');
-    } else {
+    } else if (role === 'apoyo') {
+      navigate('/apoyo/mi-perfil');
+    } else if (role === 'instructor') {
       navigate('/instructor/mi-perfil');
+    } else {
+      navigate('/aprendiz/mi-perfil'); // Si no sabe, que vea el del aprendiz
     }
   };
 
@@ -118,7 +121,7 @@ const Header = ({ user, notifications = [] }) => {
           <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
             <img src={user?.avatar || 'https://i.pravatar.cc/150?img=47'} alt="Profile" />
             <div>
-              <strong>{user?.nombre || 'Carlos Andrés López'}</strong>
+              <strong>{user?.nombre || 'Andrés Felipe Castro'}</strong>
               <small>{user?.role || 'Aprendiz'}</small>
             </div>
             <i className="fas fa-chevron-down profile-arrow"></i>

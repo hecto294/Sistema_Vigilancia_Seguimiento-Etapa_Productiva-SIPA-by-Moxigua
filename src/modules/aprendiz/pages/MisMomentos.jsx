@@ -46,17 +46,15 @@ const MisMomentos = () => {
     }
   ]);
 
-  // Navegar al inicio (Dashboard)
   const goToInicio = () => {
     navigate('/aprendiz');
     window.location.reload();
   };
 
   // ==========================================================
-  // FUNCIÓN PARA CARGAR FORMATO F023 - CON SELECTOR DE MOMENTO
+  // FUNCIÓN PARA CARGAR FORMATO F023
   // ==========================================================
   const handleCargarFormato = () => {
-    // Generar opciones de momentos
     const momentoOptions = momentos.map(m => 
       `<option value="${m.id}" ${m.formatoCargado ? 'disabled' : ''}>
         ${m.nombre} - ${m.titulo} ${m.formatoCargado ? '(Ya cargado)' : ''}
@@ -135,13 +133,11 @@ const MisMomentos = () => {
           return false;
         }
 
-        // Validar tipo de archivo (solo PDF)
         if (file.type !== 'application/pdf') {
           Swal.showValidationMessage('⚠️ Solo se permiten archivos PDF');
           return false;
         }
 
-        // Validar tamaño (máximo 5MB)
         if (file.size > 5 * 1024 * 1024) {
           Swal.showValidationMessage('⚠️ El archivo no debe superar los 5MB');
           return false;
@@ -157,7 +153,6 @@ const MisMomentos = () => {
 
         const momento = momentos.find(m => m.id === momentoId);
 
-        // Actualizar el estado del momento
         setMomentos(prevMomentos =>
           prevMomentos.map(m => {
             if (m.id === momentoId) {
@@ -323,26 +318,24 @@ const MisMomentos = () => {
 
   return (
     <div className="mis-momentos-container">
-      {/* ========================================================== */}
-      {/* MIGA DE PAN */}
-      {/* ========================================================== */}
       <nav className="breadcrumb">
         <ol>
           <li>
-            <Link to="/aprendiz" className="breadcrumb-link">
-              <i className="fas fa-home"></i> Inicio
-            </Link>
+            <button 
+              onClick={() => window.location.href = '/aprendiz'}
+              className="breadcrumb-link"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit' }}
+            >
+              <i className="fas fa-home"></i> Mi Proceso
+            </button>
             <span className="separator"> &gt; </span>
           </li>
           <li className="active">
-            <i className="fas fa-calendar-alt"></i> Mis Momentos
+            <i className="fas fa-clock"></i> Mis Momentos
           </li>
         </ol>
       </nav>
 
-      {/* ========================================================== */}
-      {/* ENCABEZADO CON BOTÓN SUPERIOR */}
-      {/* ========================================================== */}
       <div className="momentos-header">
         <div>
           <h2>Mis Momentos</h2>
@@ -358,7 +351,6 @@ const MisMomentos = () => {
         </button>
       </div>
 
-      {/* Estadísticas */}
       <div className="header-stats">
         <span className="stat-item">
           <span className="stat-label">Completos</span>
@@ -386,9 +378,6 @@ const MisMomentos = () => {
         </span>
       </div>
 
-      {/* ========================================================== */}
-      {/* TARJETAS DE MOMENTOS */}
-      {/* ========================================================== */}
       <div className="momentos-grid">
         {momentos.map((momento) => (
           <div key={momento.id} className="momento-card">
@@ -438,7 +427,6 @@ const MisMomentos = () => {
                 </div>
               </div>
 
-              {/* Formato F023 */}
               <div className="formato-f023">
                 <div className="formato-header">
                   <span className="formato-titulo">

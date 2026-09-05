@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Breadcrumb from '../../shared/components/Breadcrumb';
 import Swal from 'sweetalert2';
 import { showSuccess, showError } from '@/core/utils/sweetAlert';
+
 const DetalleFichaInstructor = () => {
   const { idFicha } = useParams();
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const DetalleFichaInstructor = () => {
         arl: 'SURA',
         fechaInicio: '01/03/2025',
         fechaFin: '28/02/2026',
+        estado: 'En formación', // ⬅️ CAMBIO AQUÍ
         observaciones: [
           { texto: 'La aprendiz ha mostrado un excelente desempeño en la etapa de inducción.', fecha: '10/03/2025', hora: '09:30 a.m.' },
           { texto: 'Presentó dificultades con las herramientas ofimáticas. Se recomienda refuerzo.', fecha: '17/03/2025', hora: '02:15 p.m.' },
@@ -36,6 +38,7 @@ const DetalleFichaInstructor = () => {
         arl: 'Positiva',
         fechaInicio: '15/04/2025',
         fechaFin: '14/04/2026',
+        estado: 'Condicionado', // ⬅️ CAMBIO AQUÍ
         observaciones: [
           { texto: 'Cumplimiento de hitos. Sin novedades.', fecha: '18/04/2025', hora: '10:00 a.m.' },
         ]
@@ -47,6 +50,7 @@ const DetalleFichaInstructor = () => {
         arl: 'Colmena',
         fechaInicio: '01/06/2025',
         fechaFin: '31/05/2026',
+        estado: 'Finalizado', // ⬅️ CAMBIO AQUÍ
         observaciones: []
       }
     ]
@@ -54,6 +58,22 @@ const DetalleFichaInstructor = () => {
 
   const [ficha] = useState(fichaData);
   const [aprendices, setAprendices] = useState(ficha.aprendices);
+
+  // ⬇️ FUNCIÓN PARA OBTENER COLOR E ICONO SEGÚN EL ESTADO
+  const getEstadoConfig = (estado) => {
+    switch(estado) {
+      case 'En formación':
+        return { color: '#10b981', icono: 'fa-check-circle' };
+      case 'Condicionado':
+        return { color: '#f59e0b', icono: 'fa-exclamation-circle' };
+      case 'Finalizado':
+        return { color: '#3b82f6', icono: 'fa-flag-checkered' };
+      case 'Retirado':
+        return { color: '#ef4444', icono: 'fa-times-circle' };
+      default:
+        return { color: '#6b7280', icono: 'fa-circle' };
+    }
+  };
 
   // Funciones de búsqueda
   const handleSearch = () => {
@@ -234,7 +254,7 @@ const DetalleFichaInstructor = () => {
       padding: '25px 30px',
       background: '#ffffff',
       color: '#1f2937',
-      showCancelButton: false, // <--- OCULTA EL BOTÓN DE CANCELAR
+      showCancelButton: false,
       customClass: {
         popup: 'swal2-popup-sandbox',
         title: 'swal2-title-sandbox',
@@ -324,6 +344,7 @@ const DetalleFichaInstructor = () => {
                 <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>ARL</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Fecha Inicio</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Fecha Fin</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Estado</th> {/* ⬅️ NUEVA COLUMNA */}
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Acciones</th>
               </tr>
             </thead>
@@ -337,6 +358,19 @@ const DetalleFichaInstructor = () => {
                   <td style={{ padding: '12px' }}>{ap.arl}</td>
                   <td style={{ textAlign: 'center', padding: '12px' }}>{ap.fechaInicio}</td>
                   <td style={{ textAlign: 'center', padding: '12px' }}>{ap.fechaFin}</td>
+                  <td style={{ textAlign: 'center', padding: '12px' }}>
+                    <span style={{
+                      background: `${getEstadoConfig(ap.estado).color}15`,
+                      color: getEstadoConfig(ap.estado).color,
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}>
+                      <i className={`fas ${getEstadoConfig(ap.estado).icono}`}></i>
+                      {ap.estado}
+                    </span>
+                  </td>
                   <td style={{ textAlign: 'center', padding: '12px' }}>
                     <button
                       onClick={() => handleNuevaObservacion(ap)}

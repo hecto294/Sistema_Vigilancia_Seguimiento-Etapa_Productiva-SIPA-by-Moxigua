@@ -2,48 +2,92 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { jsPDF } from 'jspdf';
 import './MisBitacoras.css';
 
 const MisBitacoras = () => {
   const navigate = useNavigate();
 
-  // Datos de bitácoras organizadas por bimestre
+  // ==========================================================
+  // 🔥 FUNCIÓN PARA GENERAR PDF REAL SIMULADO (con texto)
+  // ==========================================================
+  const generarPDFSimulado = (titulo, contenido, fecha) => {
+    const doc = new jsPDF();
+    
+    doc.setFillColor(60, 162, 3);
+    doc.rect(0, 0, 210, 30, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SISTEMA DE SEGUIMIENTO SENA', 105, 12, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Etapa Productiva - Bitácora', 105, 20, { align: 'center' });
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(titulo, 20, 45);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Fecha: ${fecha}`, 20, 52);
+    
+    doc.setFontSize(12);
+    doc.text('Actividades realizadas:', 20, 70);
+    
+    doc.setFontSize(10);
+    const maxWidth = 170;
+    const splitText = doc.splitTextToSize(contenido, maxWidth);
+    doc.text(splitText, 20, 78);
+    
+    doc.setFontSize(10);
+    doc.text('Firma del Aprendiz:', 20, 270);
+    doc.line(60, 270, 130, 270);
+    
+    return doc;
+  };
+
+  const verPDFSimulado = (titulo, contenido, fecha) => {
+    const doc = generarPDFSimulado(titulo, contenido, fecha);
+    const url = doc.output('bloburl');
+    window.open(url, '_blank');
+  };
+
+  const descargarPDFSimulado = (titulo, contenido, fecha, nombreArchivo) => {
+    const doc = generarPDFSimulado(titulo, contenido, fecha);
+    doc.save(nombreArchivo || `${titulo}.pdf`);
+  };
+
+  // ==========================================================
+  // 📅 DATOS INICIALES
+  // ==========================================================
   const [bimestres, setBimestres] = useState([
     {
       id: 1,
       nombre: '1er Bimestre',
-      estado: 'En proceso',
+      estado: 'Completo',
       descripcion: 'Bitácoras correspondientes al primer bimestre del proceso formativo.',
-      fechaInicio: '10/03/2025',
-      fechaFin: '24/03/2025',
-      progreso: 66,
+      fechaInicio: '22/08/2026',
+      fechaFin: '05/09/2026',
+      progreso: 100,
       semanas: [
         {
           id: 1,
           nombre: 'Semana 1',
-          fecha: '10/03/2025',
+          fecha: '22/08/2026',
           estado: 'Aprobada',
           descripcion: 'Bitácora de inducción y diagnóstico inicial',
           observacion: 'Excelente trabajo. Se evidencia comprensión de los temas.',
-          evidencias: ['Evidencia 1.pdf', 'Evidencia 2.docx']
-        },
-        {
-          id: 2,
-          nombre: 'Semana 2',
-          fecha: '17/03/2025',
-          estado: 'Requiere corrección',
-          descripcion: 'Bitácora de desarrollo de actividades',
-          observacion: 'Faltan las evidencias de las pruebas diagnósticas. Por favor adjuntar los resultados.',
-          evidencias: ['Evidencia 1.pdf']
-        },
-        {
-          id: 3,
-          nombre: 'Semana 3',
-          fecha: '24/03/2025',
-          estado: 'Pendiente de revisión',
-          descripcion: 'Bitácora de seguimiento de competencias',
-          observacion: null,
-          evidencias: []
+          evidencias: [
+            { 
+              nombre: 'Evidencia_Induccion.pdf', 
+              titulo: 'Bitácora Semana 1',
+              contenido: 'En esta semana se realizó la inducción al sistema, se presentaron las normas de convivencia y se realizó el diagnóstico inicial de conocimientos.',
+              fecha: '22/08/2026'
+            }
+          ]
         }
       ]
     },
@@ -52,59 +96,98 @@ const MisBitacoras = () => {
       nombre: '2do Bimestre',
       estado: 'En proceso',
       descripcion: 'Bitácoras correspondientes al segundo bimestre del proceso formativo.',
-      fechaInicio: '07/04/2025',
-      fechaFin: '14/04/2025',
-      progreso: 40,
+      fechaInicio: '06/09/2026',
+      fechaFin: '20/09/2026',
+      progreso: 60,
       semanas: [
         {
           id: 4,
           nombre: 'Semana 4',
-          fecha: '07/04/2025',
+          fecha: '06/09/2026',
           estado: 'Aprobada',
           descripcion: 'Bitácora de desarrollo de proyecto formativo',
           observacion: 'Buen avance en el proyecto. Continúa así.',
-          evidencias: ['Evidencia 1.pdf', 'Evidencia 2.docx']
+          evidencias: [
+            { 
+              nombre: 'Evidencia_Proyecto.pdf', 
+              titulo: 'Bitácora Semana 4',
+              contenido: 'En esta semana se realizó el desarrollo del proyecto, se documentaron los avances y se compartieron los resultados con el instructor.',
+              fecha: '06/09/2026'
+            }
+          ]
         },
         {
           id: 5,
           nombre: 'Semana 5',
-          fecha: '14/04/2025',
+          fecha: '13/09/2026',
           estado: 'Requiere corrección',
           descripcion: 'Bitácora de actividades complementarias',
-          observacion: 'Debes incluir más detalles sobre las actividades realizadas.',
-          evidencias: []
+          observacion: 'Faltan las evidencias de la actividad práctica. Debes subir nuevamente el archivo con las correcciones.',
+          evidencias: [
+            { 
+              nombre: 'Evidencia_Corregir.pdf', 
+              titulo: 'Bitácora Semana 5',
+              contenido: 'En esta semana se realizaron actividades complementarias, pero faltaron las evidencias de la práctica.',
+              fecha: '13/09/2026'
+            }
+          ]
+        },
+        {
+          id: 6,
+          nombre: 'Semana 6',
+          fecha: '20/09/2026',
+          estado: 'Pendiente de revisión',
+          descripcion: 'Bitácora de seguimiento de competencias',
+          observacion: null,
+          evidencias: [
+            { 
+              nombre: 'Evidencia_Seguimiento.pdf', 
+              titulo: 'Bitácora Semana 6',
+              contenido: 'En esta semana se realizó el seguimiento de las competencias, se documentaron los avances y se entregaron al instructor.',
+              fecha: '20/09/2026'
+            }
+          ]
         }
       ]
     },
     {
       id: 3,
       nombre: '3er Bimestre',
-      estado: 'Pendiente',
+      estado: 'Próximo',
       descripcion: 'Bitácoras correspondientes al tercer bimestre del proceso formativo.',
-      fechaInicio: '05/05/2025',
-      fechaFin: '05/05/2025',
+      fechaInicio: '21/09/2026',
+      fechaFin: '05/10/2026',
       progreso: 0,
-      semanas: [
-        {
-          id: 6,
-          nombre: 'Semana 6',
-          fecha: '05/05/2025',
-          estado: 'Aprobada',
-          descripcion: 'Bitácora de implementación de mejoras',
-          observacion: 'Excelente desempeño en la implementación.',
-          evidencias: ['Evidencia 1.pdf']
-        }
-      ]
+      semanas: []
     }
   ]);
 
-  // Estado para controlar qué bimestre está expandido
-  const [bimestreExpandido, setBimestreExpandido] = useState(null);
+  // ==========================================================
+  // 🔥 FORZAMOS EL BIMESTRE ACTIVO = 2
+  // ==========================================================
+  const [bimestreActivoId, setBimestreActivoId] = useState(2);
 
-  // Navegar al inicio (Dashboard)
-  const goToInicio = () => {
-    navigate('/aprendiz');
-    window.location.reload();
+  // ==========================================================
+  // 🔥 FUNCIÓN PARA CALCULAR EL ESTADO SEGÚN LA FECHA (VISUAL)
+  // ==========================================================
+  const calcularEstadoBimestre = (bimestre) => {
+    const hoy = new Date();
+    const inicio = new Date(bimestre.fechaInicio.split('/').reverse().join('-'));
+    const fin = new Date(bimestre.fechaFin.split('/').reverse().join('-'));
+    
+    if (bimestre.id === 1) {
+      return 'Completo';
+    }
+    if (bimestre.id === 2) {
+      return 'En proceso';
+    }
+    if (hoy < inicio) {
+      return 'Próximo';
+    } else if (hoy > fin) {
+      return 'Completo';
+    } else {
+      return 'En proceso';
+    }
   };
 
   // ==========================================================
@@ -158,13 +241,13 @@ const MisBitacoras = () => {
           <div style="margin: 12px 0; padding: 20px; border: 2px dashed #d1d5db; border-radius: 8px; text-align: center;">
             <i class="fas fa-paperclip" style="font-size: 24px; color: #3ca203;"></i>
             <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
-              Adjunta tus evidencias (opcional)
+              Adjunta tus evidencias (PDF) *
             </p>
-            <input type="file" id="evidencia-input" multiple accept=".pdf,.docx,.jpg,.png"
+            <input type="file" id="evidencia-input" multiple accept=".pdf"
               style="width: 100%; padding: 8px; border: none; font-size: 13px;"
             />
             <p style="font-size: 11px; color: #9ca3af; margin: 4px 0 0 0;">
-              Formatos: PDF, DOCX, JPG, PNG
+              Solo se permiten archivos PDF
             </p>
           </div>
           <p style="font-size: 11px; color: #9ca3af; margin: 6px 0 0 0; text-align: left;">
@@ -185,7 +268,8 @@ const MisBitacoras = () => {
         const semana = document.getElementById('semana-input').value;
         const fecha = document.getElementById('fecha-input').value;
         const descripcion = document.getElementById('descripcion-input').value;
-        const evidencia = document.getElementById('evidencia-input').files;
+        const evidenciaInput = document.getElementById('evidencia-input');
+        const evidenciaFiles = evidenciaInput.files;
 
         if (!bimestre) {
           Swal.showValidationMessage('⚠️ Por favor selecciona un bimestre');
@@ -203,12 +287,31 @@ const MisBitacoras = () => {
           Swal.showValidationMessage('⚠️ Por favor ingresa una descripción');
           return false;
         }
+        if (evidenciaFiles.length === 0) {
+          Swal.showValidationMessage('⚠️ Por favor adjunta al menos un PDF');
+          return false;
+        }
 
-        return { bimestre, semana: semana.trim(), fecha, descripcion: descripcion.trim(), evidencia };
+        for (let i = 0; i < evidenciaFiles.length; i++) {
+          if (evidenciaFiles[i].type !== 'application/pdf') {
+            Swal.showValidationMessage(`⚠️ El archivo ${evidenciaFiles[i].name} no es un PDF`);
+            return false;
+          }
+        }
+
+        const evidencias = [];
+        for (let i = 0; i < evidenciaFiles.length; i++) {
+          evidencias.push({ 
+            nombre: evidenciaFiles[i].name,
+            titulo: `Evidencia ${semana.trim()}` 
+          });
+        }
+
+        return { bimestre, semana: semana.trim(), fecha, descripcion: descripcion.trim(), evidencias };
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-        const { bimestre, semana, fecha, descripcion, evidencia } = result.value;
+        const { bimestre, semana, fecha, descripcion, evidencias } = result.value;
 
         const fechaObj = new Date(fecha);
         const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
@@ -224,7 +327,7 @@ const MisBitacoras = () => {
           estado: 'Pendiente de revisión',
           descripcion: descripcion,
           observacion: null,
-          evidencias: evidencia ? Array.from(evidencia).map(f => f.name) : []
+          evidencias: evidencias
         };
 
         setBimestres(prevBimestres => 
@@ -254,13 +357,8 @@ const MisBitacoras = () => {
                   <strong>Fecha:</strong> ${fechaFormateada}
                 </p>
                 <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
-                  <strong>Descripción:</strong> ${descripcion}
+                  <strong>Evidencias:</strong> ${evidencias.map(ev => ev.nombre).join(', ')}
                 </p>
-                ${evidencia && evidencia.length > 0 ? `
-                  <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
-                    <strong>Evidencias:</strong> ${Array.from(evidencia).map(f => f.name).join(', ')}
-                  </p>
-                ` : ''}
               </div>
               <p style="margin: 10px 0 0 0; font-size: 13px; color: #9ca3af; text-align: center;">
                 Tu bitácora ha sido enviada para revisión.
@@ -304,13 +402,13 @@ const MisBitacoras = () => {
           <div style="margin: 12px 0; padding: 20px; border: 2px dashed #d1d5db; border-radius: 8px; text-align: center;">
             <i class="fas fa-paperclip" style="font-size: 24px; color: #3ca203;"></i>
             <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
-              Adjunta nuevas evidencias (opcional)
+              Adjunta nuevas evidencias (PDF) *
             </p>
-            <input type="file" id="evidencia-corregida" multiple accept=".pdf,.docx,.jpg,.png"
+            <input type="file" id="evidencia-corregida" multiple accept=".pdf"
               style="width: 100%; padding: 8px; border: none; font-size: 13px;"
             />
             <p style="font-size: 11px; color: #9ca3af; margin: 4px 0 0 0;">
-              Formatos: PDF, DOCX, JPG, PNG
+              Solo se permiten archivos PDF
             </p>
           </div>
         </div>
@@ -325,18 +423,38 @@ const MisBitacoras = () => {
       padding: '1.5rem',
       preConfirm: () => {
         const descripcion = document.getElementById('descripcion-corregida').value;
-        const evidencia = document.getElementById('evidencia-corregida').files;
+        const evidenciaInput = document.getElementById('evidencia-corregida');
+        const evidenciaFiles = evidenciaInput.files;
 
         if (!descripcion.trim()) {
           Swal.showValidationMessage('⚠️ Por favor ingresa la descripción corregida');
           return false;
         }
+        if (evidenciaFiles.length === 0) {
+          Swal.showValidationMessage('⚠️ Por favor adjunta al menos un PDF');
+          return false;
+        }
 
-        return { descripcion: descripcion.trim(), evidencia };
+        for (let i = 0; i < evidenciaFiles.length; i++) {
+          if (evidenciaFiles[i].type !== 'application/pdf') {
+            Swal.showValidationMessage(`⚠️ El archivo ${evidenciaFiles[i].name} no es un PDF`);
+            return false;
+          }
+        }
+
+        const nuevasEvidencias = [];
+        for (let i = 0; i < evidenciaFiles.length; i++) {
+          nuevasEvidencias.push({ 
+            nombre: evidenciaFiles[i].name,
+            titulo: `Evidencia ${semana.nombre}` 
+          });
+        }
+
+        return { descripcion: descripcion.trim(), nuevasEvidencias };
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-        const { descripcion, evidencia } = result.value;
+        const { descripcion, nuevasEvidencias } = result.value;
 
         setBimestres(prevBimestres =>
           prevBimestres.map(b => {
@@ -345,9 +463,6 @@ const MisBitacoras = () => {
                 ...b,
                 semanas: b.semanas.map(s => {
                   if (s.id === semana.id) {
-                    const nuevasEvidencias = evidencia && evidencia.length > 0
-                      ? [...s.evidencias, ...Array.from(evidencia).map(f => f.name)]
-                      : s.evidencias;
                     return {
                       ...s,
                       descripcion: descripcion,
@@ -375,11 +490,9 @@ const MisBitacoras = () => {
                 <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
                   <strong>Nuevo estado:</strong> Pendiente de revisión
                 </p>
-                ${evidencia && evidencia.length > 0 ? `
-                  <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
-                    <strong>Nuevas evidencias:</strong> ${Array.from(evidencia).map(f => f.name).join(', ')}
-                  </p>
-                ` : ''}
+                <p style="margin: 4px 0; font-size: 14px; color: #1f2937;">
+                  <strong>Evidencias:</strong> ${nuevasEvidencias.map(ev => ev.nombre).join(', ')}
+                </p>
               </div>
               <p style="margin: 10px 0 0 0; font-size: 13px; color: #9ca3af; text-align: center;">
                 Tu bitácora ha sido reenviada con las correcciones para revisión.
@@ -398,10 +511,20 @@ const MisBitacoras = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA VER DETALLES DE BITÁCORA
+  // FUNCIÓN PARA VER DETALLES (BLOQUEAR BIMESTRE 1 Y ABRIR BIMESTRE 2)
   // ==========================================================
   const handleVerDetalles = (bimestre) => {
-    // Crear HTML con todas las semanas del bimestre
+    if (bimestre.id !== bimestreActivoId) {
+      Swal.fire({
+        title: '🔒 Bimestre No Activo',
+        text: `El ${bimestre.nombre} no está activo actualmente. Podrás ver las bitácoras cuando esté en su periodo.`,
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3ca203'
+      });
+      return;
+    }
+
     const semanasHtml = bimestre.semanas.map((semana, index) => `
       <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e5e7eb;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
@@ -422,8 +545,28 @@ const MisBitacoras = () => {
           </div>
         ` : ''}
         ${semana.evidencias && semana.evidencias.length > 0 ? `
-          <div style="margin-top: 6px; font-size: 12px; color: #3ca203;">
-            <i class="fas fa-paperclip"></i> ${semana.evidencias.join(', ')}
+          <div style="margin-top: 8px;">
+            <p style="font-size: 12px; font-weight: 600; color: #1f2937; margin: 0 0 5px 0;">
+              <i class="fas fa-paperclip"></i> Evidencias (${semana.evidencias.length}):
+            </p>
+            ${semana.evidencias.map(ev => `
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 14px;"></i>
+                <span style="font-size: 12px; color: #6b7280;">${ev.nombre}</span>
+                <button 
+                  onclick="window.verPDFSimulado('${ev.titulo}', '${ev.contenido.replace(/'/g, "\\'")}', '${ev.fecha}')"
+                  style="background: #3ca203; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;"
+                >
+                  <i class="fas fa-eye"></i> Ver
+                </button>
+                <button 
+                  onclick="window.descargarPDFSimulado('${ev.titulo}', '${ev.contenido.replace(/'/g, "\\'")}', '${ev.fecha}', '${ev.nombre}')"
+                  style="background: #3ca203; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;"
+                >
+                  <i class="fas fa-download"></i> Descargar
+                </button>
+              </div>
+            `).join('')}
           </div>
         ` : ''}
         ${semana.estado === 'Requiere corrección' ? `
@@ -437,12 +580,22 @@ const MisBitacoras = () => {
       </div>
     `).join('');
 
-    // Guardar función en window para usarla desde el HTML
     window.reenviarBitacora = (semanaId, bimestreId) => {
-      const semana = bimestre.semanas.find(s => s.id === semanaId);
-      if (semana) {
-        handleReenviarBitacora(semana, bimestreId);
+      const bimestre = bimestres.find(b => b.id === bimestreId);
+      if (bimestre) {
+        const semana = bimestre.semanas.find(s => s.id === semanaId);
+        if (semana) {
+          handleReenviarBitacora(semana, bimestreId);
+        }
       }
+    };
+
+    window.verPDFSimulado = (titulo, contenido, fecha) => {
+      verPDFSimulado(titulo, contenido, fecha);
+    };
+
+    window.descargarPDFSimulado = (titulo, contenido, fecha, nombreArchivo) => {
+      descargarPDFSimulado(titulo, contenido, fecha, nombreArchivo);
     };
 
     Swal.fire({
@@ -461,15 +614,6 @@ const MisBitacoras = () => {
               ${bimestre.estado}
             </span>
           </div>
-          <div style="margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-              <span style="color: #6b7280;">Progreso</span>
-              <span style="font-weight: 600; color: ${getColorEstadoBimestre(bimestre.estado)};">${bimestre.progreso}%</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: #f3f4f6; border-radius: 3px; overflow: hidden;">
-              <div style="width: ${bimestre.progreso}%; height: 100%; background: ${getColorEstadoBimestre(bimestre.estado)}; border-radius: 3px; transition: width 0.8s ease;"></div>
-            </div>
-          </div>
           <div style="border-top: 1px solid #e5e7eb; padding-top: 12px;">
             <p style="font-size: 13px; font-weight: 600; color: #1f2937; margin: 0 0 10px 0;">
               <i class="fas fa-list"></i> Semanas
@@ -486,14 +630,15 @@ const MisBitacoras = () => {
     });
   };
 
-  // Función para obtener el color del estado del bimestre
+  // ==========================================================
+  // FUNCIONES DE COLORES
+  // ==========================================================
   const getColorEstadoBimestre = (estado) => {
     if (estado === 'Completo') return '#10b981';
     if (estado === 'En proceso') return '#f59e0b';
     return '#6b7280';
   };
 
-  // Función para obtener el color del estado de la semana
   const getColorEstado = (estado) => {
     if (estado === 'Aprobada') return '#10b981';
     if (estado === 'Requiere corrección') return '#ef4444';
@@ -501,7 +646,6 @@ const MisBitacoras = () => {
     return '#6b7280';
   };
 
-  // Función para obtener el icono del estado
   const getIconoEstado = (estado) => {
     if (estado === 'Aprobada') return 'fa-check-circle';
     if (estado === 'Requiere corrección') return 'fa-exclamation-circle';
@@ -509,12 +653,17 @@ const MisBitacoras = () => {
     return 'fa-circle';
   };
 
-  // Calcular total de semanas por bimestre
+  // ==========================================================
+  // CALCULAR ESTADÍSTICAS
+  // ==========================================================
   const totalSemanas = (semanas) => semanas.length;
   const aprobadas = (semanas) => semanas.filter(s => s.estado === 'Aprobada').length;
   const pendientes = (semanas) => semanas.filter(s => s.estado === 'Pendiente de revisión').length;
   const correcciones = (semanas) => semanas.filter(s => s.estado === 'Requiere corrección').length;
 
+  // ==========================================================
+  // RENDERIZAR
+  // ==========================================================
   return (
     <div className="mis-bitacoras-container">
       {/* ========================================================== */}
@@ -523,15 +672,13 @@ const MisBitacoras = () => {
       <nav className="breadcrumb">
         <ol>
           <li>
-            <Link to="/aprendiz" className="breadcrumb-link">
-              <i className="fas fa-home"></i> Inicio
-            </Link>
-            <span className="separator"> &gt; </span>
-          </li>
-          <li>
-            <Link to="/aprendiz/mis-momentos" className="breadcrumb-link">
-              <i className="fas fa-calendar-alt"></i> Mi Proceso
-            </Link>
+            <button 
+              onClick={() => window.location.href = '/aprendiz'}
+              className="breadcrumb-link"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit' }}
+            >
+              <i className="fas fa-home"></i> Mi Proceso
+            </button>
             <span className="separator"> &gt; </span>
           </li>
           <li className="active">
@@ -540,9 +687,6 @@ const MisBitacoras = () => {
         </ol>
       </nav>
 
-      {/* ========================================================== */}
-      {/* ENCABEZADO CON BOTÓN */}
-      {/* ========================================================== */}
       <div className="bitacoras-header">
         <div>
           <h2>Mis Bitácoras</h2>
@@ -558,87 +702,128 @@ const MisBitacoras = () => {
         </button>
       </div>
 
-      {/* ========================================================== */}
-      {/* TARJETAS DE BIMESTRES - SOLO BIMESTRES */}
-      {/* ========================================================== */}
       <div className="bimestres-grid">
         {bimestres.map((bimestre) => {
+          const estadoCalculado = calcularEstadoBimestre(bimestre);
           const total = totalSemanas(bimestre.semanas);
           const aprobadasCount = aprobadas(bimestre.semanas);
           const pendientesCount = pendientes(bimestre.semanas);
           const correccionesCount = correcciones(bimestre.semanas);
-          const color = getColorEstadoBimestre(bimestre.estado);
+          const color = getColorEstadoBimestre(estadoCalculado);
+          
+          const esActivo = bimestre.id === bimestreActivoId;
 
           return (
-            <div key={bimestre.id} className="bimestre-card">
+            <div 
+              key={bimestre.id} 
+              className={`bimestre-card ${esActivo ? 'activo' : 'inactivo'}`}
+              style={{
+                opacity: esActivo ? 1 : 0.6,
+                filter: esActivo ? 'none' : 'grayscale(80%)',
+                pointerEvents: esActivo ? 'auto' : 'none'
+              }}
+            >
               <div className="bimestre-header">
                 <div className="bimestre-titulo">
                   <span className="bimestre-numero">{bimestre.nombre}</span>
                   <h3>{bimestre.nombre}</h3>
                 </div>
                 <span 
-                  className={`bimestre-estado ${bimestre.estado.toLowerCase().replace(' ', '-')}`}
+                  className={`bimestre-estado ${estadoCalculado.toLowerCase().replace(' ', '-')}`}
                   style={{ background: `${color}15`, color: color }}
                 >
-                  <i className={`fas ${bimestre.estado === 'Completo' ? 'fa-check-circle' : bimestre.estado === 'En proceso' ? 'fa-spinner' : 'fa-clock'}`}></i>
-                  {bimestre.estado}
+                  <i className={`fas ${estadoCalculado === 'Completo' ? 'fa-check-circle' : estadoCalculado === 'En proceso' ? 'fa-spinner' : 'fa-clock'}`}></i>
+                  {estadoCalculado}
                 </span>
               </div>
 
               <div className="bimestre-body">
-                <p className="bimestre-descripcion">{bimestre.descripcion}</p>
-                
-                <div className="bimestre-fechas">
-                  <span>
-                    <i className="fas fa-calendar-alt"></i>
-                    Inicio: {bimestre.fechaInicio}
-                  </span>
-                  <span>
-                    <i className="fas fa-calendar-check"></i>
-                    Fin: {bimestre.fechaFin}
-                  </span>
-                </div>
+                {estadoCalculado === 'Próximo' ? (
+                  <>
+                    <p className="bimestre-descripcion">{bimestre.descripcion}</p>
+                    <div className="bimestre-fechas">
+                      <span>
+                        <i className="fas fa-calendar-alt"></i>
+                        Inicio: {bimestre.fechaInicio}
+                      </span>
+                      <span>
+                        <i className="fas fa-calendar-check"></i>
+                        Fin: {bimestre.fechaFin}
+                      </span>
+                    </div>
 
-                <div className="bimestre-stats">
-                  <span className="stat-item" style={{ color: '#10b981' }}>
-                    <i className="fas fa-check-circle"></i> {aprobadasCount} aprobadas
-                  </span>
-                  <span className="stat-item" style={{ color: '#f59e0b' }}>
-                    <i className="fas fa-clock"></i> {pendientesCount} pendientes
-                  </span>
-                  <span className="stat-item" style={{ color: '#ef4444' }}>
-                    <i className="fas fa-exclamation-circle"></i> {correccionesCount} con corrección
-                  </span>
-                  <span className="stat-item" style={{ color: '#6b7280' }}>
-                    <i className="fas fa-book"></i> {total} total
-                  </span>
-                </div>
-
-                <div className="bimestre-progreso">
-                  <div className="progreso-info">
-                    <span className="progreso-label">Progreso de bitácoras</span>
-                    <span className="progreso-porcentaje" style={{ color: color }}>
-                      {bimestre.progreso}%
-                    </span>
-                  </div>
-                  <div className="progreso-barra">
-                    <div 
-                      className="progreso-llenado" 
-                      style={{ 
-                        width: `${bimestre.progreso}%`,
-                        background: color
+                    <button 
+                      className="btn-ver-detalles-bimestre"
+                      style={{
+                        background: '#9ca3af',
+                        cursor: 'not-allowed'
                       }}
-                    />
-                  </div>
-                </div>
+                    >
+                      <i className="fas fa-eye"></i> 
+                      Se activará el {bimestre.fechaInicio}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="bimestre-descripcion">{bimestre.descripcion}</p>
+                    
+                    <div className="bimestre-fechas">
+                      <span>
+                        <i className="fas fa-calendar-alt"></i>
+                        Inicio: {bimestre.fechaInicio}
+                      </span>
+                      <span>
+                        <i className="fas fa-calendar-check"></i>
+                        Fin: {bimestre.fechaFin}
+                      </span>
+                    </div>
 
-                {/* Botón Ver detalles */}
-                <button 
-                  className="btn-ver-detalles-bimestre"
-                  onClick={() => handleVerDetalles(bimestre)}
-                >
-                  <i className="fas fa-eye"></i> Ver detalles del bimestre
-                </button>
+                    <div className="bimestre-stats">
+                      <span className="stat-item" style={{ color: '#10b981' }}>
+                        <i className="fas fa-check-circle"></i> {aprobadasCount} aprobadas
+                      </span>
+                      <span className="stat-item" style={{ color: '#f59e0b' }}>
+                        <i className="fas fa-clock"></i> {pendientesCount} pendientes
+                      </span>
+                      <span className="stat-item" style={{ color: '#ef4444' }}>
+                        <i className="fas fa-exclamation-circle"></i> {correccionesCount} con corrección
+                      </span>
+                      <span className="stat-item" style={{ color: '#6b7280' }}>
+                        <i className="fas fa-book"></i> {total} total
+                      </span>
+                    </div>
+
+                    <div className="bimestre-progreso">
+                      <div className="progreso-info">
+                        <span className="progreso-label">Progreso de bitácoras</span>
+                        <span className="progreso-porcentaje" style={{ color: color }}>
+                          {bimestre.progreso}%
+                        </span>
+                      </div>
+                      <div className="progreso-barra">
+                        <div 
+                          className="progreso-llenado" 
+                          style={{ 
+                            width: `${bimestre.progreso}%`,
+                            background: color
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      className="btn-ver-detalles-bimestre"
+                      onClick={() => handleVerDetalles(bimestre)}
+                      style={{
+                        background: esActivo ? '#3ca203' : '#9ca3af',
+                        cursor: esActivo ? 'pointer' : 'not-allowed'
+                      }}
+                    >
+                      <i className="fas fa-eye"></i> 
+                      {esActivo ? 'Ver detalles del bimestre' : `Se activará el ${bimestre.fechaInicio}`}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           );

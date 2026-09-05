@@ -1,9 +1,10 @@
 // src/pages/coordinador/EmpresasGlobales.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Breadcrumb from '@/modules/shared/components/Breadcrumb'; // <--- CORREGIDO
+import Breadcrumb from '@/modules/shared/components/Breadcrumb';
 import Swal from 'sweetalert2';
-import { showSuccess, showError, showWarning, showConfirm, showToast } from '@/core/utils/sweetAlert'; // <--- CORREGIDO
+import { showSuccess, showError, showWarning, showConfirm, showToast } from '@/core/utils/sweetAlert';
+import * as XLSX from 'xlsx';
 
 const EmpresasGlobales = () => {
   const navigate = useNavigate();
@@ -24,7 +25,188 @@ const EmpresasGlobales = () => {
     e.nit.includes(searchQuery)
   );
 
-  // --- FUNCIÓN PARA CREAR NUEVA EMPRESA ---
+  // ==========================================================
+  // FUNCIÓN PARA CARGA MASIVA DE EMPRESAS
+  // ==========================================================
+  const handleCargaMasiva = async () => {
+    const { value: file } = await Swal.fire({
+      title: '📥 Carga Masiva de Empresas',
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <div style="margin-bottom: 15px; padding: 20px; border: 2px dashed #3ca203; border-radius: 10px; text-align: center;">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #3ca203;"></i>
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b7280;">
+              <strong>Arrastra o selecciona un archivo Excel (.xlsx) o CSV</strong>
+            </p>
+            <p style="font-size: 12px; color: #9ca3af; margin: 5px 0 0 0;">
+              El archivo debe tener columnas: <strong>Nombre, NIT, ARL, Contactos</strong>
+            </p>
+          </div>
+          <div style="margin: 15px 0;">
+            <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
+              Selecciona tu archivo *
+            </label>
+            <input type="file" id="archivoEmpresas" accept=".xlsx,.xls,.csv" 
+              style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;" />
+          </div>
+          <div style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px;">
+            <p style="margin: 0; font-size: 13px; color: #6b7280;">
+              <i class="fas fa-info-circle" style="color: #3ca203;"></i>
+              Si tienes un Excel con los datos, súbelo aquí. También puedes copiar y pegar datos desde Excel en el campo de texto a continuación.
+            </p>
+          </div>
+          <div style="margin: 10px 0;">
+            <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
+              Pegar datos (opcional)
+            </label>
+            <textarea id="datosEmpresas" placeholder="Nombre,NIT,ARL,Contactos&#10;Empresa 1,900.123.456-7,SURA,5&#10;Empresa 2,900.987.654-3,Positiva,3" 
+              style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; min-height: 120px;"></textarea>
+            <p style="font-size: 11px; color: #9ca3af; margin: 4px 0 0 0;">
+              Separa cada columna con coma y cada empresa con salto de línea.
+            </p>
+          </div>
+        </div>
+      `,
+      confirmButtonText: '📥 Procesar Datos',
+      confirmButtonColor: '#3ca203',
+      cancelButtonText: 'Cancelar',
+      cancelButtonColor: '#6b7280',
+      showCancelButton: true,
+      width: '600px',
+      padding: '25px 30px',
+      background: '#ffffff',
+      color: '#1f2937',
+      preConfirm: () => {
+        const fileInput = document.getElementById('archivoEmpresas');
+        const pastedData = document.getElementById('datosEmpresas').value;
+        
+        if (!fileInput.files.length && !pastedData.trim()) {
+          Swal.showValidationMessage('⚠️ Selecciona un archivo o pega datos');
+          return false;
+        }
+
+        if (fileInput.files.length) {
+          return { file: fileInput.files[0] };
+        }
+
+        return { pastedData };
+      }
+    });
+
+    if (!file) return;
+
+    try {
+      let rows = [];
+
+      if (file.file) {
+        const data = await file.file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        if (rows.length > 0 && (rows[0][0] === 'Nombre' || rows[0][0] === 'NOMBRE')) {
+          rows.shift();
+        }
+      }
+
+      if (file.pastedData) {
+        rows = file.pastedData
+          .split('\n')
+          .map(row => row.split(','))
+          .filter(row => row.filter(cell => cell.trim() !== '').length > 0);
+        
+        if (rows.length > 0 && (rows[0][0] === 'Nombre' || rows[0][0] === 'NOMBRE')) {
+          rows.shift();
+        }
+      }
+
+      const nuevasEmpresas = [];
+      let errores = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const nombre = (row[0] || '').trim();
+        const nit = (row[1] || '').trim();
+        const arl = (row[2] || '').trim();
+        const contactos = String(row[3] || '').trim();
+
+        if (!nombre || !nit) {
+          errores.push(`⚠️ Fila ${i + 1}: Faltan datos obligatorios`);
+          continue;
+        }
+
+        const yaExiste = empresas.some(e => e.nit === nit) || nuevasEmpresas.some(e => e.nit === nit);
+        if (yaExiste) {
+          errores.push(`⚠️ Fila ${i + 1}: NIT ${nit} ya existe`);
+          continue;
+        }
+
+        nuevasEmpresas.push({
+          nombre,
+          nit,
+          arl: arl || 'SURA',
+          contactos: parseInt(contactos) || 0
+        });
+      }
+
+      if (nuevasEmpresas.length === 0) {
+        await showError('No se pudieron procesar los datos. Revisa que las columnas estén correctas.', '❌ Error de carga');
+        return;
+      }
+
+      if (errores.length > 0) {
+        await showWarning(
+          `${errores.length} fila(s) fueron ignoradas.<br/>${errores.slice(0, 5).join('<br/>')}`,
+          '⚠️ Datos con errores'
+        );
+      }
+
+      const { isConfirmed } = await Swal.fire({
+        title: '¿Guardar empresas?',
+        html: `
+          <div style="text-align: center;">
+            <p style="font-size: 16px; color: #374151;">
+              Se van a cargar <strong style="color: #3ca203;">${nuevasEmpresas.length}</strong> empresas.
+            </p>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 10px;">
+              <p style="margin: 0; font-size: 13px; color: #6b7280;">
+                <strong>TechSoft S.A.S.</strong> (900.123.456-7, SURA)<br/>
+                <strong>Innovar Solutions</strong> (900.987.654-3, Positiva)<br/>
+                ... y ${nuevasEmpresas.length > 2 ? `${nuevasEmpresas.length - 2} más` : ''}
+              </p>
+            </div>
+          </div>
+        `,
+        icon: 'question',
+        iconColor: '#3ca203',
+        showCancelButton: true,
+        confirmButtonColor: '#3ca203',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, guardar todo',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (isConfirmed) {
+        setEmpresas(prev => [
+          ...prev,
+          ...nuevasEmpresas.map((emp, idx) => ({
+            id: prev.length + idx + 1,
+            ...emp
+          }))
+        ]);
+
+        await showSuccess(`${nuevasEmpresas.length} empresas cargadas exitosamente.`, '✅ Carga masiva exitosa');
+      }
+
+    } catch (error) {
+      await showError('Ocurrió un error al procesar el archivo. Verifica el formato.', '❌ Error inesperado');
+    }
+  };
+
+  // ==========================================================
+  // FUNCIÓN PARA CREAR NUEVA EMPRESA
+  // ==========================================================
   const handleNuevaEmpresa = async () => {
     const { value: formValues } = await Swal.fire({
       title: '📋 Nueva Empresa',
@@ -125,7 +307,9 @@ const EmpresasGlobales = () => {
     }
   };
 
-  // --- FUNCIÓN PARA EDITAR EMPRESA ---
+  // ==========================================================
+  // FUNCIÓN PARA EDITAR EMPRESA
+  // ==========================================================
   const handleEditarEmpresa = async (empresa) => {
     const { value: formValues } = await Swal.fire({
       title: `✏️ Editar Empresa`,
@@ -207,7 +391,6 @@ const EmpresasGlobales = () => {
     });
 
     if (formValues) {
-      // Verificar si el NIT ya existe en otra empresa
       const existe = empresas.some(e => e.nit === formValues.nit && e.id !== empresa.id);
       if (existe) {
         await showWarning('Ya existe otra empresa con este NIT.', '⚠️ NIT duplicado');
@@ -223,7 +406,9 @@ const EmpresasGlobales = () => {
     }
   };
 
-  // --- FUNCIÓN PARA ELIMINAR EMPRESA ---
+  // ==========================================================
+  // FUNCIÓN PARA ELIMINAR EMPRESA
+  // ==========================================================
   const handleEliminarEmpresa = async (empresa) => {
     const result = await Swal.fire({
       title: '¿Estás seguro?',
@@ -271,26 +456,48 @@ const EmpresasGlobales = () => {
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Empresas Globales</h2>
           <p style={{ color: '#6b7280', margin: '5px 0 0 0' }}>Gestión de empresas del sistema.</p>
         </div>
-        <button
-          onClick={handleNuevaEmpresa}
-          style={{
-            background: '#3ca203',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'background 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#2d8a00'}
-          onMouseLeave={(e) => e.currentTarget.style.background = '#3ca203'}
-        >
-          <i className="fas fa-plus" /> Nueva Empresa
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={handleCargaMasiva}
+            style={{
+              background: '#3ca203',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#2d8a00'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#3ca203'}
+          >
+            <i className="fas fa-upload" /> Carga Masiva
+          </button>
+          <button
+            onClick={handleNuevaEmpresa}
+            style={{
+              background: '#3ca203',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#2d8a00'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#3ca203'}
+          >
+            <i className="fas fa-plus" /> Nueva Empresa
+          </button>
+        </div>
       </div>
 
       {/* BUSCADOR */}

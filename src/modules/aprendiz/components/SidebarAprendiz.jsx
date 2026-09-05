@@ -31,6 +31,14 @@ const SidebarAprendiz = ({ setActivePage, activePage }) => {
           >
             <i className="fas fa-certificate"></i> Mis Certificados
           </li>
+
+          {/* ⬇️ NUEVA OPCIÓN: NOVEDADES */}
+          <li 
+            className={activePage === 'novedades' ? 'active' : ''} 
+            onClick={() => setActivePage('novedades')}
+          >
+            <i className="fas fa-exclamation-circle"></i> Novedades
+          </li>
         </ul>
       </div>
     </nav>

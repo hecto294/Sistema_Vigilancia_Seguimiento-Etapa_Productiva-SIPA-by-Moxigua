@@ -7,24 +7,17 @@ import './MisCertificados.css';
 const MisCertificados = () => {
   const navigate = useNavigate();
 
-  // Estado del certificado
   const [certificado, setCertificado] = useState({
     id: 1,
     titulo: 'Análisis y Desarrollo de Software',
     fecha: '15/06/2025',
-    estado: 'Pendiente', // 'Pendiente', 'Emitido', 'Cargado'
+    estado: 'Pendiente',
     institucion: 'SENA - Centro de Tecnología y Diseño',
     duracion: '2200 horas',
     archivoCargado: false,
     nombreArchivo: '',
     url: '#'
   });
-
-  // Navegar al inicio (Dashboard)
-  const goToInicio = () => {
-    navigate('/aprendiz');
-    window.location.reload();
-  };
 
   // ==========================================================
   // FUNCIÓN PARA CARGAR (SUBIR) CERTIFICADO
@@ -73,14 +66,12 @@ const MisCertificados = () => {
           return false;
         }
 
-        // Validar tipo de archivo
         const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
         if (!tiposPermitidos.includes(file.type)) {
           Swal.showValidationMessage('⚠️ Solo se permiten archivos PDF, JPG o PNG');
           return false;
         }
 
-        // Validar tamaño (máximo 5MB)
         if (file.size > 5 * 1024 * 1024) {
           Swal.showValidationMessage('⚠️ El archivo no debe superar los 5MB');
           return false;
@@ -92,7 +83,6 @@ const MisCertificados = () => {
       if (result.isConfirmed && result.value) {
         const { file, fileName } = result.value;
 
-        // Actualizar el estado con el archivo cargado
         setCertificado({
           ...certificado,
           archivoCargado: true,
@@ -132,7 +122,7 @@ const MisCertificados = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA DESCARGAR CERTIFICADO (SI YA ESTÁ CARGADO)
+  // FUNCIÓN PARA DESCARGAR CERTIFICADO
   // ==========================================================
   const handleDescargarCertificado = () => {
     if (!certificado.archivoCargado) {
@@ -166,7 +156,6 @@ const MisCertificados = () => {
           timer: 2500,
           timerProgressBar: true
         });
-        // Simular descarga
         setTimeout(() => {
           console.log('Descargando certificado:', certificado.nombreArchivo);
         }, 1000);
@@ -175,7 +164,7 @@ const MisCertificados = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA ELIMINAR CERTIFICADO CARGADO
+  // FUNCIÓN PARA ELIMINAR CERTIFICADO
   // ==========================================================
   const handleEliminarCertificado = () => {
     if (!certificado.archivoCargado) {
@@ -228,15 +217,13 @@ const MisCertificados = () => {
       <nav className="breadcrumb">
         <ol>
           <li>
-            <Link to="/aprendiz" className="breadcrumb-link">
-              <i className="fas fa-home"></i> Inicio
-            </Link>
-            <span className="separator"> &gt; </span>
-          </li>
-          <li>
-            <Link to="/aprendiz/mis-momentos" className="breadcrumb-link">
-              <i className="fas fa-calendar-alt"></i> Mi Proceso
-            </Link>
+            <button 
+              onClick={() => window.location.href = '/aprendiz'}
+              className="breadcrumb-link"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit' }}
+            >
+              <i className="fas fa-home"></i> Mi Proceso
+            </button>
             <span className="separator"> &gt; </span>
           </li>
           <li className="active">

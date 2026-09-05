@@ -318,26 +318,30 @@ const CharlasProgramadas = () => {
     setSearchQuery('');
   };
 
+  // ==========================================================
+  // ⬇️ FUNCIÓN MODIFICADA: SOLO ACEPTA PDF
+  // ==========================================================
   const handleUpload = (seccion) => {
     const input = document.createElement('input');
     input.type = 'file';
-    if (seccion === 'fotos') {
-      input.accept = '.jpg,.jpeg,.png,.gif,.webp';
-    } else if (seccion === 'listados') {
-      input.accept = '.xlsx,.xls,.csv';
-    } else {
-      input.accept = '.pdf,.docx,.pptx,.txt';
-    }
+    input.accept = '.pdf'; // 🔒 SOLO PDF en las 3 secciones
+
     input.onchange = (e) => {
       const file = e.target.files[0];
-      if (file) {
-        let tipo = 'archivo';
-        if (seccion === 'fotos') tipo = 'imagen';
-        else if (seccion === 'listados') tipo = 'excel';
-        else if (file.name.endsWith('.pdf')) tipo = 'pdf';
-        else if (file.name.endsWith('.pptx')) tipo = 'ppt';
+      
+      // Validación estricta: solo PDF
+      if (file && file.type !== 'application/pdf') {
+        Swal.fire({
+          title: '⚠️ Archivo no válido',
+          text: 'Solo se permiten archivos en formato PDF.',
+          icon: 'warning',
+          confirmButtonColor: '#f59e0b'
+        });
+        return;
+      }
 
-        const nuevoArchivo = { nombre: file.name, tipo: tipo };
+      if (file) {
+        const nuevoArchivo = { nombre: file.name, tipo: 'pdf' };
         setCharlas(prevCharlas => 
           prevCharlas.map(charla => 
             charla.id === charlaSeleccionada.id 
@@ -454,7 +458,7 @@ const CharlasProgramadas = () => {
               <div className="file-list-detalle">
                 {charlaSeleccionada.soportes.map((s, idx) => (
                   <div key={idx} className="file-item-detalle">
-                    <i className={`fas ${s.tipo === 'pdf' ? 'fa-file-pdf' : 'fa-file'}`}></i>
+                    <i className="fas fa-file-pdf"></i>
                     <span>{s.nombre}</span>
                   </div>
                 ))}
@@ -474,7 +478,7 @@ const CharlasProgramadas = () => {
               <div className="file-list-detalle">
                 {charlaSeleccionada.listados.map((s, idx) => (
                   <div key={idx} className="file-item-detalle">
-                    <i className="fas fa-file-excel"></i>
+                    <i className="fas fa-file-pdf"></i>
                     <span>{s.nombre}</span>
                   </div>
                 ))}
@@ -494,7 +498,7 @@ const CharlasProgramadas = () => {
               <div className="file-list-detalle">
                 {charlaSeleccionada.fotos.map((s, idx) => (
                   <div key={idx} className="file-item-detalle">
-                    <i className="fas fa-file-image"></i>
+                    <i className="fas fa-file-pdf"></i>
                     <span>{s.nombre}</span>
                   </div>
                 ))}
