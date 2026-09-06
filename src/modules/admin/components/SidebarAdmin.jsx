@@ -1,7 +1,7 @@
 // src/components/SidebarAdmin.jsx
 import React from 'react';
 // 👇 CORREGIDO: Apunta al CSS que está en la carpeta compartida
-import '../../shared/components/Sidebar.css';
+import '../../instructor/components/Sidebar.css';
 
 const SidebarAdmin = ({ onNavigate, activePage }) => {
   return (

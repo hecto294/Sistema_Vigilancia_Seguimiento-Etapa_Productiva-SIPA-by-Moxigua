@@ -1,6 +1,6 @@
 // src/modules/apoyo/components/SidebarApoyo.jsx
 import React from 'react';
-import '../../shared/components/Sidebar.css';
+import '../../instructor/components/Sidebar.css';
 
 const SidebarApoyo = ({ onNavigate, activePage }) => {
   return (

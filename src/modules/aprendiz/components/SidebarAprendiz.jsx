@@ -1,6 +1,6 @@
 // src/modules/aprendiz/components/SidebarAprendiz.jsx
 import React from 'react';
-import '../../shared/components/Sidebar.css';
+import '../../instructor/components/Sidebar.css';
 
 const SidebarAprendiz = ({ setActivePage, activePage }) => {
   return (

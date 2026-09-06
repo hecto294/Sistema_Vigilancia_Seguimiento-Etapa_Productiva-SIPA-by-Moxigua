@@ -1,6 +1,7 @@
 // src/modules/aprendiz/pages/Novedades.jsx
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
+import Breadcrumb from '../../shared/components/Breadcrumb'; // ← Import agregado
 
 const Novedades = () => {
   const [novedades, setNovedades] = useState([
@@ -9,7 +10,7 @@ const Novedades = () => {
       titulo: 'Incapacidad médica',
       descripcion: 'Presento incapacidad médica del 12 al 15 de septiembre. Adjunto certificado.',
       fecha: '10/09/2026',
-      tipo: 'Incapacidad médica', // ⬅️ NUEVO CAMPO
+      tipo: 'Incapacidad médica',
       estado: 'Pendiente',
       archivo: 'incapacidad.pdf'
     },
@@ -18,7 +19,7 @@ const Novedades = () => {
       titulo: 'Cambio de horario en la empresa',
       descripcion: 'La empresa solicita cambio de horario de 8:00 am a 10:00 am.',
       fecha: '05/09/2026',
-      tipo: 'Cambio de horario', // ⬅️ NUEVO CAMPO
+      tipo: 'Cambio de horario',
       estado: 'Aprobada',
       archivo: 'cambio_horario.pdf'
     }
@@ -114,7 +115,6 @@ const Novedades = () => {
     });
   };
 
-  // ⬇️ FUNCIÓN PARA VER EL ARCHIVO (SIMULANDO UN PDF)
   const handleVerArchivo = (novedad) => {
     if (!novedad.archivo) {
       Swal.fire({
@@ -126,7 +126,6 @@ const Novedades = () => {
       return;
     }
 
-    // Simular visualización del archivo (en el futuro será un PDF real)
     Swal.fire({
       title: `📄 ${novedad.archivo}`,
       html: `
@@ -194,7 +193,11 @@ const Novedades = () => {
 
   return (
     <div className="novedades-container" style={{ width: '100%', padding: '20px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      
+      {/* ========== MIGA DE PAN ========== */}
+      <Breadcrumb />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', marginTop: '10px' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Novedades</h2>
           <p style={{ color: '#6b7280', margin: '5px 0 0 0' }}>Reporta y visualiza las novedades de tu proceso.</p>

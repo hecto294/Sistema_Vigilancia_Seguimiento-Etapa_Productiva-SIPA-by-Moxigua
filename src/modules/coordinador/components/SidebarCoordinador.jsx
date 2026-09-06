@@ -1,6 +1,6 @@
 // src/modules/coordinador/components/SidebarCoordinador.jsx
 import React from 'react';
-import '../../shared/components/Sidebar.css';
+import '../../instructor/components/Sidebar.css';
 
 const SidebarCoordinador = ({ onNavigate, activePage }) => {
   return (
