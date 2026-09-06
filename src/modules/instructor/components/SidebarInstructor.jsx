@@ -1,9 +1,9 @@
-// src/components/Sidebar.jsx
+// src/modules/instructor/components/SidebarInstructor.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import './Sidebar.css';
+import '../../shared/components/Sidebar.css';
 
-const Sidebar = ({ setActivePage }) => {
+const SidebarInstructor = ({ setActivePage }) => {
   const [openMenu, setOpenMenu] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,7 +29,7 @@ const Sidebar = ({ setActivePage }) => {
 
   // ✅ Navegar a la ruta específica
   const handleNavigation = (pageId, path) => {
-    setActivePage(pageId);
+    if (setActivePage) setActivePage(pageId);
     navigate(path);
   };
 
@@ -121,4 +121,4 @@ const Sidebar = ({ setActivePage }) => {
   );
 };
 
-export default Sidebar;
+export default SidebarInstructor;

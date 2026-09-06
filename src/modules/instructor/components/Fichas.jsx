@@ -1,7 +1,8 @@
-// src/components/Fichas.jsx
+// src/modules/instructor/components/Fichas.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import Breadcrumb from '../../shared/components/Breadcrumb';
 import './Fichas.css';
 
 const Fichas = () => {
@@ -16,13 +17,10 @@ const Fichas = () => {
     { codigo: '2875903', programa: 'Contabilidad y Finanzas', nivel: 'Técnico', aprendices: 32, fechaInicio: '20/12/2026', fechaFin: '20/12/2027' },
   ];
 
-  // Estado con las fichas
   const [fichas, setFichas] = useState(fichasBase);
 
-  // ⬇️ 1. Leer fichas asignadas por el Coordinador (localStorage)
   useEffect(() => {
     const fichasGuardadas = JSON.parse(localStorage.getItem('fichasAsignadasInstructor')) || [];
-    
     if (fichasGuardadas.length > 0) {
       setFichas(prevFichas => {
         const nuevasFichas = fichasGuardadas
@@ -35,16 +33,13 @@ const Fichas = () => {
             fechaInicio: '01/09/2026',
             fechaFin: '31/08/2027'
           }));
-        
         return [...prevFichas, ...nuevasFichas];
       });
     }
   }, []);
 
-  // ⬇️ 2. Leer estado manual activado/desactivado por el Coordinador
   useEffect(() => {
     const fichasManuales = JSON.parse(localStorage.getItem('fichasEstadoManual')) || [];
-
     setFichas(prev => {
       return prev.map(ficha => {
         const manual = fichasManuales.find(m => m.id === ficha.codigo);
@@ -56,24 +51,13 @@ const Fichas = () => {
     });
   }, []);
 
-  // ⬇️ FUNCIÓN PARA DECIDIR SI UNA FICHA ESTÁ ACTIVA
   const isFichaActiva = (ficha) => {
-    // 1. Si el coordinador la marcó manualmente como INACTIVA, siempre inactiva
-    if (ficha.estadoManual === 'inactiva') {
-      return false;
-    }
-
-    // 2. Si el coordinador la marcó manualmente como ACTIVA, siempre activa
-    if (ficha.estadoManual === 'activa') {
-      return true;
-    }
-
-    // 3. Si NO hay marcado manual, usar las fechas
+    if (ficha.estadoManual === 'inactiva') return false;
+    if (ficha.estadoManual === 'activa') return true;
     const [day, month, year] = ficha.fechaInicio.split('/');
     const fechaInicio = new Date(`${year}-${month}-${day}`);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    
     return hoy >= fechaInicio;
   };
 
@@ -98,50 +82,10 @@ const Fichas = () => {
     navigate(`/instructor/ficha/${ficha.codigo}`);
   };
 
-  // Navegar al inicio (Dashboard)
-  const goToInicio = () => {
-    navigate('/instructor');
-    window.location.reload();
-  };
-
   return (
     <div className="fichas-container">
-      {/* MIGA DE PAN */}
-      <nav style={{ 
-        padding: '10px 0', 
-        marginBottom: '15px', 
-        fontSize: '14px',
-        background: 'transparent',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <ol style={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          alignItems: 'center', 
-          listStyle: 'none', 
-          margin: 0, 
-          padding: 0, 
-          gap: '4px' 
-        }}>
-          <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
-            <span 
-              onClick={goToInicio}
-              style={{ 
-                color: '#3ca203', 
-                textDecoration: 'none', 
-                fontWeight: '500',
-                cursor: 'pointer'
-              }}
-            >
-              Inicio
-            </span>
-            <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
-          </li>
-          <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
-            Mis Fichas
-          </li>
-        </ol>
-      </nav>
+      {/* ✅ MIGA DE PAN CORREGIDA */}
+      <Breadcrumb />
 
       <div className="fichas-header">
         <h2>Mis Fichas de Formación</h2>
@@ -181,7 +125,6 @@ const Fichas = () => {
             <tbody>
               {filteredFichas.map((ficha) => {
                 const esActiva = isFichaActiva(ficha);
-                
                 return (
                   <tr key={ficha.codigo}>
                     <td className="codigo">{ficha.codigo}</td>
@@ -195,21 +138,11 @@ const Fichas = () => {
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       {esActiva ? (
-                        <button
-                          className="btn-ver-ficha"
-                          onClick={() => handleVerFicha(ficha)}
-                        >
+                        <button className="btn-ver-ficha" onClick={() => handleVerFicha(ficha)}>
                           <i className="fas fa-eye" /> Ver
                         </button>
                       ) : (
-                        <span style={{ 
-                          color: '#9ca3af', 
-                          fontSize: '12px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px'
-                        }}>
+                        <span style={{ color: '#9ca3af', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                           <i className="fas fa-lock" style={{ fontSize: '11px' }} />
                           Se activará el {ficha.fechaInicio}
                         </span>

@@ -1,6 +1,8 @@
-// src/components/SeleccionAlternativa.jsx
+// src/modules/instructor/components/SeleccionAlternativa.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import Breadcrumb from '../../shared/components/Breadcrumb';
 import './SeleccionAlternativa.css';
 
 const SeleccionAlternativa = () => {
@@ -13,8 +15,8 @@ const SeleccionAlternativa = () => {
   const [searchAprendizQuery, setSearchAprendizQuery] = useState('');
   const [filtroAlternativa, setFiltroAlternativa] = useState('');
   const [filtroDropdownVisible, setFiltroDropdownVisible] = useState(false);
-  
-  // Estados para el modal de asignación
+
+  // Estado para el modal de asignación
   const [mostrarModalAsignacion, setMostrarModalAsignacion] = useState(false);
   const [aprendizSeleccionado, setAprendizSeleccionado] = useState(null);
   const [formAsignacion, setFormAsignacion] = useState({
@@ -25,138 +27,7 @@ const SeleccionAlternativa = () => {
     estado: 'Activo'
   });
 
-  // ============================================================
-  // DATOS ACTUALIZADOS CON APRENDICES CON Y SIN ALTERNATIVA
-  // ============================================================
-  const [data, setData] = useState([
-    {
-      idFicha: '2875901',
-      programa: 'Análisis y Desarrollo de Software',
-      aprendices: [
-        { 
-          nombre: 'Laura Sofia Martinez', 
-          alternativa: 'Contrato de Aprendizaje', 
-          empresa: { nombre: 'TechSoft S.A.S.', nit: '900.123.456-7', arl: 'SURA', fechaInicio: '01/03/2025', fechaFin: '28/02/2026', estado: 'Activo' } 
-        },
-        { 
-          nombre: 'Juan Diego Ramirez', 
-          alternativa: 'Vínculo Formativo (Pasantía)', 
-          empresa: { nombre: 'Innovar Solutions', nit: '900.987.654-3', arl: 'Positiva', fechaInicio: '15/04/2025', fechaFin: '14/04/2026', estado: 'Activo' } 
-        },
-        { 
-          nombre: 'Maria Camila Torres', 
-          alternativa: 'Monitoria', 
-          empresa: { nombre: 'Universidad Nacional', nit: '899.999.999-9', arl: 'SURA', fechaInicio: '01/02/2025', fechaFin: '31/01/2026', estado: 'Activo' } 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Andres Felipe Gomez', 
-          alternativa: null, 
-          empresa: null 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Diana Carolina Ruiz', 
-          alternativa: null, 
-          empresa: null 
-        },
-      ]
-    },
-    {
-      idFicha: '2875902',
-      programa: 'Gestión Empresarial',
-      aprendices: [
-        { 
-          nombre: 'Carlos Mendoza', 
-          alternativa: 'Proyecto Productivo', 
-          empresa: { nombre: 'Global Services LTDA', nit: '901.111.222-3', arl: 'Colmena', fechaInicio: '10/01/2025', fechaFin: '09/01/2026', estado: 'Activo' } 
-        },
-        { 
-          nombre: 'Valentina Rojas', 
-          alternativa: 'Vínculo Laboral', 
-          empresa: { nombre: 'DataTech Colombia', nit: '901.333.444-5', arl: 'SURA', fechaInicio: '20/02/2025', fechaFin: '19/02/2026', estado: 'Inactivo' } 
-        },
-        { 
-          nombre: 'Andrés Felipe Castro', 
-          alternativa: 'Contrato de Aprendizaje', 
-          empresa: { nombre: 'Soluciones Web SAS', nit: '901.555.666-7', arl: 'Positiva', fechaInicio: '05/05/2025', fechaFin: '04/05/2026', estado: 'Activo' } 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Luis Fernando Torres', 
-          alternativa: null, 
-          empresa: null 
-        },
-      ]
-    },
-    {
-      idFicha: '2875903',
-      programa: 'Contabilidad y Finanzas',
-      aprendices: [
-        { 
-          nombre: 'Luisa Fernanda Gomez', 
-          alternativa: 'Vínculo Formativo (Pasantía)', 
-          empresa: { nombre: 'TechSoft S.A.S.', nit: '900.123.456-7', arl: 'SURA', fechaInicio: '01/06/2025', fechaFin: '31/05/2026', estado: 'Activo' } 
-        },
-        { 
-          nombre: 'Santiago Pérez', 
-          alternativa: 'Proyecto Productivo', 
-          empresa: { nombre: 'Emprende Colombia', nit: '901.777.888-9', arl: 'Colmena', fechaInicio: '15/03/2025', fechaFin: '14/03/2026', estado: 'Activo' } 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Martha Lucia Diaz', 
-          alternativa: null, 
-          empresa: null 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Jorge Enrique Mora', 
-          alternativa: null, 
-          empresa: null 
-        },
-      ]
-    },
-    // ============================================================
-    // NUEVA FICHA - ASIGNADA POR EL INSTRUCTOR
-    // ============================================================
-    {
-      idFicha: '2875904',
-      programa: 'Diseño y Desarrollo de Videojuegos',
-      aprendices: [
-        { 
-          nombre: 'Mateo Alejandro Vargas', 
-          alternativa: 'Contrato de Aprendizaje', 
-          empresa: { nombre: 'GameDev Studios', nit: '902.111.222-3', arl: 'SURA', fechaInicio: '01/07/2025', fechaFin: '30/06/2026', estado: 'Activo' } 
-        },
-        { 
-          nombre: 'Sofia Isabel Rojas', 
-          alternativa: 'Vínculo Formativo (Pasantía)', 
-          empresa: { nombre: 'Pixel Art Studio', nit: '902.333.444-5', arl: 'Positiva', fechaInicio: '15/08/2025', fechaFin: '14/08/2026', estado: 'Activo' } 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Daniel Fernando Castro', 
-          alternativa: null, 
-          empresa: null 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Laura Valentina Muñoz', 
-          alternativa: null, 
-          empresa: null 
-        },
-        // ✅ Aprendiz SIN alternativa asignada
-        { 
-          nombre: 'Cristian David Lopez', 
-          alternativa: null, 
-          empresa: null 
-        },
-      ]
-    }
-  ]);
-
-  // Lista de alternativas disponibles
+  // ✅ ALTERNATIVAS DISPONIBLES (fijas)
   const alternativasDisponibles = [
     'Contrato de Aprendizaje',
     'Vínculo Formativo (Pasantía)',
@@ -165,20 +36,36 @@ const SeleccionAlternativa = () => {
     'Vínculo Laboral'
   ];
 
-  // Lista de empresas disponibles
-  const empresasDisponibles = [
-    'TechSoft S.A.S.',
-    'Innovar Solutions',
-    'Global Services LTDA',
-    'DataTech Colombia',
-    'Soluciones Web SAS',
-    'Universidad Nacional',
-    'Emprende Colombia',
-    'GameDev Studios',
-    'Pixel Art Studio'
-  ];
+  // Datos de ejemplo
+  const [data, setData] = useState([
+    {
+      idFicha: '2875901',
+      programa: 'Análisis y Desarrollo de Software',
+      aprendices: [
+        { nombre: 'Laura Sofia Martinez', alternativa: 'Contrato de Aprendizaje', empresa: { nombre: 'TechSoft S.A.S.', nit: '900.123.456-7', arl: 'SURA', fechaInicio: '01/03/2025', fechaFin: '28/02/2026', estado: 'Activo' } },
+        { nombre: 'Juan Diego Ramirez', alternativa: 'Vínculo Formativo (Pasantía)', empresa: { nombre: 'Innovar Solutions', nit: '900.987.654-3', arl: 'Positiva', fechaInicio: '15/04/2025', fechaFin: '14/04/2026', estado: 'Activo' } },
+        { nombre: 'Maria Camila Torres', alternativa: 'Monitoria', empresa: null },
+        { nombre: 'Andres Felipe Gomez', alternativa: null, empresa: null },
+        { nombre: 'Diana Carolina Ruiz', alternativa: null, empresa: null },
+      ]
+    },
+    {
+      idFicha: '2875902',
+      programa: 'Gestión Empresarial',
+      aprendices: [
+        { nombre: 'Carlos Mendoza', alternativa: 'Proyecto Productivo', empresa: { nombre: 'Global Services LTDA', nit: '901.111.222-3', arl: 'Colmena', fechaInicio: '10/01/2025', fechaFin: '09/01/2026', estado: 'Activo' } },
+        { nombre: 'Valentina Rojas', alternativa: 'Vínculo Laboral', empresa: { nombre: 'DataTech Colombia', nit: '901.333.444-5', arl: 'SURA', fechaInicio: '20/02/2025', fechaFin: '19/02/2026', estado: 'Inactivo' } },
+        { nombre: 'Andrés Felipe Castro', alternativa: 'Contrato de Aprendizaje', empresa: { nombre: 'Soluciones Web SAS', nit: '901.555.666-7', arl: 'Positiva', fechaInicio: '05/05/2025', fechaFin: '04/05/2026', estado: 'Activo' } },
+        { nombre: 'Luis Fernando Torres', alternativa: null, empresa: null },
+      ]
+    }
+  ]);
 
   const todasLasAlternativas = [...new Set(data.flatMap(ficha => ficha.aprendices.map(a => a.alternativa)))].filter(Boolean);
+
+  // ==========================================================
+  // FUNCIONES DE NAVEGACIÓN Y BÚSQUEDA
+  // ==========================================================
 
   const handleBack = () => {
     setSelectedFicha(null);
@@ -201,7 +88,28 @@ const SeleccionAlternativa = () => {
     setEmpresaVisible(empresaVisible === index ? null : index);
   };
 
-  // Abrir modal para asignar alternativa (SOLO para aprendices sin alternativa)
+  const handleCargaMasiva = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        alert(`✅ Archivo "${file.name}" seleccionado correctamente.\n\nIniciando proceso de carga masiva...`);
+      }
+    };
+    input.click();
+  };
+
+  const handleFiltroAlternativa = (alt) => {
+    setFiltroAlternativa(alt);
+    setFiltroDropdownVisible(false);
+  };
+
+  // ==========================================================
+  // FUNCIONES DE ASIGNACIÓN DE ALTERNATIVA
+  // ==========================================================
+
   const handleAsignarAlternativa = (aprendiz) => {
     setAprendizSeleccionado(aprendiz);
     setFormAsignacion({
@@ -214,7 +122,6 @@ const SeleccionAlternativa = () => {
     setMostrarModalAsignacion(true);
   };
 
-  // Guardar asignación de alternativa
   const handleGuardarAsignacion = () => {
     // Actualizar el estado local
     setData(prevData => {
@@ -243,55 +150,19 @@ const SeleccionAlternativa = () => {
 
     setMostrarModalAsignacion(false);
     setAprendizSeleccionado(null);
-    alert('✅ Alternativa asignada correctamente');
-  };
-
-  const handleCargaMasiva = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.xlsx,.xls,.csv';
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        alert(`✅ Archivo "${file.name}" seleccionado correctamente.\n\nIniciando proceso de carga masiva...`);
-      }
-    };
-    input.click();
-  };
-
-  const handleFiltroAlternativa = (alt) => {
-    setFiltroAlternativa(alt);
-    setFiltroDropdownVisible(false);
-  };
-
-  const filteredFichas = data
-    .map(ficha => {
-      const aprendicesFiltrados = ficha.aprendices.filter(a =>
-        (filtroAlternativa === '' || a.alternativa === filtroAlternativa) &&
-        (searchQuery === '' || 
-          ficha.idFicha.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ficha.programa.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          a.nombre.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-      return { ...ficha, aprendices: aprendicesFiltrados };
-    })
-    .filter(ficha => ficha.aprendices.length > 0);
-
-  const goToInicio = () => {
-    navigate('/instructor');
-    window.location.reload();
-  };
-
-  const contarAlternativas = (aprendices) => {
-    const conteo = {};
-    aprendices.forEach(a => {
-      if (a.alternativa) {
-        conteo[a.alternativa] = (conteo[a.alternativa] || 0) + 1;
-      }
+    Swal.fire({
+      title: '✅ Alternativa asignada',
+      text: `La alternativa "${formAsignacion.alternativa}" ha sido asignada correctamente.`,
+      icon: 'success',
+      confirmButtonColor: '#3ca203',
+      timer: 2000,
+      timerProgressBar: true
     });
-    return conteo;
   };
+
+  // ==========================================================
+  // FUNCIONES AUXILIARES
+  // ==========================================================
 
   const getColorAlternativa = (alternativa) => {
     const colores = {
@@ -315,27 +186,50 @@ const SeleccionAlternativa = () => {
     return iconos[alternativa] || 'fa-tag';
   };
 
-  // --- DETALLE DE FICHA ---
+  const contarAlternativas = (aprendices) => {
+    const conteo = {};
+    aprendices.forEach(a => {
+      if (a.alternativa) {
+        conteo[a.alternativa] = (conteo[a.alternativa] || 0) + 1;
+      }
+    });
+    return conteo;
+  };
+
+  const filteredFichas = data
+    .map(ficha => {
+      const aprendicesFiltrados = ficha.aprendices.filter(a =>
+        (filtroAlternativa === '' || a.alternativa === filtroAlternativa) &&
+        (searchQuery === '' || 
+          ficha.idFicha.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          ficha.programa.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          a.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+      return { ...ficha, aprendices: aprendicesFiltrados };
+    })
+    .filter(ficha => ficha.aprendices.length > 0);
+
+  const goToInicio = () => {
+    navigate('/instructor');
+    window.location.reload();
+  };
+
+  // ==========================================================
+  // RENDER: DETALLE DE FICHA
+  // ==========================================================
+
   if (selectedFicha) {
     const filteredAprendices = selectedFicha.aprendices.filter(a =>
       a.nombre.toLowerCase().includes(searchAprendizQuery.toLowerCase())
     );
 
-    // Contar cuántos tienen alternativa y cuántos no
     const conAlternativa = selectedFicha.aprendices.filter(a => a.alternativa !== null).length;
     const sinAlternativa = selectedFicha.aprendices.filter(a => a.alternativa === null).length;
 
     return (
       <div className="seleccion-container">
-        <nav style={{ padding: '10px 0', marginBottom: '15px', fontSize: '14px', background: 'transparent', borderBottom: '1px solid #e5e7eb' }}>
-          <ol style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, gap: '4px' }}>
-            <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
-              <span onClick={goToInicio} style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}>Inicio</span>
-              <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
-            </li>
-            <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>Selección de Alternativa</li>
-          </ol>
-        </nav>
+        <Breadcrumb />
 
         <div className="seleccion-header">
           <div className="header-back">
@@ -369,111 +263,94 @@ const SeleccionAlternativa = () => {
 
         <div className="aprendices-list-container">
           <div className="table-wrapper">
-            {filteredAprendices.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <h3 style={{ color: '#dc2626' }}>Dato no encontrado</h3>
-                <p style={{ color: '#6b7280' }}>No se encontraron aprendices con ese nombre.</p>
-              </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Aprendiz</th>
-                    <th>Alternativa Seleccionada</th>
-                    <th style={{ textAlign: 'center' }}>Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAprendices.map((aprendiz, index) => (
-                    <React.Fragment key={index}>
-                      <tr style={!aprendiz.alternativa ? { background: '#fef2f2' } : {}}>
-                        <td>{index + 1}</td>
-                        <td className="nombre-aprendiz">
-                          {aprendiz.nombre}
-                          {!aprendiz.alternativa && (
-                            <span style={{ 
-                              marginLeft: '8px', 
-                              background: '#ef4444', 
-                              color: 'white', 
-                              fontSize: '10px', 
-                              padding: '2px 8px', 
-                              borderRadius: '10px',
-                              fontWeight: 'bold'
-                            }}>
-                              Sin asignar
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          {aprendiz.alternativa ? (
-                            <span className="alternativa-badge" style={{ 
-                              background: `${getColorAlternativa(aprendiz.alternativa)}20`,
-                              color: getColorAlternativa(aprendiz.alternativa),
-                              border: `1px solid ${getColorAlternativa(aprendiz.alternativa)}`
-                            }}>
-                              <i className={`fas ${getIconoAlternativa(aprendiz.alternativa)}`} style={{ marginRight: '6px' }} />
-                              {aprendiz.alternativa}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>
-                              <i className="fas fa-minus-circle" style={{ marginRight: '4px' }} />
-                              Sin asignar
-                            </span>
-                          )}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          {aprendiz.alternativa ? (
-                            // ✅ Si tiene alternativa, SOLO muestra el botón de empresa
-                            <button className="btn-asociacion" onClick={() => toggleEmpresa(index)}>
-                              <i className="fas fa-building"></i> Empresa
-                            </button>
-                          ) : (
-                            // ✅ Si NO tiene alternativa, muestra el botón de asignar
-                            <button 
-                              className="btn-asignar" 
-                              onClick={() => handleAsignarAlternativa(aprendiz)}
-                              style={{
-                                background: '#3ca203',
-                                color: 'white',
-                                border: 'none',
-                                padding: '6px 14px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                fontWeight: '500'
-                              }}
-                            >
-                              <i className="fas fa-plus"></i> Asignar
-                            </button>
-                          )}
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Aprendiz</th>
+                  <th>Alternativa Seleccionada</th>
+                  <th style={{ textAlign: 'center' }}>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAprendices.map((aprendiz, index) => (
+                  <React.Fragment key={index}>
+                    <tr style={!aprendiz.alternativa ? { background: '#fef2f2' } : {}}>
+                      <td>{index + 1}</td>
+                      <td className="nombre-aprendiz">
+                        {aprendiz.nombre}
+                        {!aprendiz.alternativa && (
+                          <span style={{ marginLeft: '8px', background: '#ef4444', color: 'white', fontSize: '10px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                            Sin asignar
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {aprendiz.alternativa ? (
+                          <span className="alternativa-badge" style={{ 
+                            background: `${getColorAlternativa(aprendiz.alternativa)}20`,
+                            color: getColorAlternativa(aprendiz.alternativa),
+                            border: `1px solid ${getColorAlternativa(aprendiz.alternativa)}`
+                          }}>
+                            <i className={`fas ${getIconoAlternativa(aprendiz.alternativa)}`} style={{ marginRight: '6px' }} />
+                            {aprendiz.alternativa}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>
+                            <i className="fas fa-minus-circle" style={{ marginRight: '4px' }} />
+                            Sin asignar
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {aprendiz.alternativa ? (
+                          <button className="btn-asociacion" onClick={() => toggleEmpresa(index)} style={{ marginRight: '8px' }}>
+                            <i className="fas fa-building"></i> Empresa
+                          </button>
+                        ) : (
+                          <button 
+                            className="btn-asignar" 
+                            onClick={() => handleAsignarAlternativa(aprendiz)}
+                            style={{
+                              background: '#3ca203',
+                              color: 'white',
+                              border: 'none',
+                              padding: '6px 14px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '500'
+                            }}
+                          >
+                            <i className="fas fa-plus"></i> Asignar
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {empresaVisible === index && aprendiz.empresa && (
+                      <tr className="empresa-row">
+                        <td colSpan="4">
+                          <div className="empresa-panel">
+                            <div className="empresa-info-grid">
+                              <div className="empresa-item"><span className="empresa-label">Empresa</span><span className="empresa-value">{aprendiz.empresa.nombre}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">NIT</span><span className="empresa-value">{aprendiz.empresa.nit}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">ARL</span><span className="empresa-value">{aprendiz.empresa.arl}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">Fecha de inicio</span><span className="empresa-value">{aprendiz.empresa.fechaInicio}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">Fecha fin</span><span className="empresa-value">{aprendiz.empresa.fechaFin}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">Estado</span><span className={`empresa-status ${aprendiz.empresa.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>{aprendiz.empresa.estado}</span></div>
+                            </div>
+                          </div>
                         </td>
                       </tr>
-                      {empresaVisible === index && aprendiz.empresa && (
-                        <tr className="empresa-row">
-                          <td colSpan="4">
-                            <div className="empresa-panel">
-                              <div className="empresa-info-grid">
-                                <div className="empresa-item"><span className="empresa-label">Empresa</span><span className="empresa-value">{aprendiz.empresa.nombre}</span></div>
-                                <div className="empresa-item"><span className="empresa-label">NIT</span><span className="empresa-value">{aprendiz.empresa.nit}</span></div>
-                                <div className="empresa-item"><span className="empresa-label">ARL</span><span className="empresa-value">{aprendiz.empresa.arl}</span></div>
-                                <div className="empresa-item"><span className="empresa-label">Fecha de inicio</span><span className="empresa-value">{aprendiz.empresa.fechaInicio}</span></div>
-                                <div className="empresa-item"><span className="empresa-label">Fecha fin</span><span className="empresa-value">{aprendiz.empresa.fechaFin}</span></div>
-                                <div className="empresa-item"><span className="empresa-label">Estado</span><span className={`empresa-status ${aprendiz.empresa.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>{aprendiz.empresa.estado}</span></div>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* MODAL DE ASIGNACIÓN DE ALTERNATIVA (SOLO PARA APRENDICES SIN ALTERNATIVA) */}
+        {/* MODAL DE ASIGNACIÓN DE ALTERNATIVA */}
         {mostrarModalAsignacion && (
           <div className="modal-overlay" style={{
             position: 'fixed',
@@ -576,9 +453,11 @@ const SeleccionAlternativa = () => {
                     }}
                   >
                     <option value="">Seleccionar empresa</option>
-                    {empresasDisponibles.map(emp => (
-                      <option key={emp} value={emp}>{emp}</option>
-                    ))}
+                    <option value="TechSoft S.A.S.">TechSoft S.A.S.</option>
+                    <option value="Innovar Solutions">Innovar Solutions</option>
+                    <option value="Global Services LTDA">Global Services LTDA</option>
+                    <option value="DataTech Colombia">DataTech Colombia</option>
+                    <option value="Soluciones Web SAS">Soluciones Web SAS</option>
                   </select>
                 </div>
 
@@ -690,7 +569,10 @@ const SeleccionAlternativa = () => {
     );
   }
 
-  // --- VISTA PRINCIPAL ---
+  // ==========================================================
+  // RENDER: VISTA PRINCIPAL
+  // ==========================================================
+
   return (
     <div className="seleccion-container">
       <nav style={{ padding: '10px 0', marginBottom: '15px', fontSize: '14px', background: 'transparent', borderBottom: '1px solid #e5e7eb' }}>
@@ -709,8 +591,27 @@ const SeleccionAlternativa = () => {
             <h2>Selección de Alternativa</h2>
             <p className="subtitulo">Selecciona una ficha para ver qué alternativa eligieron los aprendices.</p>
           </div>
-          <button className="btn-carga-masiva" onClick={handleCargaMasiva}>
-            <i className="fas fa-upload"></i> Carga
+          {/* ✅ SOLO BOTÓN DE CARGA MASIVA (verde) */}
+          <button 
+            className="btn-carga-masiva" 
+            onClick={handleCargaMasiva}
+            style={{
+              background: '#3ca203',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#2d8a00'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#3ca203'}
+          >
+            <i className="fas fa-upload" /> Carga Masiva
           </button>
         </div>
       </div>
@@ -728,7 +629,6 @@ const SeleccionAlternativa = () => {
         <button className="btn-search" onClick={handleSearch}>Buscar</button>
         <button className="btn-clear" onClick={handleClear}>Limpiar</button>
 
-        {/* BOTÓN DE FILTRO VERDE */}
         <div className="filtro-dropdown-wrapper">
           <button 
             className="btn-filtro-verde"

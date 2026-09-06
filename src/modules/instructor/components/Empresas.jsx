@@ -1,15 +1,13 @@
-// src/components/Empresas.jsx
+// src/modules/instructor/components/Empresas.jsx
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
+import Breadcrumb from '../../shared/components/Breadcrumb';
 import './Empresas.css';
 
 const Empresas = () => {
-  // Estado para el texto que el usuario escribe en el input
   const [searchTerm, setSearchTerm] = useState('');
-  // Estado para el texto que realmente se busca al darle al botón
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Estado para las empresas (ahora mutable para poder editar/eliminar)
   const [empresas, setEmpresas] = useState([
     { id: 1, nombre: 'TechSoft S.A.S.', arl: 'SURA', aprendices: 8 },
     { id: 2, nombre: 'Innovar Solutions', arl: 'Positiva', aprendices: 5 },
@@ -18,22 +16,13 @@ const Empresas = () => {
     { id: 5, nombre: 'DataTech Colombia', arl: 'Positiva', aprendices: 6 },
   ]);
 
-  // Filtra los datos basándose en searchQuery (lo que busca el botón)
   const filteredEmpresas = empresas.filter((empresa) =>
     empresa.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
     empresa.arl.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Función del botón Buscar
-  const handleSearch = () => {
-    setSearchQuery(searchTerm); // Actualiza la búsqueda real
-  };
-
-  // Función del botón Limpiar
-  const handleClear = () => {
-    setSearchTerm('');   // Limpia el input
-    setSearchQuery('');  // Limpia la búsqueda real (muestra todo)
-  };
+  const handleSearch = () => setSearchQuery(searchTerm);
+  const handleClear = () => { setSearchTerm(''); setSearchQuery(''); };
 
   // ==========================================================
   // FUNCIÓN PARA CREAR NUEVA EMPRESA
@@ -45,19 +34,22 @@ const Empresas = () => {
         <div style="text-align: left; padding: 10px 0;">
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-building" style="color: #3ca203; margin-right: 8px;"></i> Nombre de la empresa
+              <i class="fas fa-building" style="color: #3ca203; margin-right: 8px;"></i>
+              Nombre de la empresa *
             </label>
             <input id="nombreEmpresa" class="swal2-input" placeholder="Ej. TechSoft S.A.S." style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-hashtag" style="color: #3ca203; margin-right: 8px;"></i> NIT
+              <i class="fas fa-hashtag" style="color: #3ca203; margin-right: 8px;"></i>
+              NIT *
             </label>
             <input id="nitEmpresa" class="swal2-input" placeholder="Ej. 900.123.456-7" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-shield-alt" style="color: #3ca203; margin-right: 8px;"></i> ARL
+              <i class="fas fa-shield-alt" style="color: #3ca203; margin-right: 8px;"></i>
+              ARL
             </label>
             <select id="arlEmpresa" class="swal2-input" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
               <option value="SURA">SURA</option>
@@ -69,10 +61,14 @@ const Empresas = () => {
           </div>
           <div style="margin-bottom: 5px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-phone" style="color: #3ca203; margin-right: 8px;"></i> Contactos
+              <i class="fas fa-phone" style="color: #3ca203; margin-right: 8px;"></i>
+              Contactos
             </label>
             <input id="contactosEmpresa" class="swal2-input" placeholder="Ej. 5" type="number" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
           </div>
+          <p style="font-size: 11px; color: #9ca3af; margin-top: 8px;">
+            * Campos obligatorios
+          </p>
         </div>
       `,
       focusConfirm: false,
@@ -81,6 +77,10 @@ const Empresas = () => {
       cancelButtonText: 'Cancelar',
       cancelButtonColor: '#6b7280',
       showCancelButton: true,
+      width: '520px',
+      padding: '25px 30px',
+      background: '#ffffff',
+      color: '#1f2937',
       preConfirm: () => {
         const nombre = document.getElementById('nombreEmpresa').value.trim();
         const nit = document.getElementById('nitEmpresa').value.trim();
@@ -101,14 +101,11 @@ const Empresas = () => {
         }
 
         return { nombre, nit, arl, contactos: parseInt(contactos) };
-      },
-      width: '520px',
-      padding: '25px 30px',
-      background: '#ffffff',
-      color: '#1f2937'
+      }
     });
 
     if (formValues) {
+      // Verificar si ya existe una empresa con el mismo NIT
       const existe = empresas.some(e => e.nit === formValues.nit);
       if (existe) {
         await Swal.fire({
@@ -123,11 +120,13 @@ const Empresas = () => {
       const nuevaEmpresa = {
         id: empresas.length + 1,
         nombre: formValues.nombre,
+        nit: formValues.nit,
         arl: formValues.arl,
         aprendices: formValues.contactos,
       };
 
       setEmpresas([...empresas, nuevaEmpresa]);
+      
       await Swal.fire({
         title: '✅ Empresa creada',
         text: `Empresa "${nuevaEmpresa.nombre}" creada exitosamente.`,
@@ -149,19 +148,22 @@ const Empresas = () => {
         <div style="text-align: left; padding: 10px 0;">
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-building" style="color: #3ca203; margin-right: 8px;"></i> Nombre de la empresa
+              <i class="fas fa-building" style="color: #3ca203; margin-right: 8px;"></i>
+              Nombre de la empresa *
             </label>
             <input id="editNombreEmpresa" class="swal2-input" value="${empresa.nombre}" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-hashtag" style="color: #3ca203; margin-right: 8px;"></i> NIT
+              <i class="fas fa-hashtag" style="color: #3ca203; margin-right: 8px;"></i>
+              NIT *
             </label>
             <input id="editNitEmpresa" class="swal2-input" value="${empresa.nit}" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-shield-alt" style="color: #3ca203; margin-right: 8px;"></i> ARL
+              <i class="fas fa-shield-alt" style="color: #3ca203; margin-right: 8px;"></i>
+              ARL
             </label>
             <select id="editArlEmpresa" class="swal2-input" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
               <option value="SURA" ${empresa.arl === 'SURA' ? 'selected' : ''}>SURA</option>
@@ -173,10 +175,14 @@ const Empresas = () => {
           </div>
           <div style="margin-bottom: 5px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-phone" style="color: #3ca203; margin-right: 8px;"></i> Contactos
+              <i class="fas fa-phone" style="color: #3ca203; margin-right: 8px;"></i>
+              Contactos
             </label>
             <input id="editContactosEmpresa" class="swal2-input" value="${empresa.contactos}" type="number" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
           </div>
+          <p style="font-size: 11px; color: #9ca3af; margin-top: 8px;">
+            * Campos obligatorios
+          </p>
         </div>
       `,
       focusConfirm: false,
@@ -185,6 +191,10 @@ const Empresas = () => {
       cancelButtonText: 'Cancelar',
       cancelButtonColor: '#6b7280',
       showCancelButton: true,
+      width: '520px',
+      padding: '25px 30px',
+      background: '#ffffff',
+      color: '#1f2937',
       preConfirm: () => {
         const nombre = document.getElementById('editNombreEmpresa').value.trim();
         const nit = document.getElementById('editNitEmpresa').value.trim();
@@ -205,11 +215,7 @@ const Empresas = () => {
         }
 
         return { nombre, nit, arl, contactos: parseInt(contactos) };
-      },
-      width: '520px',
-      padding: '25px 30px',
-      background: '#ffffff',
-      color: '#1f2937'
+      }
     });
 
     if (formValues) {
@@ -226,9 +232,10 @@ const Empresas = () => {
 
       setEmpresas(empresas.map(e =>
         e.id === empresa.id
-          ? { ...e, nombre: formValues.nombre, arl: formValues.arl, aprendices: formValues.contactos }
+          ? { ...e, nombre: formValues.nombre, nit: formValues.nit, arl: formValues.arl, aprendices: formValues.contactos }
           : e
       ));
+      
       await Swal.fire({
         title: '✅ Empresa actualizada',
         text: `Empresa "${formValues.nombre}" actualizada exitosamente.`,
@@ -280,15 +287,33 @@ const Empresas = () => {
 
   return (
     <div className="empresas-container">
+      <Breadcrumb />
+
       <div className="empresas-header">
         <h2>Empresas Asociadas</h2>
-        {/* 👇 BOTÓN DE NUEVA EMPRESA EN VERDE */}
-        <button className="btn-nuevo" onClick={handleNuevaEmpresa} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-          + Nueva empresa
+        <button 
+          className="btn-nuevo" 
+          onClick={handleNuevaEmpresa} 
+          style={{ 
+            background: '#3ca203', 
+            color: 'white', 
+            border: 'none', 
+            padding: '10px 20px', 
+            borderRadius: '8px', 
+            fontWeight: 'bold', 
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'background 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = '#2d8a00'}
+          onMouseLeave={(e) => e.currentTarget.style.background = '#3ca203'}
+        >
+          <i className="fas fa-plus" /> Nueva empresa
         </button>
       </div>
 
-      {/* Barra de búsqueda con botón Buscar y Limpiar */}
       <div className="search-container">
         <input 
           type="text" 
@@ -302,7 +327,6 @@ const Empresas = () => {
         <button className="btn-clear" onClick={handleClear}>Limpiar</button>
       </div>
 
-      {/* Condicional: Si no hay resultados, muestra "Dato no encontrado" */}
       {filteredEmpresas.length === 0 ? (
         <div className="not-found">
           <h2><i className="fas fa-exclamation-circle"></i> Dato no encontrado</h2>
@@ -326,8 +350,41 @@ const Empresas = () => {
                   <td>{empresa.arl}</td>
                   <td>{empresa.aprendices}</td>
                   <td>
-                    <button className="action-btn-ficha btn-edit" onClick={() => handleEditarEmpresa(empresa)}>Editar</button>
-                    <button className="action-btn-ficha btn-delete" onClick={() => handleEliminarEmpresa(empresa)}>Eliminar</button>
+                    <button 
+                      className="action-btn-ficha btn-edit" 
+                      onClick={() => handleEditarEmpresa(empresa)}
+                      style={{
+                        background: '#e6f7ed',
+                        color: '#047857',
+                        border: 'none',
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        marginRight: '5px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#d1fae5'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = '#e6f7ed'}
+                    >
+                      <i className="fas fa-edit" /> Editar
+                    </button>
+                    <button 
+                      className="action-btn-ficha btn-delete" 
+                      onClick={() => handleEliminarEmpresa(empresa)}
+                      style={{
+                        background: '#fee2e2',
+                        color: '#dc2626',
+                        border: 'none',
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#fecaca'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = '#fee2e2'}
+                    >
+                      <i className="fas fa-trash" /> Eliminar
+                    </button>
                   </td>
                 </tr>
               ))}
