@@ -1,21 +1,38 @@
-// src/pages/public/RecuperarContrasena.jsx
+// src/modules/auth/pages/RecuperarContrasena.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { authService } from '@/core/services/authService';
 import './RecuperarContrasena.css';
 
 const RecuperarContrasena = () => {
   const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulación: Enviar correo y redirigir a verificación
-    navigate('/verificacion-codigo');
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      await authService.requestPasswordReset(email);
+      setSuccess('Código de recuperación enviado a tu correo');
+      // Redirigir a verificación después de 2 segundos
+      setTimeout(() => {
+        navigate('/verificar', { state: { email } });
+      }, 2000);
+    } catch (error) {
+      setError(error.message || 'Error al enviar el código de recuperación');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="auth-wrapper">
-      {/* --- COLUMNA IZQUIERDA --- */}
       <div className="auth-left">
         <div className="left-header">
           <div className="left-logo">
@@ -52,7 +69,6 @@ const RecuperarContrasena = () => {
         </div>
       </div>
 
-      {/* --- COLUMNA DERECHA --- */}
       <div className="auth-right">
         <div className="auth-card">
           <div className="auth-header">
@@ -64,6 +80,17 @@ const RecuperarContrasena = () => {
           </div>
 
           <form onSubmit={handleSubmit}>
+            {error && (
+              <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="success-message" style={{ color: 'green', marginBottom: '15px' }}>
+                {success}
+              </div>
+            )}
+
             <div className="form-group">
               <label>Correo electrónico</label>
               <div className="input-wrapper">
@@ -74,17 +101,18 @@ const RecuperarContrasena = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
 
             <div className="info-box">
               <i className="fas fa-info-circle"></i>
-              <span>Te enviaremos un enlace para que puedas crear una nueva contraseña.</span>
+              <span>Te enviaremos un código de 6 dígitos para que puedas crear una nueva contraseña.</span>
             </div>
 
-            <button type="submit" className="btn-auth-submit">
-              <i className="fas fa-envelope"></i> Enviar instrucciones
+            <button type="submit" className="btn-auth-submit" disabled={loading}>
+              <i className="fas fa-envelope"></i> {loading ? 'Enviando...' : 'Enviar instrucciones'}
             </button>
 
             <div className="divider"><span>o regresa al inicio de sesión</span></div>

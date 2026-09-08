@@ -4,7 +4,7 @@
 export const APP_CONFIG = {
   name: 'SIPA - Sistema de Seguimiento de Etapa Productiva',
   version: '1.0.0',
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   environment: import.meta.env.NODE_ENV || 'development',
   isProduction: import.meta.env.NODE_ENV === 'production',
   isDevelopment: import.meta.env.NODE_ENV === 'development'

@@ -1,158 +1,88 @@
 // src/modules/auth/pages/Login.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/providers/AuthProvider';
-import './Login.css';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/shared/hooks/useAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Simulación: Asignamos un rol ficticio para probar
-    const userData = {
-      email: email,
-      role: 'instructor' // <-- SOLO ROL INSTRUCTOR
-    };
+    setError('');
+    setLoading(true);
 
-    // Llamar a la función login del AuthProvider
-    login(userData);
-
-    // Navegar a la ruta según el rol
-    navigate('/instructor/dashboard');
+    try {
+      const response = await login(email, password);
+      
+      // Redirigir según el rol
+      const roleRoutes = {
+        administrador: '/admin',
+        coordinador: '/coordinador',
+        instructor: '/instructor',
+        aprendiz: '/aprendiz',
+        apoyo: '/apoyo'
+      };
+      
+      navigate(roleRoutes[response.user.role] || '/');
+    } catch (error) {
+      setError(error.message || 'Credenciales inválidas');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="login-wrapper">
-      
-      {/* --- COLUMNA IZQUIERDA (BRANDING) --- */}
-      <div className="login-left">
-        <div className="left-header">
-          <div className="left-logo">
-            <img src="/logo-sena.png" alt="Logo SENA" />
-            <div className="left-brand">
-              <h2>SIPA</h2>
-              <span>Sistema de Seguimiento de Etapa Productiva</span>
-            </div>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="text-center text-3xl font-extrabold text-gray-900">
+            Iniciar Sesión
+          </h2>
         </div>
-
-        <div className="left-hero">
-          <h1>Bienvenido a SIPA</h1>
-          <h3>Sistema de Seguimiento de Etapa Productiva</h3>
-          <p>Herramienta institucional del SENA para gestionar, hacer seguimiento y evaluar la etapa productiva de aprendices de forma eficiente y centralizada.</p>
-        </div>
-
-        <div className="left-image">
-          <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600&auto=format&fit=crop" alt="Dashboard Preview" />
-        </div>
-
-        <div className="left-footer">
-          <div className="feature-badge">
-            <i className="fas fa-shield-alt"></i>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <strong>Seguro</strong>
-              <small>Tu información está protegida</small>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Correo electrónico"
+                required
+              />
             </div>
-          </div>
-          <div className="feature-badge">
-            <i className="fas fa-users"></i>
             <div>
-              <strong>Centralizado</strong>
-              <small>Todo en un solo lugar</small>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Contraseña"
+                required
+              />
             </div>
           </div>
-          <div className="feature-badge">
-            <i className="fas fa-chart-line"></i>
-            <div>
-              <strong>Eficiente</strong>
-              <small>Procesos más ágiles</small>
-            </div>
-          </div>
-          <div className="feature-badge">
-            <i className="fas fa-clock"></i>
-            <div>
-              <strong>Confiable</strong>
-              <small>Información precisa</small>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* --- COLUMNA DERECHA (LOGIN) --- */}
-      <div className="login-right">
-        <div className="login-card">
-          
-          <div className="login-header">
-            <div className="header-icon">
-              <i className="fas fa-lock-open"></i>
-            </div>
-            <h2>Iniciar sesión</h2>
-            <p>Ingresa tus credenciales para acceder al sistema</p>
-          </div>
-
-          <form onSubmit={handleLogin}>
-            <div className="form-group">
-              <label>Correo electrónico</label>
-              <div className="input-wrapper">
-                <i className="fas fa-envelope"></i>
-                <input 
-                  type="email" 
-                  placeholder="ejemplo@correo.sena.edu.co" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Contraseña</label>
-              <div className="input-wrapper">
-                <i className="fas fa-lock"></i>
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  placeholder="Ingresa tu contraseña" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <i 
-                  className={`fas fa-eye${showPassword ? '' : '-slash'} password-toggle`}
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ cursor: 'pointer' }}
-                ></i>
-              </div>
-              
-              {/* --- ENLACE PARA RECUPERAR CONTRASEÑA --- */}
-              <div className="forgot-password">
-                <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
-              </div>
-            </div>
-
-            <button type="submit" className="btn-login-submit">
-              <i className="fas fa-sign-in-alt"></i> Iniciar sesión
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {loading ? 'Cargando...' : 'Iniciar Sesión'}
             </button>
-
-            <div className="divider">
-              <span>o continúa con</span>
-            </div>
-
-            <button type="button" className="btn-sena-id">
-              <i className="fas fa-shield-alt"></i> Iniciar sesión con SENA ID
-            </button>
-
-            <div className="login-footer-text">
-              ¿No tienes cuenta? <Link to="/register">Consulta con tu coordinador</Link>
-            </div>
-          </form>
-
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );

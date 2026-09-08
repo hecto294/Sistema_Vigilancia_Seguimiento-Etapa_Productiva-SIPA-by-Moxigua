@@ -1,27 +1,60 @@
-// src/pages/public/CambiarContrasena.jsx
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// src/modules/auth/pages/CambiarContrasena.jsx
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { authService } from '@/core/services/authService';
 import './RecuperarContrasena.css';
 
 const CambiarContrasena = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email || '';
+  const code = location.state?.code || '';
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (!email || !code) {
+      navigate('/recuperar');
+    }
+  }, [email, code, navigate]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      alert('❌ Las contraseñas no coinciden.');
+    setError('');
+    setSuccess('');
+
+    // Validaciones
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
-    alert('✅ Contraseña actualizada exitosamente. Por favor, inicia sesión con tu nueva contraseña.');
-    navigate('/login');
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await authService.resetPassword(email, code, password);
+      setSuccess('Contraseña actualizada exitosamente');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (error) {
+      setError(error.message || 'Error al cambiar la contraseña');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="auth-wrapper">
-      {/* --- COLUMNA IZQUIERDA --- */}
       <div className="auth-left">
         <div className="left-header">
           <div className="left-logo">
@@ -58,7 +91,6 @@ const CambiarContrasena = () => {
         </div>
       </div>
 
-      {/* --- COLUMNA DERECHA --- */}
       <div className="auth-right">
         <div className="auth-card">
           <div className="auth-header">
@@ -66,10 +98,21 @@ const CambiarContrasena = () => {
               <i className="fas fa-lock"></i>
             </div>
             <h2>Cambiar contraseña</h2>
-            <p>Ingresa tu nueva contraseña en los campos siguientes para actualizarla correctamente.</p>
+            <p>Ingresa tu nueva contraseña para <strong>{email}</strong></p>
           </div>
 
           <form onSubmit={handleSubmit}>
+            {error && (
+              <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="success-message" style={{ color: 'green', marginBottom: '15px' }}>
+                {success}
+              </div>
+            )}
+
             <div className="form-group">
               <label>Nueva contraseña</label>
               <div className="input-wrapper">
@@ -80,6 +123,8 @@ const CambiarContrasena = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={loading}
+                  minLength="6"
                 />
                 <i 
                   className={`fas fa-eye${showPass ? '' : '-slash'}`} 
@@ -99,6 +144,7 @@ const CambiarContrasena = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -106,7 +152,7 @@ const CambiarContrasena = () => {
             <div className="info-box requirements-box">
               <i className="fas fa-info-circle"></i>
               <div className="req-grid">
-                <span>✔️ Mínimo 8 caracteres</span>
+                <span>✔️ Mínimo 6 caracteres</span>
                 <span>✔️ Una letra mayúscula</span>
                 <span>✔️ Una letra minúscula</span>
                 <span>✔️ Un número</span>
@@ -114,8 +160,8 @@ const CambiarContrasena = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn-auth-submit">
-              <i className="fas fa-save"></i> Actualizar contraseña
+            <button type="submit" className="btn-auth-submit" disabled={loading}>
+              <i className="fas fa-save"></i> {loading ? 'Actualizando...' : 'Actualizar contraseña'}
             </button>
 
             <div className="divider"><span>o regresa al inicio de sesión</span></div>

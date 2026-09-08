@@ -1,40 +1,62 @@
-// src/app/providers/AuthProvider.jsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
+// src/providers/AuthProvider.jsx
+import React, { createContext, useState, useEffect } from 'react';
+import { authService } from '@/core/services/authService';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar sesión al cargar
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      // ✅ CREA AUTOMÁTICAMENTE UN USUARIO DE PRUEBA CON ROL COORDINADOR
-      const defaultUser = {
-        email: 'coordinador@sena.edu.co',
-        nombre: 'lia vasquez',
-        role: 'coordinador'
-      };
-      setUser(defaultUser);
-      localStorage.setItem('user', JSON.stringify(defaultUser));
-    }
-    setLoading(false);
+    const initAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+
+        if (token && storedUser) {
+          try {
+            const isValid = await authService.verifyToken();
+            if (isValid) {
+              setUser(JSON.parse(storedUser));
+            } else {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+            }
+          } catch (error) {
+            console.error('Error verificando token:', error);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+        }
+      } catch (error) {
+        console.error('Error en inicialización:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
-  const login = async (credentials) => {
-    const userData = { ...credentials, role: credentials.role };
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    return userData;
+  const login = async (email, password) => {
+    try {
+      const response = await authService.login(email, password);
+      setUser(response.user);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Error en logout:', error);
+    } finally {
+      setUser(null);
+    }
   };
 
   const value = {
@@ -51,12 +73,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de AuthProvider');
-  }
-  return context;
 };

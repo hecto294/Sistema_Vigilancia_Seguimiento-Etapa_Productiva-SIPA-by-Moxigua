@@ -1,19 +1,80 @@
-// src/pages/public/VerificacionCodigo.jsx
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// src/modules/auth/pages/VerificacionCodigo.jsx
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { authService } from '@/core/services/authService';
 import './RecuperarContrasena.css';
 
 const VerificacionCodigo = () => {
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(300); // 5 minutos
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email || '';
 
-  const handleVerify = () => {
-    // Simulación: El código es correcto
-    navigate('/cambiar-contrasena');
+  useEffect(() => {
+    if (!email) {
+      navigate('/recuperar');
+    }
+
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [email, navigate]);
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      await authService.verifyResetCode(email, code);
+      setSuccess('Código verificado correctamente');
+      setTimeout(() => {
+        navigate('/cambiar-contrasena', { state: { email, code } });
+      }, 1500);
+    } catch (error) {
+      setError(error.message || 'Código inválido o expirado');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      await authService.resendVerificationCode(email);
+      setSuccess('Código reenviado a tu correo');
+      setTimer(300);
+    } catch (error) {
+      setError(error.message || 'Error al reenviar el código');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <div className="auth-wrapper">
-      {/* --- COLUMNA IZQUIERDA --- */}
       <div className="auth-left">
         <div className="left-header">
           <div className="left-logo">
@@ -50,50 +111,77 @@ const VerificacionCodigo = () => {
         </div>
       </div>
 
-      {/* --- COLUMNA DERECHA --- */}
       <div className="auth-right">
         <div className="auth-card">
           <div className="auth-header">
             <div className="header-icon">
               <i className="fas fa-lock"></i>
             </div>
-            <h2>Código de verificación generado</h2>
-            <p>Hemos enviado un código de verificación a tu correo electrónico registrado.</p>
+            <h2>Código de verificación</h2>
+            <p>Hemos enviado un código de 6 dígitos a <strong>{email}</strong></p>
           </div>
 
-          <div className="code-section">
-            <div className="code-label">Tu código de verificación</div>
-            <div className="code-boxes">
-              {[4, 7, 2, 9, 1, 6].map((num, idx) => (
-                <div key={idx} className="code-box">{num}</div>
-              ))}
+          <form onSubmit={handleVerify}>
+            {error && (
+              <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="success-message" style={{ color: 'green', marginBottom: '15px' }}>
+                {success}
+              </div>
+            )}
+
+            <div className="code-section">
+              <div className="code-label">Ingresa el código de 6 dígitos</div>
+              <div className="code-input-wrapper">
+                <input
+                  type="text"
+                  maxLength="6"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  className="code-input"
+                  autoFocus
+                  disabled={loading}
+                />
+              </div>
             </div>
-            <button className="btn-copy-code" onClick={() => navigator.clipboard.writeText('472916')}>
-              <i className="fas fa-copy"></i> Copiar
+
+            <div className="info-box warning-box">
+              <i className="fas fa-clock"></i>
+              <span>Tiempo restante: <strong>{formatTime(timer)}</strong></span>
+            </div>
+
+            <div className="info-box resend-box">
+              <i className="fas fa-envelope"></i>
+              <div>
+                <strong>¿No recibiste el código?</strong>
+                <span>Revisa tu bandeja de entrada, carpeta de spam o correo no deseado.</span>
+                {timer === 0 && (
+                  <button 
+                    type="button" 
+                    className="btn-resend" 
+                    onClick={handleResendCode}
+                    disabled={loading}
+                  >
+                    <i className="fas fa-sync-alt"></i> Reenviar código
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <button type="submit" className="btn-auth-submit" disabled={loading || code.length !== 6}>
+              <i className="fas fa-check"></i> {loading ? 'Verificando...' : 'Verificar código'}
             </button>
-          </div>
 
-          <div className="info-box warning-box">
-            <i className="fas fa-clock"></i>
-            <span>Vigencia del código: <strong>10 minutos</strong></span>
-          </div>
+            <div className="divider"><span>o regresa al inicio de sesión</span></div>
 
-          <div className="info-box resend-box">
-            <i className="fas fa-envelope"></i>
-            <div>
-              <strong>¿No recibiste el código?</strong>
-              <span>Revisa tu bandeja de entrada, carpeta de spam o correo no deseado.</span>
-              <button className="btn-resend" onClick={() => alert('✅ Código reenviado exitosamente.')}>
-                <i className="fas fa-sync-alt"></i> Reenviar código
-              </button>
-            </div>
-          </div>
-
-          <div className="divider"><span>o regresa al inicio de sesión</span></div>
-
-          <Link to="/login" className="btn-auth-outline">
-            <i className="fas fa-arrow-left"></i> Volver al inicio de sesión
-          </Link>
+            <Link to="/login" className="btn-auth-outline">
+              <i className="fas fa-arrow-left"></i> Volver al inicio de sesión
+            </Link>
+          </form>
         </div>
       </div>
     </div>
