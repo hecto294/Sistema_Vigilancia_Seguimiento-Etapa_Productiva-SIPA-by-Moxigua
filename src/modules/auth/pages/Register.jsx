@@ -1,16 +1,51 @@
 // src/pages/public/Register.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../shared/hooks/useAuth'; // <--- Agregado para conectar con el backend
 import './Register.css';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { register } = useAuth(); // <--- Agregado para conectar con el backend
 
-  // Simulación de registro
-  const handleRegister = (e) => {
+  // Estados para manejar el envío
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // REGISTRO REAL CONECTADO AL BACKEND
+  const handleRegister = async (e) => {
     e.preventDefault();
-    alert('✅ Cuenta creada exitosamente. ¡Bienvenido a SIPA!');
-    navigate('/login');
+    setError('');
+    setLoading(true);
+    
+    try {
+      // Capturamos los datos del formulario (FormData)
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+
+      // Enviamos al backend (usa register o signup según tu AuthProvider)
+      const response = await register(data);
+
+      // RUTAS POR ROL (Debe coincidir con el backend y tu ProtectedRoute)
+      const roleRoutes = {
+        administrador: '/dashboard/administrador',
+        coordinador: '/dashboard/coordinador',
+        instructor: '/dashboard/instructor',
+        aprendiz: '/dashboard/aprendiz',
+        apoyo: '/dashboard/apoyo'
+      };
+
+      // Redirigimos según el rol que devuelve el backend
+      const userRole = response?.user?.role || response?.role; // Ajusta según tu respuesta del backend
+      const destino = roleRoutes[userRole] || '/login'; // Si no hay rol, va al login
+      
+      navigate(destino);
+
+    } catch (error) {
+      setError(error.message || 'Error al registrar usuario');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,7 +128,7 @@ const Register = () => {
                 <label>Tipo de documento *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-id-card"></i>
-                  <select required>
+                  <select name="tipoDocumento" required>
                     <option value="">Selecciona...</option>
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="CE">Cédula de Extranjería</option>
@@ -106,7 +141,7 @@ const Register = () => {
                 <label>Número de documento *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-hashtag"></i>
-                  <input type="text" placeholder="Ej. 1234567890" required />
+                  <input type="text" name="documento" placeholder="Ej. 1234567890" required />
                 </div>
               </div>
 
@@ -114,7 +149,7 @@ const Register = () => {
                 <label>Nombres *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-user"></i>
-                  <input type="text" placeholder="Ingresa tus nombres" required />
+                  <input type="text" name="nombres" placeholder="Ingresa tus nombres" required />
                 </div>
               </div>
 
@@ -122,7 +157,7 @@ const Register = () => {
                 <label>Apellidos *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-user"></i>
-                  <input type="text" placeholder="Ingresa tus apellidos" required />
+                  <input type="text" name="apellidos" placeholder="Ingresa tus apellidos" required />
                 </div>
               </div>
 
@@ -130,7 +165,7 @@ const Register = () => {
                 <label>Correo institucional *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-envelope"></i>
-                  <input type="email" placeholder="ejemplo@sena.edu.co" required />
+                  <input type="email" name="email" placeholder="ejemplo@sena.edu.co" required />
                 </div>
               </div>
 
@@ -138,7 +173,7 @@ const Register = () => {
                 <label>Teléfono celular *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-phone"></i>
-                  <input type="tel" placeholder="Ej. 300 123 4567" required />
+                  <input type="tel" name="telefono" placeholder="Ej. 300 123 4567" required />
                 </div>
               </div>
 
@@ -146,7 +181,7 @@ const Register = () => {
                 <label>Ciudad de residencia *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-map-marker-alt"></i>
-                  <select required>
+                  <select name="ciudad" required>
                     <option value="">Selecciona tu ciudad...</option>
                     <option value="Bogotá">Bogotá</option>
                     <option value="Medellín">Medellín</option>
@@ -160,7 +195,7 @@ const Register = () => {
                 <label>Dirección *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-home"></i>
-                  <input type="text" placeholder="Ingresa tu dirección" required />
+                  <input type="text" name="direccion" placeholder="Ingresa tu dirección" required />
                 </div>
               </div>
 
@@ -168,7 +203,7 @@ const Register = () => {
                 <label>Fecha de nacimiento *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-calendar-alt"></i>
-                  <input type="date" required />
+                  <input type="date" name="fechaNacimiento" required />
                 </div>
               </div>
 
@@ -176,7 +211,7 @@ const Register = () => {
                 <label>Género *</label>
                 <div className="input-wrapper">
                   <i className="fas fa-venus-mars"></i>
-                  <select required>
+                  <select name="genero" required>
                     <option value="">Selecciona...</option>
                     <option value="Masculino">Masculino</option>
                     <option value="Femenino">Femenino</option>
@@ -185,6 +220,13 @@ const Register = () => {
                 </div>
               </div>
             </div>
+
+            {/* Mensaje de error si el backend falla */}
+            {error && (
+              <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '14px' }}>
+                {error}
+              </div>
+            )}
 
             <div className="info-alert">
               <i className="fas fa-info-circle"></i>
@@ -195,8 +237,8 @@ const Register = () => {
               <button type="button" className="btn-cancel" onClick={() => navigate('/')}>
                 <i className="fas fa-times"></i> Cancelar
               </button>
-              <button type="submit" className="btn-next">
-                Siguiente <i className="fas fa-arrow-right"></i>
+              <button type="submit" className="btn-next" disabled={loading}>
+                {loading ? 'Registrando...' : 'Siguiente'} <i className="fas fa-arrow-right"></i>
               </button>
             </div>
 

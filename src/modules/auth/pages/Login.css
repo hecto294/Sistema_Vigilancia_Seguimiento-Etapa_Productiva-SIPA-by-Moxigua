@@ -12,7 +12,8 @@
 /* --- COLUMNA IZQUIERDA --- */
 .login-left {
   width: 50%;
-  background-color: #f8fcf9;
+  /* CAMBIO APLICADO AQUÍ: Gris un poco más oscuro y notorio para resaltar */
+  background-color: #e9ecef; 
   padding: 40px;
   display: flex;
   flex-direction: column;

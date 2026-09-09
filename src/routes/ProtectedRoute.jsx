@@ -1,9 +1,10 @@
-// src/app/routes/ProtectedRoute.jsx
+// src/routes/ProtectedRoute.jsx
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../providers/AuthProvider';
+import { useNavigate } from 'react-router-dom'; 
+// CORRECCIÓN DE LA RUTA DEL HOOK:
+import { useAuth } from '../modules/shared/hooks/useAuth'; 
 
 const ROLE_ROUTES = {
   coordinador: '/dashboard/coordinador',
@@ -14,22 +15,22 @@ const ROLE_ROUTES = {
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading, isAuthenticated } = useAuth();
-  const router = useRouter();
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        router.push('/login');
+        navigate('/login'); 
         return;
       }
 
       if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
         const dashboardUrl = ROLE_ROUTES[user?.role] || '/login';
-        router.push(dashboardUrl);
+        navigate(dashboardUrl); 
         return;
       }
     }
-  }, [loading, isAuthenticated, user, router, allowedRoles]);
+  }, [loading, isAuthenticated, user, navigate, allowedRoles]);
 
   if (loading) {
     return (
