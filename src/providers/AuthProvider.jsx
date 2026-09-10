@@ -39,6 +39,9 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
+  /**
+   * Iniciar sesión
+   */
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
@@ -49,6 +52,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Registrar nuevo usuario
+   */
+  const register = async (userData) => {
+    try {
+      const response = await authService.register(userData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
+   * Cerrar sesión
+   */
   const logout = async () => {
     try {
       await authService.logout();
@@ -63,9 +81,10 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    register,
     logout,
     isAuthenticated: !!user,
-    role: user?.role || null
+    role: user?.rol_id || null,  // 🔥 CAMBIO: user?.rol_id en lugar de user?.role
   };
 
   return (

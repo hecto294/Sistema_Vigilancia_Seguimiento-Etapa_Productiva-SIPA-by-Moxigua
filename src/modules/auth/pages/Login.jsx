@@ -1,6 +1,6 @@
 // src/modules/auth/pages/Login.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../shared/hooks/useAuth';
 import './Login.css';
 
@@ -13,21 +13,34 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // 🔥 LOGIN CON REDIRECCIÓN POR ROL (rol_id numérico)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       const response = await login(email, password);
+
+      console.log('✅ Login exitoso:', response);
+
+      const rolId = response.user?.rol_id;
+      console.log('🎯 Rol del usuario:', rolId);
+
       const roleRoutes = {
-        administrador: '/admin',
-        coordinador: '/coordinador',
-        instructor: '/instructor',
-        aprendiz: '/aprendiz',
-        apoyo: '/apoyo'
+        1: '/admin',
+        2: '/coordinador',
+        3: '/instructor',
+        4: '/aprendiz',
+        5: '/apoyo',
+        6: '/consulta',
       };
-      navigate(roleRoutes[response.user.role] || '/');
+
+      const destino = roleRoutes[rolId] || '/login';
+      console.log('🚀 Redirigiendo a:', destino);
+
+      navigate(destino);
     } catch (error) {
+      console.error('❌ Error en login:', error);
       setError(error.message || 'Credenciales inválidas');
     } finally {
       setLoading(false);
@@ -40,7 +53,6 @@ const Login = () => {
       <div className="login-left">
         <div className="left-header">
           <div className="left-logo">
-            {/* EL LOGO DEL SENA QUEDA AQUÍ, NO SE QUITA */}
             <img src="/logo-sena.png" alt="Logo SENA" />
             <div className="left-brand">
               <h2>SIPA</h2>
@@ -56,8 +68,6 @@ const Login = () => {
             Herramienta institucional del SENA para gestionar, hacer seguimiento y evaluar la etapa productiva de aprendices de forma eficiente y centralizada.
           </p>
         </div>
-
-        {/* Se eliminó el bloque de la imagen (left-image) para que no salga el texto feo */}
 
         <div className="left-footer">
           <div className="feature-badge">
@@ -140,7 +150,8 @@ const Login = () => {
                 ></i>
               </div>
               <div className="forgot-password">
-                <a href="#">¿Olvidaste tu contraseña?</a>
+                {/* 🔥 CAMBIO: Link en lugar de <a href="#"> */}
+                <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
               </div>
             </div>
 
@@ -159,7 +170,7 @@ const Login = () => {
             </button>
 
             <p className="login-footer-text">
-              ¿No tienes cuenta? <a href="#">Consulta con tu coordinador</a>
+              ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
             </p>
           </form>
         </div>

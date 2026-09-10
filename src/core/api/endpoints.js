@@ -4,160 +4,155 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
-    LOGOUT: '/auth/logout',
-    VERIFY: '/auth/verify',
-    CHANGE_PASSWORD: '/auth/change-password',
-    
-    // Recuperación de contraseña
-    REQUEST_RESET: '/auth/request-reset',
-    VERIFY_CODE: '/auth/verify-code',
-    RESET_PASSWORD: '/auth/reset-password',
-    RESEND_CODE: '/auth/resend-code',
+    ME: '/auth/me',
+    CHANGE_PASSWORD: '/auth/cambiar-password',
+    REQUEST_RESET: '/auth/recuperar-password',
+    VERIFY_CODE: '/auth/verificar-codigo',          // 🔥 AGREGADO
+    RESET_PASSWORD: '/auth/restablecer-password',
+    RESEND_CODE: '/auth/reenviar-codigo',           // 🔥 AGREGADO
   },
 
-  // ============ USERS ============
-  USERS: {
-    GET_ALL: '/users',
-    GET_BY_ID: (id) => `/users/${id}`,
-    CREATE: '/users',
-    UPDATE: (id) => `/users/${id}`,
-    DELETE: (id) => `/users/${id}`,
-    GET_BY_ROLE: (role) => `/users/role/${role}`,
-    GET_INSTRUCTORS: '/users/instructors',
-    GET_APRENDICES: '/users/aprendices',
-    GET_BY_FICHA: (fichaId) => `/users/ficha/${fichaId}`,
-    CHANGE_ROLE: (id) => `/users/${id}/role`,
-    BULK_CREATE: '/users/bulk',
-    BULK_UPLOAD: '/users/bulk/upload',
-    EXPORT: '/users/export',
-    STATS: '/users/stats',
-    SEARCH: '/users/search',
-  },
-
-  // ============ FICHAS ============
-  FICHAS: {
-    GET_ALL: '/fichas',
-    GET_BY_ID: (id) => `/fichas/${id}`,
-    CREATE: '/fichas',
-    UPDATE: (id) => `/fichas/${id}`,
-    DELETE: (id) => `/fichas/${id}`,
-    GET_BY_INSTRUCTOR: (instructorId) => `/fichas/instructor/${instructorId}`,
-    GET_APRENDICES: (fichaId) => `/fichas/${fichaId}/aprendices`,
-    ASSIGN_INSTRUCTOR: (fichaId) => `/fichas/${fichaId}/instructor`,
-    ASSIGN_APRENDIZ: (fichaId) => `/fichas/${fichaId}/aprendiz`,
-    ASSIGN_MULTIPLE: (fichaId) => `/fichas/${fichaId}/aprendices/multiple`,
-    GET_BY_ESTADO: (estado) => `/fichas/estado/${estado}`,
-    BULK_CREATE: '/fichas/bulk',
-    BULK_UPLOAD: '/fichas/bulk/upload',
-    STATS: '/fichas/stats',
-    SEARCH: '/fichas/search',
-    EXPORT: '/fichas/export',
-  },
-
-  // ============ BITACORAS ============
-  BITACORAS: {
-    GET_ALL: '/bitacoras',
-    GET_BY_ID: (id) => `/bitacoras/${id}`,
-    CREATE: '/bitacoras',
-    UPDATE: (id) => `/bitacoras/${id}`,
-    DELETE: (id) => `/bitacoras/${id}`,
-    GET_BY_APRENDIZ: (aprendizId) => `/bitacoras/aprendiz/${aprendizId}`,
-    GET_BY_FICHA: (fichaId) => `/bitacoras/ficha/${fichaId}`,
-    GET_BY_BIMESTRE: (bimestre) => `/bitacoras/bimestre/${bimestre}`,
-    GET_BY_INSTRUCTOR: (instructorId) => `/bitacoras/instructor/${instructorId}`,
-    GET_BY_ESTADO: (estado) => `/bitacoras/estado/${estado}`,
-    APPROVE: (id) => `/bitacoras/${id}/approve`,
-    REJECT: (id) => `/bitacoras/${id}/reject`,
-    BULK_CREATE: '/bitacoras/bulk',
-    STATS: '/bitacoras/stats',
-    EXPORT: '/bitacoras/export',
+  // ============ USUARIOS ============
+  USUARIOS: {
+    GET_ALL: '/usuarios/',
+    GET_BY_ID: (id) => `/usuarios/${id}`,
+    CREATE: '/usuarios/',
+    UPDATE: (id) => `/usuarios/${id}`,
+    DELETE: (id) => `/usuarios/${id}`,
+    ME: '/usuarios/me',
+    ROLES: '/usuarios/roles',
+    STATS: '/usuarios/stats/total',
+    ACTIVATE: (id) => `/usuarios/${id}/activate`,
+    PREFERENCIAS: (id) => `/usuarios/${id}/preferencias`,
   },
 
   // ============ EMPRESAS ============
   EMPRESAS: {
-    GET_ALL: '/empresas',
+    GET_ALL: '/empresas/',
     GET_BY_ID: (id) => `/empresas/${id}`,
-    CREATE: '/empresas',
+    CREATE: '/empresas/',
     UPDATE: (id) => `/empresas/${id}`,
     DELETE: (id) => `/empresas/${id}`,
-    ASSIGN_APRENDIZ: (empresaId) => `/empresas/${empresaId}/aprendiz`,
-    UNASSIGN_APRENDIZ: (empresaId) => `/empresas/${empresaId}/aprendiz/remove`,
-    GET_APRENDICES: (empresaId) => `/empresas/${empresaId}/aprendices`,
-    BULK_CREATE: '/empresas/bulk',
-    STATS: '/empresas/stats',
-    SEARCH: '/empresas/search',
+    COORDINADORES: (id) => `/empresas/${id}/coordinadores`,
+    COORDINADOR_BY_ID: (id) => `/empresas/coordinadores/${id}`,
   },
 
-  // ============ MOMENTOS ============
-  MOMENTOS: {
-    GET_ALL: '/momentos',
-    GET_BY_ID: (id) => `/momentos/${id}`,
-    CREATE: '/momentos',
-    UPDATE: (id) => `/momentos/${id}`,
-    DELETE: (id) => `/momentos/${id}`,
-    GET_BY_APRENDIZ: (aprendizId) => `/momentos/aprendiz/${aprendizId}`,
-    GET_BY_FICHA: (fichaId) => `/momentos/ficha/${fichaId}`,
-    GET_BY_TIPO: (tipo) => `/momentos/tipo/${tipo}`,
-    BULK_CREATE: '/momentos/bulk',
-    STATS: '/momentos/stats',
+  // ============ MODALIDADES ============
+  MODALIDADES: {
+    GET_ALL: '/modalidades/',
+    GET_BY_ID: (id) => `/modalidades/${id}`,
+    CREATE: '/modalidades/',
+    UPDATE: (id) => `/modalidades/${id}`,
+    DELETE: (id) => `/modalidades/${id}`,
   },
 
-  // ============ CERTIFICADOS ============
-  CERTIFICADOS: {
-    GET_ALL: '/certificados',
-    GET_BY_ID: (id) => `/certificados/${id}`,
-    CREATE: '/certificados',
-    UPDATE: (id) => `/certificados/${id}`,
-    DELETE: (id) => `/certificados/${id}`,
-    GET_BY_APRENDIZ: (aprendizId) => `/certificados/aprendiz/${aprendizId}`,
-    GET_BY_FICHA: (fichaId) => `/certificados/ficha/${fichaId}`,
-    GENERATE: '/certificados/generate',
-    GENERATE_MASIVO: '/certificados/generate/masivo',
-    BULK_CREATE: '/certificados/bulk',
-    STATS: '/certificados/stats',
+  // ============ PROGRAMAS Y FICHAS ============
+  PROGRAMAS_FICHAS: {
+    GET_PROGRAMAS: '/programas-fichas/programas',
+    GET_PROGRAMA: (id) => `/programas-fichas/programas/${id}`,
+    CREATE_PROGRAMA: '/programas-fichas/programas',
+    UPDATE_PROGRAMA: (id) => `/programas-fichas/programas/${id}`,
+    DELETE_PROGRAMA: (id) => `/programas-fichas/programas/${id}`,
+    GET_FICHAS: '/programas-fichas/fichas',
+    GET_FICHA: (id) => `/programas-fichas/fichas/${id}`,
+    CREATE_FICHA: '/programas-fichas/fichas',
+    UPDATE_FICHA: (id) => `/programas-fichas/fichas/${id}`,
+    DELETE_FICHA: (id) => `/programas-fichas/fichas/${id}`,
+  },
+
+  // ============ PROCESOS ============
+  PROCESOS: {
+    GET_ALL: '/procesos/',
+    GET_BY_ID: (id) => `/procesos/${id}`,
+    CREATE: '/procesos/',
+    UPDATE: (id) => `/procesos/${id}`,
+    DELETE: (id) => `/procesos/${id}`,
+    AVANCE: (id) => `/procesos/${id}/avance`,
+    CHECKLIST: (id) => `/procesos/${id}/checklist`,
+    EVALUACION: (id) => `/procesos/${id}/evaluacion`,
+    NOVEDADES: (id) => `/procesos/${id}/novedades`,
+  },
+
+  // ============ BITÁCORAS ============
+  BITACORAS: {
+    GET_ALL: '/bitacoras/',
+    GET_BY_ID: (id) => `/bitacoras/${id}`,
+    CREATE: '/bitacoras/',
+    UPDATE: (id) => `/bitacoras/${id}`,
+    DELETE: (id) => `/bitacoras/${id}`,
+    EVALUAR: (id) => `/bitacoras/${id}/evaluar`,
+    EVIDENCIAS: (id) => `/bitacoras/${id}/evidencias`,
+    UPLOAD_EVIDENCIA: (id) => `/bitacoras/${id}/evidencias/upload`,
+    BY_APRENDIZ: (id) => `/bitacoras/aprendiz/${id}`,
   },
 
   // ============ CHARLAS ============
   CHARLAS: {
-    GET_ALL: '/charlas',
+    GET_ALL: '/charlas/',
     GET_BY_ID: (id) => `/charlas/${id}`,
-    CREATE: '/charlas',
+    CREATE: '/charlas/',
     UPDATE: (id) => `/charlas/${id}`,
     DELETE: (id) => `/charlas/${id}`,
-    GET_BY_INSTRUCTOR: (instructorId) => `/charlas/instructor/${instructorId}`,
-    GET_BY_FICHA: (fichaId) => `/charlas/ficha/${fichaId}`,
-    GET_BY_FECHA: (fecha) => `/charlas/fecha/${fecha}`,
-    GET_PROGRAMADAS: '/charlas/programadas',
-    REGISTRAR_ASISTENCIA: (charlaId) => `/charlas/${charlaId}/asistencia`,
-    GET_ASISTENTES: (charlaId) => `/charlas/${charlaId}/asistentes`,
-    STATS: '/charlas/stats',
+    ASISTENCIAS: (id) => `/charlas/${id}/asistencias`,
+  },
+
+  // ============ SEGUIMIENTOS ============
+  SEGUIMIENTOS: {
+    GET_ALL: '/seguimientos/',
+    GET_BY_ID: (id) => `/seguimientos/${id}`,
+    CREATE: '/seguimientos/',
+    UPDATE: (id) => `/seguimientos/${id}`,
+    DELETE: (id) => `/seguimientos/${id}`,
+    VENCIDAS: '/seguimientos/vencidas',
+  },
+
+  // ============ NOTIFICACIONES ============
+  NOTIFICACIONES: {
+    MIS_NOTIFICACIONES: '/notificaciones/mis-notificaciones',
+    BY_USUARIO: (id) => `/notificaciones/usuario/${id}`,
+    CREATE: '/notificaciones/enviar',
+    GENERAR_ALERTAS: '/notificaciones/generar-alertas',
+    GET_BY_ID: (id) => `/notificaciones/${id}`,
+    DELETE: (id) => `/notificaciones/${id}`,
+    MARCAR_ENVIADA: (id) => `/notificaciones/${id}/marcar-enviada`,
+  },
+
+  // ============ DASHBOARDS ============
+  DASHBOARDS: {
+    ADMIN: '/dashboards/admin',
+    COORDINADOR: '/dashboards/coordinador',
+    INSTRUCTOR: '/dashboards/instructor',
   },
 
   // ============ REPORTES ============
   REPORTES: {
-    GET_BITACORAS: '/reportes/bitacoras',
-    GET_BITACORAS_FICHA: (fichaId) => `/reportes/bitacoras/ficha/${fichaId}`,
-    GET_BITACORAS_APRENDIZ: (aprendizId) => `/reportes/bitacoras/aprendiz/${aprendizId}`,
-    GET_ASISTENCIA: '/reportes/asistencia',
-    GET_ASISTENCIA_FICHA: (fichaId) => `/reportes/asistencia/ficha/${fichaId}`,
-    GET_SEGUIMIENTO: '/reportes/seguimiento',
-    GET_SEGUIMIENTO_APRENDIZ: (aprendizId) => `/reportes/seguimiento/aprendiz/${aprendizId}`,
-    GET_GLOBALES: '/reportes/globales',
-    GET_DASHBOARD: '/reportes/dashboard',
-    EXPORT_PDF: (tipo) => `/reportes/export/pdf/${tipo}`,
-    EXPORT_EXCEL: (tipo) => `/reportes/export/excel/${tipo}`,
+    PROCESOS_RIESGO: '/reportes/procesos-riesgo',
+    DOCUMENTOS_PENDIENTES: '/reportes/documentos-pendientes',
+    SEGUIMIENTOS: '/reportes/seguimientos',
+    BITACORAS: '/reportes/bitacoras',
+    ESTADO_APRENDICES: '/reportes/estado-aprendices',
+    ALTERNATIVAS: '/reportes/alternativas',
+    SIN_ALTERNATIVA: '/reportes/aprendices-sin-alternativa',
+    EVALUADOS_SIN_EVALUAR: '/reportes/evaluados-sin-evaluar',
+    INDICADORES: '/reportes/indicadores-gestion',
   },
 
-  // ============ UPLOAD ============
-  UPLOAD: {
-    USERS: '/upload/users',
-    FICHAS: '/upload/fichas',
-    EMPRESAS: '/upload/empresas',
-    BITACORAS: '/upload/bitacoras',
-    CERTIFICADOS: '/upload/certificados',
-    TEMPLATE: (type) => `/upload/template/${type}`,
-    STATUS: (uploadId) => `/upload/status/${uploadId}`,
-    CANCEL: (uploadId) => `/upload/cancel/${uploadId}`,
-    HISTORY: '/upload/history',
+  // ============ IMPORTACIÓN ============
+  IMPORTACION: {
+    IMPORTAR: (tipo) => `/importacion/${tipo}`,
   },
+
+  // ============ BÚSQUEDA ============
+  BUSQUEDA: {
+    BUSCAR: '/busqueda/',
+  },
+
+  // ============ AUDITORÍA ============
+  AUDITORIA: {
+    GET_ALL: '/auditoria/',
+    CONTAR: '/auditoria/contar',
+  },
+
+  // ============ HEALTH ============
+  HEALTH: '/health',
 };

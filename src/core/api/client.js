@@ -1,7 +1,8 @@
 // src/core/api/client.js
 // Cliente HTTP para hacer peticiones a la API
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+// 🔥 CAMBIO: Quitamos '/api' del final
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Función para obtener el token
 const getToken = () => {
@@ -14,7 +15,8 @@ const handleResponse = async (response) => {
     const error = await response.json().catch(() => ({}));
     throw {
       status: response.status,
-      message: error.message || 'Error en la petición',
+      // 🔥 CAMBIO: El backend devuelve 'detail' en lugar de 'message'
+      message: error.detail || error.message || 'Error en la petición',
       data: error
     };
   }
@@ -115,3 +117,5 @@ export const apiClient = {
     }
   }
 };
+
+export default apiClient;

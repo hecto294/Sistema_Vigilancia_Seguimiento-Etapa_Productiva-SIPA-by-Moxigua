@@ -1,12 +1,12 @@
-// src/app/routes/AppRouter.jsx
+// src/routes/AppRouter.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from '../providers/AuthProvider';
-import { ThemeProvider } from '../providers/ThemeProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import ProtectedRoute from './ProtectedRoute';
 import { roleRoutes } from './roleRoutes';
 
-// Importar páginas de autenticación y Landing
+// Páginas públicas
 import Landing from '@/modules/auth/pages/Landing';
 import Login from '@/modules/auth/pages/Login';
 import Register from '@/modules/auth/pages/Register';
@@ -14,7 +14,6 @@ import RecuperarContrasena from '@/modules/auth/pages/RecuperarContrasena';
 import VerificacionCodigo from '@/modules/auth/pages/VerificacionCodigo';
 import CambiarContrasena from '@/modules/auth/pages/CambiarContrasena';
 
-// Página simple para cuando el rol no coincide
 const Unauthorized = () => (
   <div style={{ padding: '40px', textAlign: 'center' }}>
     <h1>Acceso Denegado</h1>
@@ -23,20 +22,18 @@ const Unauthorized = () => (
   </div>
 );
 
-export const AppRouter = () => {
+const AppRouter = () => {
   return (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Landing />} />
-            
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/recuperar" element={<RecuperarContrasena />} />
             <Route path="/verificar" element={<VerificacionCodigo />} />
             <Route path="/cambiar-contrasena" element={<CambiarContrasena />} />
-
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {roleRoutes.map((route) => (
@@ -58,3 +55,5 @@ export const AppRouter = () => {
     </BrowserRouter>
   );
 };
+
+export default AppRouter;

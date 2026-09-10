@@ -1,32 +1,30 @@
 // src/routes/ProtectedRoute.jsx
-'use client';
-
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; 
-// CORRECCIÓN DE LA RUTA DEL HOOK:
-import { useAuth } from '../modules/shared/hooks/useAuth'; 
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/modules/shared/hooks/useAuth';
 
 const ROLE_ROUTES = {
-  coordinador: '/dashboard/coordinador',
-  administrador: '/dashboard/administrador',
-  instructor: '/dashboard/instructor',
-  aprendiz: '/dashboard/aprendiz'
+  1: '/admin',
+  2: '/coordinador',
+  3: '/instructor',
+  4: '/aprendiz',
+  5: '/apoyo',
 };
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading, isAuthenticated } = useAuth();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        navigate('/login'); 
+        navigate('/login');
         return;
       }
 
-      if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
-        const dashboardUrl = ROLE_ROUTES[user?.role] || '/login';
-        navigate(dashboardUrl); 
+      if (allowedRoles.length > 0 && !allowedRoles.includes(user?.rol_id)) {
+        const dashboardUrl = ROLE_ROUTES[user?.rol_id] || '/login';
+        navigate(dashboardUrl);
         return;
       }
     }
@@ -34,20 +32,15 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div>Cargando...</div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.rol_id)) {
     return null;
   }
 

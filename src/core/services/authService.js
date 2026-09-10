@@ -3,25 +3,37 @@ import { apiClient } from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
 
 export const authService = {
-  // ============ AUTENTICACIÓN BÁSICA ============
-
-  // Iniciar sesión
+  // ============ INICIAR SESIÓN ============
   login: async (email, password) => {
     try {
       const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, { email, password });
       
-      if (response.token && response.user) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        return response;
+      if (response.access_token) {
+        // Guardar token
+        localStorage.setItem('token', response.access_token);
+        
+        // Guardar usuario
+        const user = {
+          id: response.usuario_id,
+          nombre: response.nombre,
+          rol_id: response.rol_id,
+        };
+        
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        return {
+          ...response,
+          user,
+        };
       }
+      
       throw new Error('Credenciales inválidas');
     } catch (error) {
       throw error;
     }
   },
 
-  // Registrar usuario
+  // ============ REGISTRAR USUARIO ============
   register: async (userData) => {
     try {
       const response = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, userData);
@@ -31,26 +43,31 @@ export const authService = {
     }
   },
 
-  // Cerrar sesión
-  logout: async () => {
+  // ============ CERRAR SESIÓN ============
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
+  // ============ VERIFICAR TOKEN ============
+  verifyToken: async () => {
     try {
-      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+      const response = await apiClient.get(API_ENDPOINTS.AUTH.ME);
+      return !!response;
     } catch (error) {
-      console.error('Error en logout:', error);
-    } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      return false;
     }
   },
 
-  // Verificar token
-  verifyToken: async () => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.AUTH.VERIFY);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  // ============ OBTENER USUARIO ACTUAL ============
+  getCurrentUser: () => {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  },
+
+  // ============ VERIFICAR SI ESTÁ AUTENTICADO ============
+  isAuthenticated: () => {
+    return !!localStorage.getItem('token');
   },
 
   // ============ RECUPERACIÓN DE CONTRASEÑA ============
@@ -75,13 +92,13 @@ export const authService = {
     }
   },
 
-  // Cambiar contraseña con código de verificación
+  // Restablecer contraseña con código de verificación
   resetPassword: async (email, code, newPassword) => {
     try {
       const response = await apiClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
         email,
         code,
-        newPassword
+        newPassword,
       });
       return response;
     } catch (error) {
@@ -90,40 +107,17 @@ export const authService = {
   },
 
   // ============ CAMBIO DE CONTRASEÑA (USUARIO LOGUEADO) ============
-
-  // Cambiar contraseña (usuario autenticado)
   changePassword: async (currentPassword, newPassword) => {
     try {
       const response = await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
         currentPassword,
-        newPassword
+        newPassword,
       });
       return response;
     } catch (error) {
       throw error;
     }
   },
-
-  // ============ UTILIDADES ============
-
-  // Obtener usuario actual
-  getCurrentUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  },
-
-  // Verificar si está autenticado
-  isAuthenticated: () => {
-    return !!localStorage.getItem('token');
-  },
-
-  // Reenviar código de verificación
-  resendVerificationCode: async (email) => {
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.AUTH.RESEND_CODE, { email });
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  }
 };
+
+export default authService;
