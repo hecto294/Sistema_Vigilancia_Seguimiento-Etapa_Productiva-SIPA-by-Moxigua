@@ -1,22 +1,24 @@
 // src/modules/shared/layouts/LayoutAdmin.jsx
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import Header from '../../shared/components/Header';
+import Header from '../components/Header';
 import SidebarAdmin from '../../admin/components/SidebarAdmin';
+import { useAuth } from '@/providers/useAuth';
 import '../../../App.css';
 
-// ✅ TODAS LAS RUTAS CORREGIDAS USANDO EL ALIAS "@"
-import DashboardAdmin from "@/modules/admin/pages/DashboardAdmin";
-import GestionUsuarios from "@/modules/admin/pages/GestionUsuarios";
-import GestionFichas from "@/modules/admin/pages/GestionFichas";
-import ReportesGlobales from "@/modules/admin/pages/ReportesGlobales";
-import MiPerfil from "@/modules/admin/pages/MiPerfil";
+// Páginas del Admin
+import DashboardAdmin from '@/modules/admin/pages/DashboardAdmin';
+import GestionUsuarios from '@/modules/admin/pages/GestionUsuarios';
+import GestionFichas from '@/modules/admin/pages/GestionFichas';
+import ReportesGlobales from '@/modules/admin/pages/ReportesGlobales';
+import MiPerfil from '@/modules/admin/pages/MiPerfil';
 
-const LayoutAdmin = ({ user }) => {
+const LayoutAdmin = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
-  const handleNavigation = (url, pageId) => {
+  const handleNavigation = (url) => {
     navigate(url);
   };
 
@@ -25,20 +27,22 @@ const LayoutAdmin = ({ user }) => {
   else if (location.pathname.includes('/fichas')) activePage = 'fichas';
   else if (location.pathname.includes('/reportes')) activePage = 'reportes';
 
+  // Datos del usuario real desde el AuthContext
+  const userHeader = {
+    nombre: user?.nombre || 'Administrador',
+    role: user?.rol_nombre || 'Administrador',
+    avatar: 'https://i.pravatar.cc/150?img=12',
+  };
+
   return (
     <div className="app-layout">
-      {/* 👇 DATOS ESPECÍFICOS DEL ROL ADMIN + NOTIFICACIONES */}
-      <Header 
-        user={{ nombre: 'Carlos Rodríguez', role: 'Admin', avatar: 'https://i.pravatar.cc/150?img=12' }}
-        notifications={[
-          { id: 1, mensaje: 'Nuevo usuario registrado', tiempo: 'Hoy, 10:30 a.m.' },
-          { id: 2, mensaje: 'Ficha 2875901 actualizada', tiempo: 'Hoy, 09:15 a.m.' },
-          { id: 3, mensaje: 'Certificado masivo descargado', tiempo: 'Ayer, 05:00 p.m.' },
-        ]}
+      <Header
+        user={userHeader}
+        notifications={[]}
       />
       <div className="main-body">
-        <SidebarAdmin 
-          onNavigate={handleNavigation} 
+        <SidebarAdmin
+          onNavigate={handleNavigation}
           activePage={activePage}
         />
         <div className="content-area" style={{ padding: '30px', boxSizing: 'border-box' }}>
@@ -47,7 +51,7 @@ const LayoutAdmin = ({ user }) => {
             <Route path="/usuarios" element={<GestionUsuarios />} />
             <Route path="/fichas" element={<GestionFichas />} />
             <Route path="/reportes" element={<ReportesGlobales />} />
-            <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'Carlos Rodríguez', role: 'Admin', avatar: 'https://i.pravatar.cc/150?img=12' }} />} />
+            <Route path="/mi-perfil" element={<MiPerfil user={userHeader} />} />
           </Routes>
         </div>
       </div>

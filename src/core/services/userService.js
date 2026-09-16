@@ -4,11 +4,11 @@ import { API_ENDPOINTS } from '../api/endpoints';
 
 export const userService = {
   // ============ CRUD BÁSICO ============
-  
+
   // Obtener todos los usuarios
   getUsers: async (params = {}) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.GET_ALL, { params });
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, { params });
       return response;
     } catch (error) {
       throw error;
@@ -18,7 +18,7 @@ export const userService = {
   // Obtener usuario por ID
   getUserById: async (id) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.GET_BY_ID(id));
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_BY_ID(id));
       return response;
     } catch (error) {
       throw error;
@@ -28,7 +28,7 @@ export const userService = {
   // Crear usuario
   createUser: async (userData) => {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.USERS.CREATE, userData);
+      const response = await apiClient.post(API_ENDPOINTS.USUARIOS.CREATE, userData);
       return response;
     } catch (error) {
       throw error;
@@ -38,7 +38,7 @@ export const userService = {
   // Actualizar usuario
   updateUser: async (id, userData) => {
     try {
-      const response = await apiClient.put(API_ENDPOINTS.USERS.UPDATE(id), userData);
+      const response = await apiClient.put(API_ENDPOINTS.USUARIOS.UPDATE(id), userData);
       return response;
     } catch (error) {
       throw error;
@@ -48,7 +48,7 @@ export const userService = {
   // Eliminar usuario
   deleteUser: async (id) => {
     try {
-      const response = await apiClient.delete(API_ENDPOINTS.USERS.DELETE(id));
+      const response = await apiClient.delete(API_ENDPOINTS.USUARIOS.DELETE(id));
       return response;
     } catch (error) {
       throw error;
@@ -57,30 +57,36 @@ export const userService = {
 
   // ============ FILTROS POR ROL ============
 
-  // Obtener usuarios por rol
-  getUsersByRole: async (role) => {
+  // Obtener usuarios por rol (usa el parámetro rol_id del backend)
+  getUsersByRole: async (rolId) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.GET_BY_ROLE(role));
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+        params: { rol_id: rolId },
+      });
       return response;
     } catch (error) {
       throw error;
     }
   },
 
-  // Obtener instructores
+  // Obtener instructores (rol_id = 3)
   getInstructors: async () => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.GET_INSTRUCTORS);
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+        params: { rol_id: 3 },
+      });
       return response;
     } catch (error) {
       throw error;
     }
   },
 
-  // Obtener aprendices
+  // Obtener aprendices (rol_id = 4)
   getAprendices: async () => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.GET_APRENDICES);
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+        params: { rol_id: 4 },
+      });
       return response;
     } catch (error) {
       throw error;
@@ -90,17 +96,9 @@ export const userService = {
   // Obtener aprendices por ficha
   getAprendicesByFicha: async (fichaId) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.GET_BY_FICHA(fichaId));
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Cambiar rol de usuario
-  changeRole: async (id, role) => {
-    try {
-      const response = await apiClient.patch(API_ENDPOINTS.USERS.CHANGE_ROLE(id), { role });
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+        params: { ficha_id: fichaId },
+      });
       return response;
     } catch (error) {
       throw error;
@@ -109,10 +107,12 @@ export const userService = {
 
   // ============ CARGA MASIVA ============
 
-  // Carga masiva de usuarios (desde archivo)
+  // Carga masiva de usuarios (desde array)
   bulkCreateUsers: async (usersData) => {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.USERS.BULK_CREATE, { users: usersData });
+      const response = await apiClient.post(API_ENDPOINTS.IMPORTACION.IMPORTAR('usuarios'), {
+        users: usersData,
+      });
       return response;
     } catch (error) {
       throw error;
@@ -124,24 +124,14 @@ export const userService = {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
-      const response = await apiClient.post(API_ENDPOINTS.USERS.BULK_UPLOAD, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
 
-  // ============ EXPORTAR ============
-
-  // Exportar usuarios
-  exportUsers: async (params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.EXPORT, { params });
+      const response = await apiClient.post(
+        API_ENDPOINTS.IMPORTACION.IMPORTAR('usuarios'),
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
+      );
       return response;
     } catch (error) {
       throw error;
@@ -153,7 +143,7 @@ export const userService = {
   // Obtener estadísticas de usuarios
   getUsersStats: async () => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.STATS);
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.STATS);
       return response;
     } catch (error) {
       throw error;
@@ -165,10 +155,14 @@ export const userService = {
   // Buscar usuarios
   searchUsers: async (query) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.SEARCH, { params: { q: query } });
+      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+        params: { search: query },
+      });
       return response;
     } catch (error) {
       throw error;
     }
-  }
+  },
 };
+
+export default userService;

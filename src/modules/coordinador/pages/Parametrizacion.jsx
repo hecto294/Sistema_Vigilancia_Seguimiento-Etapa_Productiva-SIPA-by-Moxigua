@@ -1,7 +1,7 @@
-// src/pages/coordinador/Parametrizacion.jsx
+// src/modules/coordinador/pages/Parametrizacion.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Breadcrumb from '../../shared/components/Breadcrumb';
+import Breadcrumb from '@/modules/shared/components/Breadcrumb';
 
 const Parametrizacion = () => {
   const navigate = useNavigate();

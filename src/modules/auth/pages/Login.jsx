@@ -1,7 +1,7 @@
 // src/modules/auth/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../shared/hooks/useAuth';
+import { useAuth } from '@/providers/useAuth';
 import './Login.css';
 
 const Login = () => {
@@ -13,18 +13,15 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // 🔥 LOGIN CON REDIRECCIÓN POR ROL (rol_id numérico)
+  // 🔥 LOGIN CON REDIRECCIÓN POR ROL
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const response = await login(email, password);
+      const userData = await login(email, password);
 
-      console.log('✅ Login exitoso:', response);
-
-      const rolId = response.user?.rol_id;
-      console.log('🎯 Rol del usuario:', rolId);
+      console.log('✅ Login exitoso:', userData);
 
       const roleRoutes = {
         1: '/admin',
@@ -32,16 +29,16 @@ const Login = () => {
         3: '/instructor',
         4: '/aprendiz',
         5: '/apoyo',
-        6: '/consulta',
+        6: '/apoyo',
       };
 
-      const destino = roleRoutes[rolId] || '/login';
+      const destino = roleRoutes[userData.rol_id] || '/login';
       console.log('🚀 Redirigiendo a:', destino);
 
-      navigate(destino);
-    } catch (error) {
-      console.error('❌ Error en login:', error);
-      setError(error.message || 'Credenciales inválidas');
+      navigate(destino, { replace: true });
+    } catch (err) {
+      console.error('❌ Error en login:', err);
+      setError(err.message || 'Credenciales inválidas');
     } finally {
       setLoading(false);
     }
@@ -144,14 +141,13 @@ const Login = () => {
                   placeholder="Ingresa tu contraseña"
                   required
                 />
-                <i 
+                <i
                   className={`fa-solid password-toggle ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}
                   onClick={() => setShowPassword(!showPassword)}
                 ></i>
               </div>
               <div className="forgot-password">
-                {/* 🔥 CAMBIO: Link en lugar de <a href="#"> */}
-                <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
+                <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
               </div>
             </div>
 

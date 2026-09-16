@@ -7,9 +7,11 @@ export const API_ENDPOINTS = {
     ME: '/auth/me',
     CHANGE_PASSWORD: '/auth/cambiar-password',
     REQUEST_RESET: '/auth/recuperar-password',
-    VERIFY_CODE: '/auth/verificar-codigo',          // 🔥 AGREGADO
+    VERIFY_CODE: '/auth/verificar-codigo',
     RESET_PASSWORD: '/auth/restablecer-password',
-    RESEND_CODE: '/auth/reenviar-codigo',           // 🔥 AGREGADO
+    RESEND_CODE: '/auth/reenviar-codigo',
+    LOGOUT: '/auth/logout',
+    VERIFY: '/auth/verify',
   },
 
   // ============ USUARIOS ============
@@ -47,17 +49,18 @@ export const API_ENDPOINTS = {
   },
 
   // ============ PROGRAMAS Y FICHAS ============
+  // 🔥 CORREGIDO: el backend expone /programas y /fichas (no /programas-fichas/...)
   PROGRAMAS_FICHAS: {
-    GET_PROGRAMAS: '/programas-fichas/programas',
-    GET_PROGRAMA: (id) => `/programas-fichas/programas/${id}`,
-    CREATE_PROGRAMA: '/programas-fichas/programas',
-    UPDATE_PROGRAMA: (id) => `/programas-fichas/programas/${id}`,
-    DELETE_PROGRAMA: (id) => `/programas-fichas/programas/${id}`,
-    GET_FICHAS: '/programas-fichas/fichas',
-    GET_FICHA: (id) => `/programas-fichas/fichas/${id}`,
-    CREATE_FICHA: '/programas-fichas/fichas',
-    UPDATE_FICHA: (id) => `/programas-fichas/fichas/${id}`,
-    DELETE_FICHA: (id) => `/programas-fichas/fichas/${id}`,
+    GET_PROGRAMAS: '/programas',
+    GET_PROGRAMA: (id) => `/programas/${id}`,
+    CREATE_PROGRAMA: '/programas',
+    UPDATE_PROGRAMA: (id) => `/programas/${id}`,
+    DELETE_PROGRAMA: (id) => `/programas/${id}`,
+    GET_FICHAS: '/fichas',
+    GET_FICHA: (id) => `/fichas/${id}`,
+    CREATE_FICHA: '/fichas',
+    UPDATE_FICHA: (id) => `/fichas/${id}`,
+    DELETE_FICHA: (id) => `/fichas/${id}`,
   },
 
   // ============ PROCESOS ============
@@ -118,10 +121,13 @@ export const API_ENDPOINTS = {
   },
 
   // ============ DASHBOARDS ============
+  // 🔥 AGREGADOS: APRENDIZ y APOYO (hay que crearlos en backend - Fase 3)
   DASHBOARDS: {
     ADMIN: '/dashboards/admin',
     COORDINADOR: '/dashboards/coordinador',
     INSTRUCTOR: '/dashboards/instructor',
+    APRENDIZ: '/dashboards/aprendiz',
+    APOYO: '/dashboards/apoyo',
   },
 
   // ============ REPORTES ============
@@ -135,6 +141,21 @@ export const API_ENDPOINTS = {
     SIN_ALTERNATIVA: '/reportes/aprendices-sin-alternativa',
     EVALUADOS_SIN_EVALUAR: '/reportes/evaluados-sin-evaluar',
     INDICADORES: '/reportes/indicadores-gestion',
+  },
+
+  // ============ CERTIFICADOS ============
+  // 🔥 NUEVO: se creará el módulo en backend (Fase 6)
+  CERTIFICADOS: {
+    GET_ALL: '/certificados/',
+    GET_BY_ID: (id) => `/certificados/${id}`,
+    CREATE: '/certificados/',
+    UPDATE: (id) => `/certificados/${id}`,
+    DELETE: (id) => `/certificados/${id}`,
+    BY_APRENDIZ: (id) => `/certificados/aprendiz/${id}`,
+    BY_FICHA: (id) => `/certificados/ficha/${id}`,
+    GENERAR: '/certificados/generar',
+    GENERAR_MASIVO: '/certificados/generar-masivo',
+    STATS: '/certificados/stats',
   },
 
   // ============ IMPORTACIÓN ============

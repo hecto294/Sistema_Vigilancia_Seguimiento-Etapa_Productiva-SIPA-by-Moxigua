@@ -4,6 +4,24 @@ import { authService } from '@/core/services/authService';
 
 export const AuthContext = createContext();
 
+export const ROLES_ROUTES = {
+  1: '/admin',
+  2: '/coordinador',
+  3: '/instructor',
+  4: '/aprendiz',
+  5: '/apoyo',
+  6: '/apoyo',
+};
+
+export const ROLES_NAMES = {
+  1: 'Administrador',
+  2: 'Coordinador',
+  3: 'Instructor',
+  4: 'Aprendiz',
+  5: 'Apoyo Administrativo',
+  6: 'Consulta',
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,15 +34,8 @@ export const AuthProvider = ({ children }) => {
 
         if (token && storedUser) {
           try {
-            const isValid = await authService.verifyToken();
-            if (isValid) {
-              setUser(JSON.parse(storedUser));
-            } else {
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-            }
-          } catch (error) {
-            console.error('Error verificando token:', error);
+            setUser(JSON.parse(storedUser));
+          } catch (e) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
           }
@@ -39,42 +50,26 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  /**
-   * Iniciar sesión
-   */
   const login = async (email, password) => {
-    try {
-      const response = await authService.login(email, password);
-      setUser(response.user);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await authService.login(email, password);
+    // El authService ya devuelve { ...response, user: { id, nombre, rol_id } }
+    const userData = {
+      ...response.user,
+      rol_nombre: ROLES_NAMES[response.user.rol_id] || 'Usuario',
+      email,
+    };
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    return userData;
   };
 
-  /**
-   * Registrar nuevo usuario
-   */
   const register = async (userData) => {
-    try {
-      const response = await authService.register(userData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await authService.register(userData);
   };
 
-  /**
-   * Cerrar sesión
-   */
   const logout = async () => {
-    try {
-      await authService.logout();
-    } catch (error) {
-      console.error('Error en logout:', error);
-    } finally {
-      setUser(null);
-    }
+    authService.logout();
+    setUser(null);
   };
 
   const value = {
@@ -84,7 +79,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user,
-    role: user?.rol_id || null,  // 🔥 CAMBIO: user?.rol_id en lugar de user?.role
+    role: user?.rol_id || null,
+    getRutaInicial: () => (user ? ROLES_ROUTES[user.rol_id] : '/login'),
   };
 
   return (

@@ -1,85 +1,78 @@
 // src/modules/shared/services/authService.js
-// Servicio de autenticación
-
 import { apiClient } from '../../../core/api/client';
+import { API_ENDPOINTS } from '../../../core/api/endpoints';
 
 export const authService = {
-  // Iniciar sesión
   login: async (email, password) => {
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
-      return response;
+      return await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, { email, password });
     } catch (error) {
       throw new Error(error.message || 'Error al iniciar sesión');
     }
   },
 
-  // Registrar usuario
   register: async (userData) => {
     try {
-      const response = await apiClient.post('/auth/register', userData);
-      return response;
+      return await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, userData);
     } catch (error) {
       throw new Error(error.message || 'Error al registrar usuario');
     }
   },
 
-  // Cerrar sesión
   logout: async () => {
     try {
-      await apiClient.post('/auth/logout');
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT || '/auth/logout');
+    } catch (error) {
+      console.warn('Logout remoto falló, limpiando sesión local');
+    } finally {
       localStorage.removeItem('user');
       localStorage.removeItem('token');
-    } catch (error) {
-      throw new Error(error.message || 'Error al cerrar sesión');
     }
   },
 
-  // Recuperar contraseña
   recoverPassword: async (email) => {
     try {
-      const response = await apiClient.post('/auth/recover-password', { email });
-      return response;
+      return await apiClient.post(API_ENDPOINTS.AUTH.REQUEST_RESET, { email });
     } catch (error) {
       throw new Error(error.message || 'Error al recuperar contraseña');
     }
   },
 
-  // Verificar código de recuperación
   verifyCode: async (email, code) => {
     try {
-      const response = await apiClient.post('/auth/verify-code', { email, code });
-      return response;
+      return await apiClient.post(API_ENDPOINTS.AUTH.VERIFY_CODE, { email, code });
     } catch (error) {
       throw new Error(error.message || 'Código inválido');
     }
   },
 
-  // Cambiar contraseña
-  changePassword: async (email, code, newPassword) => {
+  resetPassword: async (email, code, newPassword) => {
     try {
-      const response = await apiClient.post('/auth/change-password', { 
-        email, 
-        code, 
-        newPassword 
+      return await apiClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
+        email,
+        code,
+        new_password: newPassword,
       });
-      return response;
     } catch (error) {
       throw new Error(error.message || 'Error al cambiar contraseña');
     }
   },
 
-  // Verificar token
+  me: async () => {
+    try {
+      return await apiClient.get(API_ENDPOINTS.AUTH.ME);
+    } catch (error) {
+      throw new Error('No se pudo obtener el usuario actual');
+    }
+  },
+
   verifyToken: async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No token');
-      const response = await apiClient.get('/auth/verify');
-      return response;
+      return await apiClient.get(API_ENDPOINTS.AUTH.ME);
     } catch (error) {
       throw new Error('Token inválido');
     }
-  }
+  },
 };
 
 export default authService;

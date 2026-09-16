@@ -3,129 +3,66 @@ import { apiClient } from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
 
 export const reporteService = {
+  // ============ DASHBOARD DE REPORTES GLOBALES ============
+  getDashboard: async () => {
+    return await apiClient.get('/reportes/dashboard');
+  },
+
   // ============ REPORTES DE BITÁCORAS ============
 
-  // Reporte de bitácoras
   getBitacorasReport: async (params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_BITACORAS, { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.REPORTES.BITACORAS, { params });
   },
 
-  // Reporte de bitácoras por ficha
   getBitacorasByFichaReport: async (fichaId) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_BITACORAS_FICHA(fichaId));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.REPORTES.BITACORAS, {
+      params: { ficha_id: fichaId },
+    });
   },
 
-  // Reporte de bitácoras por aprendiz
   getBitacorasByAprendizReport: async (aprendizId) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_BITACORAS_APRENDIZ(aprendizId));
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // ============ REPORTES DE ASISTENCIA ============
-
-  // Reporte de asistencia
-  getAsistenciaReport: async (params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_ASISTENCIA, { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Reporte de asistencia por ficha
-  getAsistenciaByFichaReport: async (fichaId) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_ASISTENCIA_FICHA(fichaId));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.REPORTES.BITACORAS, {
+      params: { aprendiz_id: aprendizId },
+    });
   },
 
   // ============ REPORTES DE SEGUIMIENTO ============
 
-  // Reporte de seguimiento
   getSeguimientoReport: async (params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_SEGUIMIENTO, { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.REPORTES.SEGUIMIENTOS, { params });
   },
 
-  // Reporte de seguimiento por aprendiz
   getSeguimientoByAprendizReport: async (aprendizId) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_SEGUIMIENTO_APRENDIZ(aprendizId));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.REPORTES.SEGUIMIENTOS, {
+      params: { aprendiz_id: aprendizId },
+    });
   },
 
   // ============ REPORTES GLOBALES ============
 
-  // Reportes globales
   getGlobalesReport: async (params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_GLOBALES, { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.REPORTES.PROCESOS_RIESGO, { params });
   },
 
-  // Dashboard de estadísticas
   getDashboardStats: async () => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.GET_DASHBOARD);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get('/reportes/dashboard');
   },
 
-  // ============ EXPORTAR REPORTES ============
+  // ============ EXPORTAR ============
 
-  // Exportar reporte en PDF
   exportPDF: async (tipo, params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.EXPORT_PDF(tipo), { 
-        params,
-        responseType: 'blob' 
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(`/reportes/${tipo}`, {
+      params: { ...params, formato: 'pdf' },
+      responseType: 'blob',
+    });
   },
 
-  // Exportar reporte en Excel
   exportExcel: async (tipo, params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.REPORTES.EXPORT_EXCEL(tipo), { 
-        params,
-        responseType: 'blob' 
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  }
+    return await apiClient.get(`/reportes/${tipo}`, {
+      params: { ...params, formato: 'xlsx' },
+      responseType: 'blob',
+    });
+  },
 };
+
+export default reporteService;

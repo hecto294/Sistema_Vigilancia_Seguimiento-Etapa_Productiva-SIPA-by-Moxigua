@@ -318,7 +318,7 @@ const FichasGlobales = () => {
                   <td style={{ textAlign: 'center' }}>
                     <button 
                       className="btn-ver-ficha"
-                      onClick={() => navigate(`/coordinador/ficha/${ficha.id}`)}
+                      onClick={() => navigate(`/coordinador/ficha/${ficha.id}?modo=parametrizacion`)}
                     >
                       <i className="fas fa-eye"></i> Ver
                     </button>
