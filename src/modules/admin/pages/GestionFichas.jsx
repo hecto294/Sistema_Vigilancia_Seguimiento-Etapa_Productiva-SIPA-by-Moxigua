@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { fichaService } from '@/core/services/fichaService';
+import CargaMasivaFichas from './CargaMasivaFichas';
 import './GestionFichas.css';
 
 const GestionFichas = () => {
@@ -12,6 +13,7 @@ const GestionFichas = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [modalCargaMasiva, setModalCargaMasiva] = useState(false);
 
   useEffect(() => {
     cargarDatos();
@@ -25,6 +27,8 @@ const GestionFichas = () => {
         fichaService.getFichas().catch(() => []),
         fichaService.getProgramas().catch(() => []),
       ]);
+      console.log('🔍 Fichas cargadas:', fichasData);
+      console.log('🔍 Programas cargados:', programasData);
       setFichas(Array.isArray(fichasData) ? fichasData : []);
       setProgramas(Array.isArray(programasData) ? programasData : []);
     } catch (err) {
@@ -63,6 +67,26 @@ const GestionFichas = () => {
     const numero = (f.numero_ficha || '').toLowerCase();
     return nombre.includes(q) || numero.includes(q);
   });
+
+  // ==========================================================
+  // CARGA MASIVA
+  // ==========================================================
+  const handleCargaMasiva = () => {
+    if (programas.length === 0) {
+      Swal.fire({
+        title: '⚠️ Sin programas',
+        text: 'Primero debes crear al menos un programa de formación.',
+        icon: 'warning',
+        confirmButtonColor: '#3ca203',
+      });
+      return;
+    }
+    setModalCargaMasiva(true);
+  };
+
+  const handleFichasCargadas = () => {
+    cargarDatos();
+  };
 
   // ==========================================================
   // NUEVA FICHA
@@ -319,15 +343,6 @@ const GestionFichas = () => {
     });
   };
 
-  const handleCargaMasiva = () => {
-    Swal.fire({
-      title: '📤 Carga Masiva',
-      text: 'Función disponible próximamente.',
-      icon: 'info',
-      confirmButtonColor: '#3ca203',
-    });
-  };
-
   // ==========================================================
   // RENDER
   // ==========================================================
@@ -465,6 +480,45 @@ const GestionFichas = () => {
           </tbody>
         </table>
       </div>
+
+      {/* MODAL DE CARGA MASIVA DE FICHAS */}
+      {modalCargaMasiva && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setModalCargaMasiva(false);
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '800px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            }}
+          >
+            <CargaMasivaFichas
+              onClose={() => setModalCargaMasiva(false)}
+              onFichasCargadas={handleFichasCargadas}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -49,7 +49,6 @@ export const API_ENDPOINTS = {
   },
 
   // ============ PROGRAMAS Y FICHAS ============
-  // 🔥 CORREGIDO: el backend expone /programas y /fichas (no /programas-fichas/...)
   PROGRAMAS_FICHAS: {
     GET_PROGRAMAS: '/programas',
     GET_PROGRAMA: (id) => `/programas/${id}`,
@@ -61,6 +60,7 @@ export const API_ENDPOINTS = {
     CREATE_FICHA: '/fichas',
     UPDATE_FICHA: (id) => `/fichas/${id}`,
     DELETE_FICHA: (id) => `/fichas/${id}`,
+    GET_APRENDICES_BY_FICHA: (id) => `/fichas/${id}/aprendices`,
   },
 
   // ============ PROCESOS ============
@@ -121,7 +121,6 @@ export const API_ENDPOINTS = {
   },
 
   // ============ DASHBOARDS ============
-  // 🔥 AGREGADOS: APRENDIZ y APOYO (hay que crearlos en backend - Fase 3)
   DASHBOARDS: {
     ADMIN: '/dashboards/admin',
     COORDINADOR: '/dashboards/coordinador',
@@ -144,7 +143,6 @@ export const API_ENDPOINTS = {
   },
 
   // ============ CERTIFICADOS ============
-  // 🔥 NUEVO: se creará el módulo en backend (Fase 6)
   CERTIFICADOS: {
     GET_ALL: '/certificados/',
     GET_BY_ID: (id) => `/certificados/${id}`,
@@ -161,6 +159,8 @@ export const API_ENDPOINTS = {
   // ============ IMPORTACIÓN ============
   IMPORTACION: {
     IMPORTAR: (tipo) => `/importacion/${tipo}`,
+    USUARIOS: '/importacion/usuarios',
+    FICHAS: '/importacion/fichas',
   },
 
   // ============ BÚSQUEDA ============

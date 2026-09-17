@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { userService } from '@/core/services/userService';
+import CargaMasivaUsuarios from './CargaMasivaUsuarios';
 import './GestionUsuarios.css';
 
 const GestionUsuarios = () => {
@@ -15,6 +16,7 @@ const GestionUsuarios = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [modalCargaMasiva, setModalCargaMasiva] = useState(false);
 
   // Cargar usuarios y roles al montar
   useEffect(() => {
@@ -76,7 +78,7 @@ const GestionUsuarios = () => {
     return colores[rolId] || { bg: '#f3f4f6', color: '#374151' };
   };
 
-  // Filtrado local (sobre los datos ya cargados)
+  // Filtrado local
   const filteredUsuarios = usuarios.filter((u) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -90,6 +92,18 @@ const GestionUsuarios = () => {
   const handleClear = () => {
     setSearchTerm('');
     setSearchQuery('');
+  };
+
+  // ==========================================================
+  // CARGA MASIVA (abre el componente real)
+  // ==========================================================
+  const handleCargaMasiva = () => {
+    setModalCargaMasiva(true);
+  };
+
+  const handleUsuariosCargados = () => {
+    // Recargar la lista después de la carga masiva
+    cargarDatos();
   };
 
   // ==========================================================
@@ -320,19 +334,6 @@ const GestionUsuarios = () => {
   };
 
   // ==========================================================
-  // CARGA MASIVA (por ahora solo UI)
-  // ==========================================================
-  const handleCargaMasiva = () => {
-    Swal.fire({
-      title: '📤 Carga Masiva',
-      text: 'Función disponible próximamente. Se conectará al endpoint POST /importacion/usuarios.',
-      icon: 'info',
-      confirmButtonText: 'Entendido',
-      confirmButtonColor: '#3ca203',
-    });
-  };
-
-  // ==========================================================
   // RENDER
   // ==========================================================
 
@@ -480,6 +481,45 @@ const GestionUsuarios = () => {
           </tbody>
         </table>
       </div>
+
+      {/* MODAL DE CARGA MASIVA */}
+      {modalCargaMasiva && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setModalCargaMasiva(false);
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '800px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            }}
+          >
+            <CargaMasivaUsuarios
+              onClose={() => setModalCargaMasiva(false)}
+              onUsuariosCargados={handleUsuariosCargados}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

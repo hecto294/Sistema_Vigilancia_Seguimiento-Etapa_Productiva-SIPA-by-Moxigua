@@ -5,163 +5,97 @@ import { API_ENDPOINTS } from '../api/endpoints';
 export const userService = {
   // ============ CRUD BÁSICO ============
 
-  // Obtener todos los usuarios
   getUsers: async (params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, { params });
   },
 
-  // Obtener usuario por ID
   getUserById: async (id) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_BY_ID(id));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.GET_BY_ID(id));
   },
 
-  // Crear usuario
   createUser: async (userData) => {
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.USUARIOS.CREATE, userData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.post(API_ENDPOINTS.USUARIOS.CREATE, userData);
   },
 
-  // Actualizar usuario
   updateUser: async (id, userData) => {
-    try {
-      const response = await apiClient.put(API_ENDPOINTS.USUARIOS.UPDATE(id), userData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.put(API_ENDPOINTS.USUARIOS.UPDATE(id), userData);
   },
 
-  // Eliminar usuario
   deleteUser: async (id) => {
-    try {
-      const response = await apiClient.delete(API_ENDPOINTS.USUARIOS.DELETE(id));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.delete(API_ENDPOINTS.USUARIOS.DELETE(id));
+  },
+
+  // ============ PERFIL DEL USUARIO ACTUAL ============
+  
+  // Obtener datos del usuario logueado
+  getMe: async () => {
+    return await apiClient.get(API_ENDPOINTS.AUTH.ME);
+  },
+
+  // Actualizar mi propio perfil (nombre, apellido, teléfono, documento)
+  updateMiPerfil: async (userId, userData) => {
+    return await apiClient.put(API_ENDPOINTS.USUARIOS.UPDATE(userId), userData);
+  },
+
+  // Cambiar contraseña
+  changePassword: async (passwordData) => {
+    return await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, passwordData);
   },
 
   // ============ FILTROS POR ROL ============
 
-  // Obtener usuarios por rol (usa el parámetro rol_id del backend)
   getUsersByRole: async (rolId) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
-        params: { rol_id: rolId },
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+      params: { rol_id: rolId },
+    });
   },
 
-  // Obtener instructores (rol_id = 3)
   getInstructors: async () => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
-        params: { rol_id: 3 },
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+      params: { rol_id: 3 },
+    });
   },
 
-  // Obtener aprendices (rol_id = 4)
   getAprendices: async () => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
-        params: { rol_id: 4 },
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+      params: { rol_id: 4 },
+    });
   },
 
-  // Obtener aprendices por ficha
   getAprendicesByFicha: async (fichaId) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
-        params: { ficha_id: fichaId },
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+      params: { ficha_id: fichaId },
+    });
   },
 
   // ============ CARGA MASIVA ============
 
-  // Carga masiva de usuarios (desde array)
   bulkCreateUsers: async (usersData) => {
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.IMPORTACION.IMPORTAR('usuarios'), {
-        users: usersData,
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.post(API_ENDPOINTS.IMPORTACION.IMPORTAR('usuarios'), {
+      users: usersData,
+    });
   },
 
-  // Carga masiva de usuarios con archivo Excel/CSV
   bulkUploadUsers: async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await apiClient.post(
-        API_ENDPOINTS.IMPORTACION.IMPORTAR('usuarios'),
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
-      );
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const formData = new FormData();
+    formData.append('file', file);
+    return await apiClient.post(
+      API_ENDPOINTS.IMPORTACION.IMPORTAR('usuarios'),
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
   },
 
-  // ============ ESTADÍSTICAS ============
+  // ============ ESTADÍSTICAS Y BÚSQUEDA ============
 
-  // Obtener estadísticas de usuarios
   getUsersStats: async () => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.STATS);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.STATS);
   },
 
-  // ============ BÚSQUEDA ============
-
-  // Buscar usuarios
   searchUsers: async (query) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
-        params: { search: query },
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.USUARIOS.GET_ALL, {
+      params: { search: query },
+    });
   },
 };
 
