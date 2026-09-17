@@ -2,124 +2,67 @@
 import { apiClient } from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export const empresaService = {
   // ============ CRUD BÁSICO ============
 
-  // Obtener todas las empresas
   getEmpresas: async (params = {}) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPRESAS.GET_ALL, { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.EMPRESAS.GET_ALL, { params });
   },
 
-  // Obtener empresa por ID
   getEmpresaById: async (id) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPRESAS.GET_BY_ID(id));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.get(API_ENDPOINTS.EMPRESAS.GET_BY_ID(id));
   },
 
-  // Crear empresa
   createEmpresa: async (empresaData) => {
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.EMPRESAS.CREATE, empresaData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.post(API_ENDPOINTS.EMPRESAS.CREATE, empresaData);
   },
 
-  // Actualizar empresa
   updateEmpresa: async (id, empresaData) => {
-    try {
-      const response = await apiClient.put(API_ENDPOINTS.EMPRESAS.UPDATE(id), empresaData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.put(API_ENDPOINTS.EMPRESAS.UPDATE(id), empresaData);
   },
 
-  // Eliminar empresa
   deleteEmpresa: async (id) => {
-    try {
-      const response = await apiClient.delete(API_ENDPOINTS.EMPRESAS.DELETE(id));
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiClient.delete(API_ENDPOINTS.EMPRESAS.DELETE(id));
   },
 
-  // ============ ASIGNACIONES ============
+  // ============ COORDINADORES ============
 
-  // Asignar aprendiz a empresa
-  assignAprendiz: async (empresaId, aprendizId) => {
-    try {
-      const response = await apiClient.patch(API_ENDPOINTS.EMPRESAS.ASSIGN_APRENDIZ(empresaId), { aprendizId });
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Obtener aprendices de una empresa
-  getAprendicesByEmpresa: async (empresaId) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPRESAS.GET_APRENDICES(empresaId));
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Desasignar aprendiz de empresa
-  unassignAprendiz: async (empresaId, aprendizId) => {
-    try {
-      const response = await apiClient.patch(API_ENDPOINTS.EMPRESAS.UNASSIGN_APRENDIZ(empresaId), { aprendizId });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  getCoordinadores: async (empresaId) => {
+    return await apiClient.get(API_ENDPOINTS.EMPRESAS.COORDINADORES(empresaId));
   },
 
   // ============ CARGA MASIVA ============
+  // Envía el archivo Excel/CSV al endpoint /importacion/empresas
+  bulkUploadEmpresas: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/importacion/empresas`, {
+      method: 'POST',
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+      body: formData,
+    });
 
-  // Carga masiva de empresas
-  bulkCreateEmpresas: async (empresasData) => {
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.EMPRESAS.BULK_CREATE, { empresas: empresasData });
-      return response;
-    } catch (error) {
-      throw error;
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      throw new Error('Sesión expirada. Vuelve a iniciar sesión.');
     }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
   },
-
-  // ============ ESTADÍSTICAS ============
-
-  // Obtener estadísticas de empresas
-  getEmpresasStats: async () => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPRESAS.STATS);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // ============ BÚSQUEDA ============
-
-  // Buscar empresas
-  searchEmpresas: async (query) => {
-    try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPRESAS.SEARCH, { params: { q: query } });
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  }
 };
+
+export default empresaService;

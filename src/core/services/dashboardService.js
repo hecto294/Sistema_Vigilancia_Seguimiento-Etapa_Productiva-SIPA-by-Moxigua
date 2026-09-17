@@ -14,6 +14,14 @@ export const dashboardService = {
   getInstructor: async () => {
     return await apiClient.get(API_ENDPOINTS.DASHBOARDS.INSTRUCTOR);
   },
+
+  getAprendiz: async () => {
+    return await apiClient.get(API_ENDPOINTS.DASHBOARDS.APRENDIZ);
+  },
+
+  getApoyo: async () => {
+    return await apiClient.get(API_ENDPOINTS.DASHBOARDS.APOYO);
+  },
 };
 
 export default dashboardService;

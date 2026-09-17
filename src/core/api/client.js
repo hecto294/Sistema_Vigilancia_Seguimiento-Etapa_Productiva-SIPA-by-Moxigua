@@ -8,7 +8,6 @@ const getToken = () => localStorage.getItem('token');
 
 // Función para manejar errores
 const handleResponse = async (response) => {
-  // 🔥 NUEVO: si el token expiró, cerrar sesión automáticamente
   if (response.status === 401) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -30,7 +29,6 @@ const handleResponse = async (response) => {
     };
   }
 
-  // Si no hay contenido (204), devolver null
   if (response.status === 204) return null;
 
   return response.json();
@@ -49,13 +47,27 @@ const getHeaders = (customHeaders = {}) => {
   return headers;
 };
 
+// 🔥 FUNCIÓN NUEVA: Construir la URL con query params
+const buildUrl = (endpoint, params) => {
+  let url = `${API_BASE_URL}${endpoint}`;
+  if (params && Object.keys(params).length > 0) {
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+    ).toString();
+    if (queryString) url += `?${queryString}`;
+  }
+  return url;
+};
+
 export const apiClient = {
   get: async (endpoint, options = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      // 🔥 Construir URL con params
+      const url = buildUrl(endpoint, options.params);
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: getHeaders(options.headers),
-        ...options,
       });
       return handleResponse(response);
     } catch (error) {
@@ -66,11 +78,11 @@ export const apiClient = {
 
   post: async (endpoint, data = {}, options = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const url = buildUrl(endpoint, options.params);
+      const response = await fetch(url, {
         method: 'POST',
         headers: getHeaders(options.headers),
         body: JSON.stringify(data),
-        ...options,
       });
       return handleResponse(response);
     } catch (error) {
@@ -81,11 +93,11 @@ export const apiClient = {
 
   put: async (endpoint, data = {}, options = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const url = buildUrl(endpoint, options.params);
+      const response = await fetch(url, {
         method: 'PUT',
         headers: getHeaders(options.headers),
         body: JSON.stringify(data),
-        ...options,
       });
       return handleResponse(response);
     } catch (error) {
@@ -96,11 +108,11 @@ export const apiClient = {
 
   patch: async (endpoint, data = {}, options = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const url = buildUrl(endpoint, options.params);
+      const response = await fetch(url, {
         method: 'PATCH',
         headers: getHeaders(options.headers),
         body: JSON.stringify(data),
-        ...options,
       });
       return handleResponse(response);
     } catch (error) {
@@ -111,10 +123,10 @@ export const apiClient = {
 
   delete: async (endpoint, options = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const url = buildUrl(endpoint, options.params);
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: getHeaders(options.headers),
-        ...options,
       });
       return handleResponse(response);
     } catch (error) {

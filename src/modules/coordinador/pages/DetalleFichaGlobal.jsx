@@ -1,11 +1,16 @@
 // src/modules/coordinador/pages/DetalleFichaGlobal.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { fichaService } from '@/core/services/fichaService';
 
 const DetalleFichaGlobal = () => {
   const { idFicha } = useParams();
   const navigate = useNavigate();
+
+  // 🔑 Leer el parámetro de la URL
+  const [searchParams] = useSearchParams();
+  const modo = searchParams.get('modo');
+  const mostrarTablaAprendices = modo === 'parametrizacion';
 
   const [ficha, setFicha] = useState(null);
   const [programa, setPrograma] = useState(null);
@@ -13,7 +18,7 @@ const DetalleFichaGlobal = () => {
   const [error, setError] = useState(null);
 
   const [aprendices, setAprendices] = useState([]);
-  const [loadingAprendices, setLoadingAprendices] = useState(true);
+  const [loadingAprendices, setLoadingAprendices] = useState(false);
 
   useEffect(() => {
     cargarTodo();
@@ -25,11 +30,9 @@ const DetalleFichaGlobal = () => {
       setLoading(true);
       setError(null);
 
-      // Cargar ficha
       const fichaData = await fichaService.getFichaById(idFicha);
       setFicha(fichaData);
 
-      // Cargar programa
       if (fichaData?.programa_id) {
         const programaData = await fichaService
           .getProgramaById(fichaData.programa_id)
@@ -37,19 +40,19 @@ const DetalleFichaGlobal = () => {
         setPrograma(programaData);
       }
 
-      // Cargar aprendices SIEMPRE
-      try {
-        setLoadingAprendices(true);
-        const aprendicesData = await fichaService.getAprendicesByFicha(idFicha);
-        console.log('✅ Aprendices recibidos:', aprendicesData);
-        setAprendices(aprendicesData || []);
-      } catch (err) {
-        console.error('❌ Error al cargar aprendices:', err);
-        setAprendices([]);
-      } finally {
-        setLoadingAprendices(false);
+      // 🔑 Solo cargar aprendices si viene de parametrización
+      if (modo === 'parametrizacion') {
+        try {
+          setLoadingAprendices(true);
+          const aprendicesData = await fichaService.getAprendicesByFicha(idFicha);
+          setAprendices(aprendicesData || []);
+        } catch (err) {
+          console.error('❌ Error al cargar aprendices:', err);
+          setAprendices([]);
+        } finally {
+          setLoadingAprendices(false);
+        }
       }
-
     } catch (err) {
       console.error('Error al cargar ficha:', err);
       setError(err.message || 'Error al cargar la ficha');
@@ -118,7 +121,7 @@ const DetalleFichaGlobal = () => {
         <i className="fas fa-arrow-left" /> Volver a fichas
       </button>
 
-      {/* Info de la ficha */}
+      {/* INFO DE LA FICHA */}
       <div
         style={{
           background: 'white',
@@ -179,70 +182,72 @@ const DetalleFichaGlobal = () => {
         </div>
       </div>
 
-      {/* TABLA DE APRENDICES - SIEMPRE VISIBLE */}
-      <div
-        style={{
-          background: 'white',
-          borderRadius: '12px',
-          padding: '25px',
-          border: '1px solid #e5e7eb',
-        }}
-      >
-        <h3 style={{ marginTop: 0, marginBottom: '20px', color: '#1f2937' }}>
-          <i className="fas fa-users" style={{ color: '#3ca203', marginRight: '8px' }}></i>
-          Listado de Aprendices
-        </h3>
+      {/* TABLA DE APRENDICES - Solo si viene desde Parametrización */}
+      {mostrarTablaAprendices && (
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '25px',
+            border: '1px solid #e5e7eb',
+          }}
+        >
+          <h3 style={{ marginTop: 0, marginBottom: '20px', color: '#1f2937' }}>
+            <i className="fas fa-users" style={{ color: '#3ca203', marginRight: '8px' }}></i>
+            Listado de Aprendices
+          </h3>
 
-        {loadingAprendices ? (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
-            <i className="fas fa-spinner fa-spin" style={{ fontSize: '24px', color: '#3ca203' }}></i>
-            <p>Cargando aprendices...</p>
-          </div>
-        ) : aprendices.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
-            <i className="fas fa-info-circle" style={{ fontSize: '24px' }}></i>
-            <p>No hay aprendices registrados en esta ficha.</p>
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left', color: '#6b7280', fontSize: '12px', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '12px 10px' }}>Aprendiz</th>
-                  <th style={{ padding: '12px 10px' }}>Correo</th>
-                  <th style={{ padding: '12px 10px' }}>Empresa</th>
-                  <th style={{ padding: '12px 10px' }}>ARL</th>
-                  <th style={{ padding: '12px 10px' }}>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {aprendices.map((ap) => (
-                  <tr key={ap.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '12px 10px', fontWeight: '500' }}>{ap.nombre}</td>
-                    <td style={{ padding: '12px 10px', color: '#6b7280' }}>{ap.correo}</td>
-                    <td style={{ padding: '12px 10px' }}>{ap.empresa}</td>
-                    <td style={{ padding: '12px 10px' }}>{ap.arl}</td>
-                    <td style={{ padding: '12px 10px' }}>
-                      <span
-                        style={{
-                          background: ap.estado === 'ACTIVO' ? '#d1fae5' : '#fee2e2',
-                          color: ap.estado === 'ACTIVO' ? '#047857' : '#dc2626',
-                          padding: '4px 10px',
-                          borderRadius: '12px',
-                          fontSize: '11px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {ap.estado}
-                      </span>
-                    </td>
+          {loadingAprendices ? (
+            <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+              <i className="fas fa-spinner fa-spin" style={{ fontSize: '24px', color: '#3ca203' }}></i>
+              <p>Cargando aprendices...</p>
+            </div>
+          ) : aprendices.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+              <i className="fas fa-info-circle" style={{ fontSize: '24px' }}></i>
+              <p>No hay aprendices registrados en esta ficha.</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left', color: '#6b7280', fontSize: '12px', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '12px 10px' }}>Aprendiz</th>
+                    <th style={{ padding: '12px 10px' }}>Correo</th>
+                    <th style={{ padding: '12px 10px' }}>Empresa</th>
+                    <th style={{ padding: '12px 10px' }}>ARL</th>
+                    <th style={{ padding: '12px 10px' }}>Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody>
+                  {aprendices.map((ap) => (
+                    <tr key={ap.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '12px 10px', fontWeight: '500' }}>{ap.nombre}</td>
+                      <td style={{ padding: '12px 10px', color: '#6b7280' }}>{ap.correo}</td>
+                      <td style={{ padding: '12px 10px' }}>{ap.empresa}</td>
+                      <td style={{ padding: '12px 10px' }}>{ap.arl}</td>
+                      <td style={{ padding: '12px 10px' }}>
+                        <span
+                          style={{
+                            background: ap.estado === 'ACTIVO' ? '#d1fae5' : '#fee2e2',
+                            color: ap.estado === 'ACTIVO' ? '#047857' : '#dc2626',
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {ap.estado}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

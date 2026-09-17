@@ -13,7 +13,7 @@ const Parametrizacion = () => {
       titulo: 'Fichas', 
       descripcion: 'Gestiona las fichas de formación', 
       icono: 'fa-layer-group', 
-      ruta: '/coordinador/fichas'
+      ruta: '/coordinador/fichas-parametrizacion'
     },
     { 
       id: 2, 

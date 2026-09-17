@@ -16,9 +16,6 @@ import EmpresasGlobales from "@/modules/coordinador/pages/EmpresasGlobales";
 import AprendicesGlobales from "@/modules/coordinador/pages/AprendicesGlobales";
 import InstructoresGlobales from "@/modules/coordinador/pages/InstructoresGlobales";
 import AsignarFichasInstructor from "@/modules/coordinador/pages/AsignarFichasInstructor";
-import ReporteBitacoras from "@/modules/coordinador/pages/ReporteBitacoras";
-import ReporteFichaBitacoras from "@/modules/coordinador/pages/ReporteFichaBitacoras";
-import ReporteAprendizBitacoras from "@/modules/coordinador/pages/ReporteAprendizBitacoras";
 import DetalleFichaGlobal from "@/modules/coordinador/pages/DetalleFichaGlobal";
 import AsignarEmpresaAprendiz from "@/modules/coordinador/pages/AsignarEmpresaAprendiz";
 import SubirAlternativa from "@/modules/coordinador/pages/SubirAlternativa";
@@ -26,6 +23,13 @@ import DetalleAprendiz from "@/modules/coordinador/pages/DetalleAprendiz";
 import ReporteFichaDetalle from "@/modules/coordinador/pages/ReporteFichaDetalle";
 import MomentosCoordinador from "@/modules/coordinador/pages/MomentosCoordinador";
 import MiPerfil from "@/modules/coordinador/pages/MiPerfil";
+import FichasParametrizacion from "@/modules/coordinador/pages/FichasParametrizacion";
+import AprendicesFicha from "@/modules/coordinador/pages/AprendicesFicha";
+
+// 🔥 BITÁCORAS: apuntando a la carpeta correcta
+import ReporteBitacoras from "@/modules/coordinador/pages/ReporteBitacoras";
+import ReporteFichaBitacoras from "@/modules/coordinador/pages/ReporteFichaBitacoras";
+import ReporteAprendizBitacoras from "@/modules/coordinador/pages/ReporteAprendizBitacoras";
 
 const LayoutCoordinador = ({ user }) => {
   const navigate = useNavigate();
@@ -50,7 +54,6 @@ const LayoutCoordinador = ({ user }) => {
 
   return (
     <div className="app-layout">
-      {/* 👇 DATOS ESPECÍFICOS DEL ROL COORDINADOR + NOTIFICACIONES */}
       <Header 
         user={{ nombre: 'María Fernanda Ruiz', role: 'Coordinador', avatar: 'https://i.pravatar.cc/150?img=32' }}
         notifications={[
@@ -86,6 +89,8 @@ const LayoutCoordinador = ({ user }) => {
             <Route path="/subir-alternativa" element={<SubirAlternativa />} />
             <Route path="/momentos" element={<MomentosCoordinador />} />
             <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'María Fernanda Ruiz', role: 'Coordinador', avatar: 'https://i.pravatar.cc/150?img=32' }} />} />
+            <Route path="/fichas-parametrizacion" element={<FichasParametrizacion />} />
+            <Route path="/aprendices-ficha/:idFicha" element={<AprendicesFicha />} />
           </Routes>
         </div>
       </div>

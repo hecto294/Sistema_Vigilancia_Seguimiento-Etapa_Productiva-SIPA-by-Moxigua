@@ -1,10 +1,11 @@
 // src/modules/coordinador/pages/SubirAlternativa.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import * as XLSX from 'xlsx';
-// ✅ Ruta CORRECTA - Breadcrumb está en shared/components
 import Breadcrumb from '../../shared/components/Breadcrumb';
+import { fichaService } from '@/core/services/fichaService';
+import { procesoService } from '@/core/services/procesoService';
+import { importacionService } from '@/core/services/importacionService';
 import './SubirAlternativa.css';
 
 const SubirAlternativa = () => {
@@ -15,58 +16,70 @@ const SubirAlternativa = () => {
   const [searchAprendizTerm, setSearchAprendizTerm] = useState('');
   const [searchAprendizQuery, setSearchAprendizQuery] = useState('');
 
-  // Datos de ejemplo con fichas y aprendices
-  const [fichas, setFichas] = useState([
-    {
-      id: '2875901',
-      programa: 'Análisis y Desarrollo de Software',
-      aprendices: [
-        { id: 1, nombre: 'Laura Sofia Martinez', alternativa: null },
-        { id: 2, nombre: 'Juan Diego Ramirez', alternativa: null },
-        { id: 3, nombre: 'Maria Camila Torres', alternativa: null }
-      ]
-    },
-    {
-      id: '2875902',
-      programa: 'Gestión Empresarial',
-      aprendices: [
-        { id: 4, nombre: 'Carlos Mendoza', alternativa: 'Vínculo Formativo (Pasantía)' },
-        { id: 5, nombre: 'Valentina Rojas', alternativa: null },
-        { id: 6, nombre: 'Andrés Felipe Castro', alternativa: null }
-      ]
-    },
-    {
-      id: '2875903',
-      programa: 'Contabilidad y Finanzas',
-      aprendices: [
-        { id: 7, nombre: 'Luisa Fernanda Gomez', alternativa: null },
-        { id: 8, nombre: 'Santiago Pérez', alternativa: null }
-      ]
-    },
-    {
-      id: '2875904',
-      programa: 'Marketing Digital',
-      aprendices: [
-        { id: 9, nombre: 'Ana María Rojas', alternativa: 'Contrato de Aprendizaje' },
-        { id: 10, nombre: 'David Alejandro Castro', alternativa: null }
-      ]
-    }
-  ]);
+  const [fichas, setFichas] = useState([]);
+  const [modalidades, setModalidades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Opciones de alternativas
-  const alternativas = [
-    'Contrato de Aprendizaje',
-    'Vínculo Formativo (Pasantía)',
-    'Monitoria',
-    'Proyecto Productivo',
-    'Vínculo Laboral'
-  ];
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const fichasData = await fichaService.getFichas({ solo_activas: true });
+      console.log('📋 Fichas:', fichasData);
+
+      const modalidadesData = await procesoService.getModalidades();
+      console.log('📚 Modalidades:', modalidadesData);
+      setModalidades(Array.isArray(modalidadesData) ? modalidadesData : []);
+
+      const procesosData = await procesoService.getProcesos({ solo_activos: true });
+      console.log('👥 Procesos:', procesosData);
+
+      const fichasConAprendices = (Array.isArray(fichasData) ? fichasData : []).map((f) => {
+        const aprendicesDeFicha = (Array.isArray(procesosData) ? procesosData : [])
+          .filter((p) => p.ficha_id === f.id)
+          .map((p) => ({
+            proceso_id: p.id,
+            aprendiz_id: p.aprendiz_id,
+            nombre: p.aprendiz_nombre || 'Sin nombre',
+            modalidad_id: p.modalidad_id,
+            modalidad_nombre: p.modalidad_nombre || null,
+            alternativa: p.modalidad_nombre || null,
+          }));
+
+        return {
+          id: f.numero_ficha,
+          fichaId: f.id,
+          programa: f.programa_nombre || 'Sin programa',
+          aprendices: aprendicesDeFicha,
+        };
+      });
+
+      setFichas(fichasConAprendices);
+    } catch (err) {
+      console.error('Error al cargar:', err);
+      setError(err.message || 'Error al cargar datos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = () => setSearchQuery(searchTerm);
-  const handleClear = () => { setSearchTerm(''); setSearchQuery(''); };
+  const handleClear = () => {
+    setSearchTerm('');
+    setSearchQuery('');
+  };
 
   const handleSearchAprendiz = () => setSearchAprendizQuery(searchAprendizTerm);
-  const handleClearAprendiz = () => { setSearchAprendizTerm(''); setSearchAprendizQuery(''); };
+  const handleClearAprendiz = () => {
+    setSearchAprendizTerm('');
+    setSearchAprendizQuery('');
+  };
 
   const handleSelectFicha = (ficha) => {
     setSelectedFicha(ficha);
@@ -80,15 +93,17 @@ const SubirAlternativa = () => {
     setSearchQuery('');
   };
 
-  // ==========================================================
-  // FUNCIÓN PARA ASIGNAR ALTERNATIVA A UN APRENDIZ
-  // ==========================================================
-  const handleAsignarAlternativa = (aprendiz) => {
-    const alternativasOptions = alternativas.map(alt => 
-      `<option value="${alt}" ${aprendiz.alternativa === alt ? 'selected' : ''}>${alt}</option>`
-    ).join('');
+  const handleAsignarAlternativa = async (aprendiz) => {
+    const alternativasOptions = modalidades
+      .map(
+        (m) =>
+          `<option value="${m.id}" ${
+            aprendiz.modalidad_id === m.id ? 'selected' : ''
+          }>${m.nombre}</option>`
+      )
+      .join('');
 
-    Swal.fire({
+    const result = await Swal.fire({
       title: '📝 Asignar Alternativa',
       html: `
         <div style="text-align: left; padding: 5px 0;">
@@ -102,7 +117,7 @@ const SubirAlternativa = () => {
             <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
               Selecciona la alternativa *
             </label>
-            <select id="alternativa-select" 
+            <select id="alternativa-select"
               style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
             >
               <option value="">-- Seleccionar --</option>
@@ -122,149 +137,253 @@ const SubirAlternativa = () => {
       cancelButtonColor: '#ef4444',
       width: '480px',
       preConfirm: () => {
-        const alternativa = document.getElementById('alternativa-select').value;
-        if (!alternativa) {
+        const val = document.getElementById('alternativa-select').value;
+        if (!val) {
           Swal.showValidationMessage('⚠️ Por favor selecciona una alternativa');
           return false;
         }
-        return { alternativa };
-      }
-    }).then((result) => {
-      if (result.isConfirmed && result.value) {
-        const { alternativa } = result.value;
-        
-        setFichas(prevFichas => 
-          prevFichas.map(ficha => {
-            if (ficha.id === selectedFicha.id) {
-              return {
-                ...ficha,
-                aprendices: ficha.aprendices.map(a => 
-                  a.id === aprendiz.id ? { ...a, alternativa: alternativa } : a
-                )
-              };
-            }
-            return ficha;
-          })
-        );
-
-        Swal.fire({
-          title: '✅ ¡Alternativa asignada!',
-          html: `
-            <div style="text-align: left; padding: 10px 0;">
-              <p style="margin: 8px 0; font-size: 15px; color: #1f2937;">
-                <strong>Aprendiz:</strong> ${aprendiz.nombre}
-              </p>
-              <p style="margin: 8px 0; font-size: 15px; color: #1f2937;">
-                <strong>Alternativa:</strong> ${alternativa}
-              </p>
-              <p style="margin: 12px 0 0 0; font-size: 13px; color: #9ca3af; font-style: italic; border-top: 1px dashed #e5e7eb; padding-top: 10px;">
-                La alternativa ha sido asignada exitosamente.
-              </p>
-            </div>
-          `,
-          icon: 'success',
-          confirmButtonText: '✅ Aceptar',
-          confirmButtonColor: '#3ca203',
-          timer: 3000,
-          timerProgressBar: true
-        });
-      }
+        return { modalidad_id: parseInt(val) };
+      },
     });
+
+    if (!result.isConfirmed || !result.value) return;
+
+    const { modalidad_id } = result.value;
+    const modalidadSeleccionada = modalidades.find((m) => m.id === modalidad_id);
+
+    try {
+      Swal.fire({
+        title: 'Guardando...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      await procesoService.asignarAlternativa(aprendiz.proceso_id, modalidad_id);
+
+      const modalidadNombre = modalidadSeleccionada?.nombre || '';
+
+      setFichas((prev) =>
+        prev.map((f) =>
+          f.fichaId === selectedFicha.fichaId
+            ? {
+                ...f,
+                aprendices: f.aprendices.map((a) =>
+                  a.proceso_id === aprendiz.proceso_id
+                    ? {
+                        ...a,
+                        modalidad_id,
+                        modalidad_nombre: modalidadNombre,
+                        alternativa: modalidadNombre,
+                      }
+                    : a
+                ),
+              }
+            : f
+        )
+      );
+
+      setSelectedFicha((prev) => ({
+        ...prev,
+        aprendices: prev.aprendices.map((a) =>
+          a.proceso_id === aprendiz.proceso_id
+            ? {
+                ...a,
+                modalidad_id,
+                modalidad_nombre: modalidadNombre,
+                alternativa: modalidadNombre,
+              }
+            : a
+        ),
+      }));
+
+      Swal.fire({
+        title: '✅ ¡Alternativa asignada!',
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin: 8px 0; font-size: 15px; color: #1f2937;">
+              <strong>Aprendiz:</strong> ${aprendiz.nombre}
+            </p>
+            <p style="margin: 8px 0; font-size: 15px; color: #1f2937;">
+              <strong>Alternativa:</strong> ${modalidadSeleccionada?.nombre || '—'}
+            </p>
+          </div>
+        `,
+        icon: 'success',
+        confirmButtonText: '✅ Aceptar',
+        confirmButtonColor: '#3ca203',
+        timer: 2500,
+        timerProgressBar: true,
+      });
+    } catch (err) {
+      console.error('❌ Error al asignar:', err);
+      Swal.fire({
+        title: '❌ Error',
+        text: err.message || 'No se pudo asignar la alternativa',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+      });
+    }
   };
 
-  // ==========================================================
-  // FUNCIÓN PARA CARGA MASIVA
-  // ==========================================================
   const handleCargaMasiva = () => {
     Swal.fire({
       title: '📤 Carga Masiva de Alternativas',
       html: `
         <div style="text-align: left; padding: 5px 0;">
-          <div style="margin: 15px 0; padding: 20px; border: 2px dashed #d1d5db; border-radius: 8px; text-align: center;">
+          <div style="margin: 15px 0; padding: 20px; border: 2px dashed #d1d5db; border-radius: 8px; text-align: center; background: #f9fafb;">
             <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #3ca203;"></i>
-            <p style="margin: 10px 0 0 0; color: #6b7280;">
-              Arrastra o haz clic para seleccionar un archivo
+            <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 14px;">
+              Selecciona un archivo Excel (.xlsx) o CSV
             </p>
-            <p style="font-size: 12px; color: #9ca3af;">
-              Formatos permitidos: .xlsx, .xls, .csv
+            <p style="font-size: 12px; color: #9ca3af; margin: 5px 0 0 0;">
+              Columnas: <strong>documento</strong> (o <strong>email</strong>) y <strong>modalidad</strong>
             </p>
           </div>
+
           <div style="margin: 15px 0;">
             <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
-              Ficha
+              Archivo *
             </label>
-            <select id="ficha-carga" 
-              style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
-            >
-              ${fichas.map(f => `<option value="${f.id}">${f.id} - ${f.programa}</option>`).join('')}
-            </select>
-          </div>
-          <div style="margin: 15px 0;">
-            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
-              Archivo
-            </label>
-            <input type="file" id="archivo-carga" accept=".xlsx,.xls,.csv"
+            <input type="file" id="archivo-carga-masiva" accept=".xlsx,.xls,.csv"
               style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
             />
+          </div>
+
+          <div style="background: #eff6ff; padding: 10px 12px; border-radius: 6px; border: 1px solid #bfdbfe; font-size: 12px; color: #1e40af;">
+            <i class="fas fa-info-circle"></i>
+            <strong>Ejemplo del archivo:</strong>
+            <div style="margin-top: 6px; font-family: monospace; background: white; padding: 6px; border-radius: 4px;">
+              documento | modalidad<br/>
+              111111111 | Monitoria<br/>
+              222222222 | Vínculo laboral
+            </div>
           </div>
         </div>
       `,
       icon: 'info',
-      confirmButtonText: '📤 Subir Archivo',
+      confirmButtonText: '📤 Subir y Procesar',
       confirmButtonColor: '#3ca203',
       showCancelButton: true,
       cancelButtonText: '❌ Cancelar',
       cancelButtonColor: '#ef4444',
-      width: '520px',
+      width: '560px',
       preConfirm: () => {
-        const ficha = document.getElementById('ficha-carga').value;
-        const archivo = document.getElementById('archivo-carga').files[0];
-        
-        if (!ficha) {
-          Swal.showValidationMessage('⚠️ Por favor selecciona una ficha');
-          return false;
-        }
+        const archivo = document.getElementById('archivo-carga-masiva').files[0];
         if (!archivo) {
           Swal.showValidationMessage('⚠️ Por favor selecciona un archivo');
           return false;
         }
-        
-        return { ficha, archivo };
-      }
-    }).then((result) => {
-      if (result.isConfirmed && result.value) {
+        return { archivo };
+      },
+    }).then(async (result) => {
+      if (!result.isConfirmed || !result.value) return;
+
+      const { archivo } = result.value;
+
+      try {
         Swal.fire({
-          title: '✅ ¡Carga masiva iniciada!',
-          html: `
-            <div style="text-align: left; padding: 10px 0;">
-              <p style="margin: 8px 0; font-size: 15px; color: #1f2937;">
-                <strong>Ficha:</strong> ${result.value.ficha}
-              </p>
-              <p style="margin: 8px 0; font-size: 14px; color: #6b7280;">
-                <strong>Archivo:</strong> ${result.value.archivo.name}
-              </p>
-              <p style="margin: 8px 0; font-size: 14px; color: #6b7280;">
-                <i class="fas fa-spinner fa-pulse" style="color: #3ca203;"></i>
-                Procesando archivo...
-              </p>
-              <p style="margin: 12px 0 0 0; font-size: 13px; color: #9ca3af; font-style: italic; border-top: 1px dashed #e5e7eb; padding-top: 10px;">
-                Las alternativas se asignarán automáticamente.
-              </p>
-            </div>
-          `,
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-          confirmButtonColor: '#3ca203',
-          timer: 2500,
-          timerProgressBar: true
+          title: 'Procesando archivo...',
+          html: 'Esto puede tomar unos segundos.',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        const respuesta = await importacionService.importar(
+          'procesos-alternativas',
+          archivo
+        );
+
+        console.log('📤 Resultado carga masiva:', respuesta);
+
+        const { total_filas, filas_insertadas, filas_con_error, errores } = respuesta;
+
+        await cargarDatos();
+
+        if (filas_con_error === 0) {
+          Swal.fire({
+            title: '✅ ¡Carga completada!',
+            html: `
+              <div style="text-align: left; padding: 10px 0;">
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                  <p style="margin: 5px 0; font-size: 14px;"><strong>Total filas:</strong> ${total_filas}</p>
+                  <p style="margin: 5px 0; font-size: 14px; color: #047857;"><strong>✅ Actualizados:</strong> ${filas_insertadas}</p>
+                  <p style="margin: 5px 0; font-size: 14px; color: #dc2626;"><strong>❌ Con error:</strong> ${filas_con_error}</p>
+                </div>
+              </div>
+            `,
+            icon: 'success',
+            confirmButtonColor: '#3ca203',
+            confirmButtonText: '✅ Aceptar',
+          });
+        } else {
+          const erroresTexto = (errores || [])
+            .slice(0, 10)
+            .map((e) => `• Fila ${e.fila || '?'}: ${e.mensaje || JSON.stringify(e)}`)
+            .join('<br/>');
+
+          Swal.fire({
+            title: '⚠️ Carga con advertencias',
+            html: `
+              <div style="text-align: left; padding: 10px 0;">
+                <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 10px;">
+                  <p style="margin: 5px 0; font-size: 14px;"><strong>Total:</strong> ${total_filas}</p>
+                  <p style="margin: 5px 0; font-size: 14px; color: #047857;"><strong>✅ Actualizados:</strong> ${filas_insertadas}</p>
+                  <p style="margin: 5px 0; font-size: 14px; color: #dc2626;"><strong>❌ Errores:</strong> ${filas_con_error}</p>
+                </div>
+                <div style="background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; max-height: 200px; overflow-y: auto;">
+                  <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold;">Errores:</p>
+                  <div style="font-size: 12px;">${erroresTexto}</div>
+                </div>
+              </div>
+            `,
+            icon: 'warning',
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'Aceptar',
+            width: '600px',
+          });
+        }
+      } catch (err) {
+        console.error('❌ Error en carga masiva:', err);
+        Swal.fire({
+          title: '❌ Error',
+          text: err.message || 'No se pudo procesar el archivo',
+          icon: 'error',
+          confirmButtonColor: '#dc2626',
         });
       }
     });
   };
 
-  // --- VISTA DE APRENDICES DE UNA FICHA ---
+  if (loading) {
+    return (
+      <div className="subir-alternativa-container">
+        <Breadcrumb />
+        <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+          <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
+          <p style={{ marginTop: '15px' }}>Cargando datos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="subir-alternativa-container">
+        <Breadcrumb />
+        <div style={{ padding: '60px', textAlign: 'center' }}>
+          <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
+          <h3 style={{ color: '#dc2626', marginTop: '15px' }}>Error</h3>
+          <p style={{ color: '#6b7280' }}>{error}</p>
+          <button onClick={cargarDatos} className="btn-search" style={{ marginTop: '15px' }}>
+            <i className="fas fa-redo"></i> Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (selectedFicha) {
-    const filteredAprendices = selectedFicha.aprendices.filter(a =>
+    const filteredAprendices = selectedFicha.aprendices.filter((a) =>
       a.nombre.toLowerCase().includes(searchAprendizQuery.toLowerCase())
     );
 
@@ -324,21 +443,29 @@ const SubirAlternativa = () => {
                 </tr>
               ) : (
                 filteredAprendices.map((aprendiz, index) => (
-                  <tr key={aprendiz.id}>
+                  <tr key={aprendiz.proceso_id}>
                     <td>{index + 1}</td>
                     <td className="nombre-aprendiz">{aprendiz.nombre}</td>
                     <td>{selectedFicha.id}</td>
                     <td>
-                      <span className={`alternativa-status ${aprendiz.alternativa ? 'asignado' : 'sin-asignar'}`}>
+                      <span
+                        className={`alternativa-status ${
+                          aprendiz.alternativa ? 'asignado' : 'sin-asignar'
+                        }`}
+                      >
                         {aprendiz.alternativa || 'Sin asignar'}
                       </span>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <button 
+                      <button
                         className={`btn-asignar ${aprendiz.alternativa ? 'asignado' : ''}`}
                         onClick={() => handleAsignarAlternativa(aprendiz)}
                       >
-                        <i className={`fas ${aprendiz.alternativa ? 'fa-check' : 'fa-plus'}`}></i>
+                        <i
+                          className={`fas ${
+                            aprendiz.alternativa ? 'fa-check' : 'fa-plus'
+                          }`}
+                        ></i>
                         {aprendiz.alternativa ? ' Asignado' : ' Asignar'}
                       </button>
                     </td>
@@ -352,11 +479,11 @@ const SubirAlternativa = () => {
     );
   }
 
-  // --- VISTA PRINCIPAL (FICHAS) ---
-  const filteredFichas = fichas.filter(f =>
-    searchQuery === '' ||
-    f.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    f.programa.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFichas = fichas.filter(
+    (f) =>
+      searchQuery === '' ||
+      f.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.programa.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -366,7 +493,9 @@ const SubirAlternativa = () => {
       <div className="subir-alternativa-header">
         <div className="header-left">
           <h2>Subir Alternativa de Etapa Productiva</h2>
-          <p className="subtitulo">Selecciona una ficha para asignar la alternativa de etapa productiva a los aprendices.</p>
+          <p className="subtitulo">
+            Selecciona una ficha para asignar la alternativa de etapa productiva a los aprendices.
+          </p>
         </div>
       </div>
 
@@ -399,13 +528,13 @@ const SubirAlternativa = () => {
           </div>
         ) : (
           filteredFichas.map((ficha) => {
-            const sinAsignar = ficha.aprendices.filter(a => !a.alternativa).length;
+            const sinAsignar = ficha.aprendices.filter((a) => !a.alternativa).length;
             const total = ficha.aprendices.length;
             const asignados = total - sinAsignar;
 
             return (
               <div
-                key={ficha.id}
+                key={ficha.fichaId}
                 className="ficha-card"
                 onClick={() => handleSelectFicha(ficha)}
               >

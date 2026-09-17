@@ -80,13 +80,12 @@ export const API_ENDPOINTS = {
   BITACORAS: {
     GET_ALL: '/bitacoras/',
     GET_BY_ID: (id) => `/bitacoras/${id}`,
+    GET_BY_FICHA: (fichaId) => `/bitacoras/ficha/${fichaId}`,
+    GET_BY_APRENDIZ: (aprendizId) => `/bitacoras/aprendiz/${aprendizId}`,
+    GET_EVIDENCIAS: (id) => `/bitacoras/${id}/evidencias`,
     CREATE: '/bitacoras/',
     UPDATE: (id) => `/bitacoras/${id}`,
     DELETE: (id) => `/bitacoras/${id}`,
-    EVALUAR: (id) => `/bitacoras/${id}/evaluar`,
-    EVIDENCIAS: (id) => `/bitacoras/${id}/evidencias`,
-    UPLOAD_EVIDENCIA: (id) => `/bitacoras/${id}/evidencias/upload`,
-    BY_APRENDIZ: (id) => `/bitacoras/aprendiz/${id}`,
   },
 
   // ============ CHARLAS ============
