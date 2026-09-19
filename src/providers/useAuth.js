@@ -1,4 +1,4 @@
-// src/providers/useAuth.js
+﻿// src/providers/useAuth.js
 import { useContext } from 'react';
 import { AuthContext } from './AuthProvider';
 

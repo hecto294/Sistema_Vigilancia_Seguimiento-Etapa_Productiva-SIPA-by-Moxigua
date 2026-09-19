@@ -1,11 +1,9 @@
-// src/modules/shared/layouts/LayoutCoordinador.jsx
-import React from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/modules/shared/components/Header';
 import SidebarCoordinador from '@/modules/coordinador/components/SidebarCoordinador';
 import '@/App.css';
 
-// Importar páginas del coordinador
 import DashboardCoordinador from "@/modules/coordinador/pages/DashboardCoordinador";
 import VerFichas from "@/modules/coordinador/pages/VerFichas";
 import VerAprendices from "@/modules/coordinador/pages/VerAprendices";
@@ -25,19 +23,32 @@ import MomentosCoordinador from "@/modules/coordinador/pages/MomentosCoordinador
 import MiPerfil from "@/modules/coordinador/pages/MiPerfil";
 import FichasParametrizacion from "@/modules/coordinador/pages/FichasParametrizacion";
 import AprendicesFicha from "@/modules/coordinador/pages/AprendicesFicha";
-
-// 🔥 BITÁCORAS: apuntando a la carpeta correcta
 import ReporteBitacoras from "@/modules/coordinador/pages/ReporteBitacoras";
 import ReporteFichaBitacoras from "@/modules/coordinador/pages/ReporteFichaBitacoras";
 import ReporteAprendizBitacoras from "@/modules/coordinador/pages/ReporteAprendizBitacoras";
 
-const LayoutCoordinador = ({ user }) => {
+const LayoutCoordinador = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [user, setUser] = useState(null);
 
-  const handleNavigation = (url, pageId) => {
-    navigate(url);
-  };
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const nombreCompleto = (parsed.nombre + ' ' + (parsed.apellido || '')).trim();
+      const iniciales = ((parsed.nombre || 'U').charAt(0) + (parsed.apellido || '').charAt(0)).toUpperCase();
+      setUser({
+        id: parsed.id,
+        nombre: nombreCompleto,
+        email: parsed.email,
+        role: parsed.rol_nombre || parsed.role || 'Coordinador',
+        avatar: parsed.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(nombreCompleto) + '&background=3ca203&color=fff&bold=true&size=128',
+      });
+    }
+  }, []);
+
+  const handleNavigation = (url) => navigate(url);
 
   let activePage = 'dashboard';
   if (location.pathname.includes('/parametrizacion')) activePage = 'parametrizacion';
@@ -48,25 +59,17 @@ const LayoutCoordinador = ({ user }) => {
   else if (location.pathname.includes('/empresas')) activePage = 'empresas';
   else if (location.pathname.includes('/aprendices')) activePage = 'aprendices';
   else if (location.pathname.includes('/instructores')) activePage = 'instructores';
-  else if (location.pathname.includes('/asignar')) activePage = 'instructores';
   else if (location.pathname.includes('/subir-alternativa')) activePage = 'subir-alternativa';
   else if (location.pathname.includes('/momentos')) activePage = 'momentos';
 
   return (
     <div className="app-layout">
-      <Header 
-        user={{ nombre: 'María Fernanda Ruiz', role: 'Coordinador', avatar: 'https://i.pravatar.cc/150?img=32' }}
-        notifications={[
-          { id: 1, mensaje: '3 seguimientos están atrasados', tiempo: 'Hoy, 08:15 a.m.' },
-          { id: 2, mensaje: '2 evaluaciones pendientes', tiempo: 'Hoy, 07:50 a.m.' },
-          { id: 3, mensaje: 'Documentos pendientes por revisar', tiempo: 'Ayer, 05:30 p.m.' },
-        ]}
+      <Header
+        user={user || { nombre: 'Cargando...', role: 'Coordinador', avatar: '' }}
+        notifications={[]}
       />
       <div className="main-body">
-        <SidebarCoordinador 
-          onNavigate={handleNavigation} 
-          activePage={activePage}
-        />
+        <SidebarCoordinador onNavigate={handleNavigation} activePage={activePage} />
         <div className="content-area" style={{ padding: '30px', boxSizing: 'border-box' }}>
           <Routes>
             <Route path="/" element={<DashboardCoordinador />} />
@@ -88,7 +91,7 @@ const LayoutCoordinador = ({ user }) => {
             <Route path="/ficha-completa/:idFicha/aprendiz/:aprendizId/asignar-empresa" element={<AsignarEmpresaAprendiz />} />
             <Route path="/subir-alternativa" element={<SubirAlternativa />} />
             <Route path="/momentos" element={<MomentosCoordinador />} />
-            <Route path="/mi-perfil" element={<MiPerfil user={{ nombre: 'María Fernanda Ruiz', role: 'Coordinador', avatar: 'https://i.pravatar.cc/150?img=32' }} />} />
+            <Route path="/mi-perfil" element={<MiPerfil />} />
             <Route path="/fichas-parametrizacion" element={<FichasParametrizacion />} />
             <Route path="/aprendices-ficha/:idFicha" element={<AprendicesFicha />} />
           </Routes>

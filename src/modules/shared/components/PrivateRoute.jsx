@@ -1,7 +1,7 @@
-// src/modules/shared/components/PrivateRoute.jsx
+﻿// src/modules/shared/components/PrivateRoute.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth, ROLES_ROUTES } from '../context/AuthContext';
+import { useAuth, ROLES_ROUTES } from '@/providers/AuthProvider';
 
 const PrivateRoute = ({ children, rolesPermitidos = null }) => {
   const { isAuthenticated, user, loading } = useAuth();
@@ -27,9 +27,12 @@ const PrivateRoute = ({ children, rolesPermitidos = null }) => {
     return <Navigate to="/login" replace />;
   }
 
+  // 🔥 Convertir rol_id a número para comparar bien
+  const rolId = Number(user?.rol_id);
+
   // Con sesión pero sin permiso de rol → a su home
-  if (rolesPermitidos && !rolesPermitidos.includes(user.rol_id)) {
-    return <Navigate to={ROLES_ROUTES[user.rol_id] || '/login'} replace />;
+  if (rolesPermitidos && !rolesPermitidos.includes(rolId)) {
+    return <Navigate to={ROLES_ROUTES[rolId] || '/login'} replace />;
   }
 
   return children;

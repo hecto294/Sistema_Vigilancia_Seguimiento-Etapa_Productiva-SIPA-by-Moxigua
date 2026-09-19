@@ -90,7 +90,6 @@ const ReporteFichaBitacoras = () => {
     return `${(kb / 1024).toFixed(1)} MB`;
   };
 
-  // 🔥 Nueva función: abrir el PDF en pestaña nueva
   const handleVerPDF = (archivo) => {
     const url = archivo.ruta_objeto?.startsWith('http')
       ? archivo.ruta_objeto
@@ -130,7 +129,6 @@ const ReporteFichaBitacoras = () => {
       (a.mime_type || '').includes('pdf')
     );
 
-    // 🔥 Agregamos botón VER (azul) además del DESCARGAR (verde)
     const archivosHtml =
       archivosPDF.length > 0
         ? archivosPDF
@@ -195,7 +193,6 @@ const ReporteFichaBitacoras = () => {
           const archivo = archivosPDF.find((a) => a.id === id);
           if (archivo) handleDescargarArchivo(archivo);
         };
-        // 🔥 Nueva función global para el botón Ver
         window.verPDFBitacora = (id) => {
           const archivo = archivosPDF.find((a) => a.id === id);
           if (archivo) handleVerPDF(archivo);
@@ -354,6 +351,7 @@ const ReporteFichaBitacoras = () => {
         </p>
       </div>
 
+      {/* 🔥 BIMESTRES: todos desbloqueados para el coordinador */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {[1, 2, 3].map((bim) => {
           const total = ficha.aprendices.reduce(
@@ -372,18 +370,17 @@ const ReporteFichaBitacoras = () => {
                 color: bimestreSeleccionado === bim ? 'white' : '#1f2937',
                 border: `1px solid ${bimestreSeleccionado === bim ? '#3ca203' : '#e5e7eb'}`,
                 borderRadius: '20px',
-                cursor: total > 0 ? 'pointer' : 'default',
+                cursor: 'pointer',
                 fontWeight: 'bold',
                 fontSize: '14px',
-                opacity: total > 0 ? 1 : 0.5,
+                opacity: 1,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
               }}
-              disabled={total === 0}
             >
               <span>Bimestre {bim}</span>
-              {total > 0 && (
+              {total > 0 ? (
                 <span
                   style={{
                     background: bimestreSeleccionado === bim ? 'rgba(255,255,255,0.2)' : '#e6f7ed',
@@ -396,8 +393,7 @@ const ReporteFichaBitacoras = () => {
                 >
                   {total}
                 </span>
-              )}
-              {total === 0 && (
+              ) : (
                 <span style={{ fontSize: '11px', color: '#9ca3af' }}>(sin bitácoras)</span>
               )}
             </button>
@@ -433,17 +429,17 @@ const ReporteFichaBitacoras = () => {
             return (
               <div
                 key={a.aprendiz_id}
-                onClick={() => totalBitacoras > 0 && handleVerBitacorasAprendiz(a)}
+                onClick={() => handleVerBitacorasAprendiz(a)}
                 style={{
                   background: 'white',
                   padding: '18px 20px',
                   borderRadius: '12px',
-                  border: totalBitacoras > 0 ? '2px solid #e5e7eb' : '2px solid #f3f4f6',
-                  cursor: totalBitacoras > 0 ? 'pointer' : 'default',
+                  border: '2px solid #e5e7eb',
+                  cursor: 'pointer',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  opacity: totalBitacoras > 0 ? 1 : 0.6,
+                  opacity: 1,
                 }}
               >
                 <div>

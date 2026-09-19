@@ -1,4 +1,4 @@
-// src/providers/AuthProvider.jsx
+﻿// src/providers/AuthProvider.jsx
 import React, { createContext, useState, useEffect } from 'react';
 import { authService } from '@/core/services/authService';
 
@@ -27,37 +27,49 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-
-        if (token && storedUser) {
-          try {
-            setUser(JSON.parse(storedUser));
-          } catch (e) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
-        }
-      } catch (error) {
-        console.error('Error en inicialización:', error);
-      } finally {
-        setLoading(false);
+    try {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      if (token && storedUser) {
+        setUser(JSON.parse(storedUser));
       }
-    };
-
-    initAuth();
+    } catch (e) {
+      console.error('Error init auth:', e);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const login = async (email, password) => {
     const response = await authService.login(email, password);
-    // El authService ya devuelve { ...response, user: { id, nombre, rol_id } }
+    console.log('🔍 [AuthProvider] response:', response);
+
+    const rawUser = response?.user || response?.data?.user || response;
+    console.log('🔍 [AuthProvider] rawUser:', rawUser);
+
+    if (!rawUser || !rawUser.id) {
+      console.error('❌ No hay id en user:', response);
+      throw new Error('Respuesta inválida del servidor');
+    }
+
     const userData = {
-      ...response.user,
-      rol_nombre: ROLES_NAMES[response.user.rol_id] || 'Usuario',
-      email,
+      id: rawUser.id,
+      nombre: rawUser.nombre || '',
+      apellido: rawUser.apellido || '',
+      email: rawUser.email || email,
+      rol_id: Number(rawUser.rol_id),
+      rol_nombre: rawUser.rol_nombre || ROLES_NAMES[rawUser.rol_id] || 'Usuario',
+      tipo_documento: rawUser.tipo_documento,
+      documento_identidad: rawUser.documento_identidad,
+      telefono: rawUser.telefono,
+      avatar_url: rawUser.avatar_url,
+      is_active: rawUser.is_active,
     };
+
+    console.log('✅ [AuthProvider] userData final:', userData);
+
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     return userData;
@@ -89,3 +101,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthProvider;

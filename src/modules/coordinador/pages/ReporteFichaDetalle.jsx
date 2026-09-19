@@ -71,6 +71,30 @@ const ReporteFichaDetalle = () => {
     return colors[estado] || { bg: '#f3f4f6', text: '#6b7280' };
   };
 
+  // 🔥 Badge para el estado del aprendiz (ACTIVO → En formación, APLAZADO → Condicionado)
+  const getEstadoAprendizBadge = (estado) => {
+    const normalized = (estado || '').toUpperCase();
+    const configs = {
+      'ACTIVO': { bg: '#d1fae5', text: '#047857', label: '🟢 En formación' },
+      'FINALIZADO': { bg: '#dbeafe', text: '#1e40af', label: '🔵 Finalizado' },
+      'APLAZADO': { bg: '#fef3c7', text: '#d97706', label: '🟡 Condicionado' },
+      'RETIRADO': { bg: '#fee2e2', text: '#dc2626', label: '🔴 Retirado' },
+    };
+    return configs[normalized] || { bg: '#f3f4f6', text: '#6b7280', label: estado || 'Sin estado' };
+  };
+
+  // 🔥 Texto del estado para el modal (con los mismos textos)
+  const getEstadoTexto = (estado) => {
+    const normalized = (estado || '').toUpperCase();
+    const textos = {
+      'ACTIVO': 'En formación',
+      'FINALIZADO': 'Finalizado',
+      'APLAZADO': 'Condicionado',
+      'RETIRADO': 'Retirado',
+    };
+    return textos[normalized] || estado || 'Sin estado';
+  };
+
   const handleVerDetalle = (aprendiz) => {
     Swal.fire({
       title: `📋 ${aprendiz.nombre}`,
@@ -82,7 +106,7 @@ const ReporteFichaDetalle = () => {
             <div><strong>Teléfono:</strong></div><div>${aprendiz.telefono}</div>
             <div><strong>Empresa:</strong></div><div>${aprendiz.empresa}</div>
             <div><strong>ARL:</strong></div><div>${aprendiz.arl}</div>
-            <div><strong>Estado:</strong></div><div><span style="color: ${aprendiz.estado === 'Activo' ? '#10b981' : '#ef4444'}; font-weight: bold;">${aprendiz.estado}</span></div>
+            <div><strong>Estado:</strong></div><div><span style="color: ${aprendiz.estado === 'ACTIVO' || aprendiz.estado === 'Activo' ? '#10b981' : '#ef4444'}; font-weight: bold;">${getEstadoTexto(aprendiz.estado)}</span></div>
             <div><strong>Fechas:</strong></div><div>${formatearFecha(aprendiz.fechaInicio)} - ${formatearFecha(aprendiz.fechaFin)}</div>
           </div>
           <hr style="border: 1px solid #e5e7eb; margin: 15px 0;" />
@@ -209,6 +233,7 @@ const ReporteFichaDetalle = () => {
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Aprendiz</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Documento</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Estado</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Empresa</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Momentos</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Bitácoras</th>
@@ -224,11 +249,30 @@ const ReporteFichaDetalle = () => {
                 const b1 = getEstadoBadge(a.bitacoras?.bimestre1);
                 const b2 = getEstadoBadge(a.bitacoras?.bimestre2);
                 const b3 = getEstadoBadge(a.bitacoras?.bimestre3);
+                const estadoAprendiz = getEstadoAprendizBadge(a.estado);
 
                 return (
                   <tr key={a.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                     <td style={{ padding: '12px', fontWeight: 'bold' }}>{a.nombre}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>{a.documento}</td>
+                    <td style={{ textAlign: 'center', padding: '12px' }}>
+                      {a.documento && a.documento !== '—' ? a.documento : 'Sin asignar'}
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '12px' }}>
+                      <span
+                        style={{
+                          background: estadoAprendiz.bg,
+                          color: estadoAprendiz.text,
+                          padding: '4px 12px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          display: 'inline-block',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {estadoAprendiz.label}
+                      </span>
+                    </td>
                     <td style={{ textAlign: 'center', padding: '12px' }}>{a.empresa}</td>
                     <td style={{ textAlign: 'center', padding: '12px' }}>
                       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
