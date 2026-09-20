@@ -1,6 +1,7 @@
-// src/components/SeguimientoMomentos.jsx
-import React, { useState } from 'react';
+// src/modules/instructor/components/SeguimientoMomentos.jsx
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '@/core/api/client';
 import './SeguimientoMomentos.css';
 
 const SeguimientoMomentos = () => {
@@ -9,76 +10,39 @@ const SeguimientoMomentos = () => {
   const [fichaSeleccionada, setFichaSeleccionada] = useState(null);
   const [aprendizModal, setAprendizModal] = useState(null);
 
-  // Estados de búsqueda
+  const [momentos, setMomentos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchTermFichas, setSearchTermFichas] = useState('');
   const [searchQueryFichas, setSearchQueryFichas] = useState('');
 
   const [searchTermAprendices, setSearchTermAprendices] = useState('');
   const [searchQueryAprendices, setSearchQueryAprendices] = useState('');
 
-  // Datos: Momentos -> Fichas -> Aprendices -> Seguimientos
-  const [momentos] = useState([
-    {
-      id: 1,
-      titulo: 'Momento 1',
-      descripcion: 'Inducción y Diagnóstico Inicial',
-      fichas: [
-        {
-          idFicha: '2875901',
-          programa: 'Análisis y Desarrollo de Software',
-          aprendices: [
-            { id: 1, nombre: 'Laura Sofia Martinez', seguimiento: 'Se realizó inducción general. Pendiente evaluación diagnóstica.' },
-            { id: 2, nombre: 'Juan Diego Ramirez', seguimiento: 'Diagnóstico completado. Buen desempeño.' }
-          ]
-        },
-        {
-          idFicha: '2875902',
-          programa: 'Gestión Empresarial',
-          aprendices: [
-            { id: 3, nombre: 'Carlos Mendoza', seguimiento: 'Diagnóstico en proceso. Pendiente de entrega.' }
-          ]
-        }
-      ]
-    },
-    {
-      id: 2,
-      titulo: 'Momento 2',
-      descripcion: 'Ejecución y Seguimiento',
-      fichas: [
-        {
-          idFicha: '2875902',
-          programa: 'Gestión Empresarial',
-          aprendices: [
-            { id: 4, nombre: 'Maria Camila Torres', seguimiento: 'Avance del 50% en el proyecto. Se recomienda refuerzo en herramientas.' },
-            { id: 5, nombre: 'Andrés Felipe Castro', seguimiento: 'Cumplimiento de hitos. Sin novedades.' }
-          ]
-        },
-        {
-          idFicha: '2875903',
-          programa: 'Contabilidad y Finanzas',
-          aprendices: [
-            { id: 6, nombre: 'Valentina Rojas', seguimiento: 'Evaluación final en proceso.' }
-          ]
-        }
-      ]
-    },
-    {
-      id: 3,
-      titulo: 'Momento 3',
-      descripcion: 'Evaluación y Cierre',
-      fichas: [
-        {
-          idFicha: '2875901',
-          programa: 'Análisis y Desarrollo de Software',
-          aprendices: [
-            { id: 7, nombre: 'Luisa Fernanda Gomez', seguimiento: 'Cierre de etapa completado. Certificado generado.' }
-          ]
-        }
-      ]
-    }
-  ]);
+  useEffect(() => {
+    cargarMomentos();
+  }, []);
 
-  // --- Navegación ---
+  const cargarMomentos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const stored = localStorage.getItem('user');
+      const instructor = stored ? JSON.parse(stored) : null;
+      const instructorId = instructor && instructor.id;
+      if (!instructorId) throw new Error('No se encontro el instructor logueado');
+
+      const data = await apiClient.get('/instructor/momentos/' + instructorId);
+      setMomentos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error al cargar momentos:', err);
+      setError(err.message || 'Error al cargar seguimientos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVerMomento = (id) => {
     const momento = momentos.find(m => m.id === id);
     setMomentoSeleccionado(momento);
@@ -106,7 +70,6 @@ const SeguimientoMomentos = () => {
     setAprendizModal(null);
   };
 
-  // --- Modal para ver el detalle del aprendiz ---
   const handleVerDetalle = (aprendiz) => {
     setAprendizModal(aprendiz);
   };
@@ -115,19 +78,38 @@ const SeguimientoMomentos = () => {
     setAprendizModal(null);
   };
 
-  // --- Búsqueda de fichas ---
   const handleSearchFichas = () => setSearchQueryFichas(searchTermFichas);
   const handleClearFichas = () => { setSearchTermFichas(''); setSearchQueryFichas(''); };
 
-  // --- Búsqueda de aprendices ---
   const handleSearchAprendices = () => setSearchQueryAprendices(searchTermAprendices);
   const handleClearAprendices = () => { setSearchTermAprendices(''); setSearchQueryAprendices(''); };
 
-  // Navegar al inicio (Dashboard)
   const goToInicio = () => {
     navigate('/instructor');
     window.location.reload();
   };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+        <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
+        <p style={{ marginTop: '15px' }}>Cargando seguimientos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '60px', textAlign: 'center' }}>
+        <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
+        <h3 style={{ color: '#dc2626' }}>Error</h3>
+        <p style={{ color: '#6b7280' }}>{error}</p>
+        <button onClick={cargarMomentos} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', marginTop: '15px' }}>
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
   // --- Renderizado NIVEL 3: Aprendices de una ficha ---
   if (fichaSeleccionada) {
@@ -137,39 +119,14 @@ const SeguimientoMomentos = () => {
 
     return (
       <div className="momento-detalle-pantalla">
-        {/* MIGA DE PAN - Inicio > Seguimiento por Momentos > Ficha */}
-        <nav style={{ 
-          padding: '10px 0', 
-          marginBottom: '10px', 
-          fontSize: '14px',
-          background: 'transparent',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
-          <ol style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            alignItems: 'center', 
-            listStyle: 'none', 
-            margin: 0, 
-            padding: 0, 
-            gap: '4px' 
-          }}>
+        <nav style={{ padding: '10px 0', marginBottom: '10px', fontSize: '14px', background: 'transparent', borderBottom: '1px solid #e5e7eb' }}>
+          <ol style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, gap: '4px' }}>
             <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
-              <span 
-                onClick={goToInicio}
-                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
-              >
-                Inicio
-              </span>
+              <span onClick={goToInicio} style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}>Inicio</span>
               <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
-              <span 
-                onClick={handleVolverMomentos}
-                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
-              >
-                Seguimiento por Momentos
-              </span>
+              <span onClick={handleVolverMomentos} style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}>Seguimiento por Momentos</span>
               <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
@@ -187,14 +144,7 @@ const SeguimientoMomentos = () => {
         </div>
 
         <div className="search-container">
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="Buscar aprendiz..." 
-            value={searchTermAprendices}
-            onChange={(e) => setSearchTermAprendices(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchAprendices()}
-          />
+          <input type="text" className="search-input" placeholder="Buscar aprendiz..." value={searchTermAprendices} onChange={(e) => setSearchTermAprendices(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchAprendices()} />
           <button className="btn-search" onClick={handleSearchAprendices}>Buscar</button>
           <button className="btn-clear" onClick={handleClearAprendices}>Limpiar</button>
         </div>
@@ -210,10 +160,7 @@ const SeguimientoMomentos = () => {
                     <span className="aprendiz-nombre">
                       <i className="fas fa-user" /> {ap.nombre}
                     </span>
-                    <button 
-                      className="btn-ver-detalle-aprendiz"
-                      onClick={() => handleVerDetalle(ap)}
-                    >
+                    <button className="btn-ver-detalle-aprendiz" onClick={() => handleVerDetalle(ap)}>
                       <i className="fas fa-eye" /> Ver
                     </button>
                   </div>
@@ -226,7 +173,6 @@ const SeguimientoMomentos = () => {
           )}
         </div>
 
-        {/* MODAL DE DETALLE DEL APRENDIZ */}
         {aprendizModal && (
           <div className="modal-overlay" onClick={handleCerrarModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -241,10 +187,7 @@ const SeguimientoMomentos = () => {
                 <p>{aprendizModal.seguimiento}</p>
               </div>
               <div className="modal-actions">
-                <button 
-                  className="btn-cerrar-modal"
-                  onClick={handleCerrarModal}
-                >
+                <button className="btn-cerrar-modal" onClick={handleCerrarModal}>
                   Cerrar
                 </button>
               </div>
@@ -264,30 +207,10 @@ const SeguimientoMomentos = () => {
 
     return (
       <div className="momento-detalle-pantalla">
-        {/* MIGA DE PAN - Inicio > Seguimiento por Momentos > Momento */}
-        <nav style={{ 
-          padding: '10px 0', 
-          marginBottom: '10px', 
-          fontSize: '14px',
-          background: 'transparent',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
-          <ol style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            alignItems: 'center', 
-            listStyle: 'none', 
-            margin: 0, 
-            padding: 0, 
-            gap: '4px' 
-          }}>
+        <nav style={{ padding: '10px 0', marginBottom: '10px', fontSize: '14px', background: 'transparent', borderBottom: '1px solid #e5e7eb' }}>
+          <ol style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, gap: '4px' }}>
             <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
-              <span 
-                onClick={goToInicio}
-                style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
-              >
-                Inicio
-              </span>
+              <span onClick={goToInicio} style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}>Inicio</span>
               <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
@@ -305,14 +228,7 @@ const SeguimientoMomentos = () => {
         </div>
 
         <div className="search-container">
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="Buscar ficha..." 
-            value={searchTermFichas}
-            onChange={(e) => setSearchTermFichas(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchFichas()}
-          />
+          <input type="text" className="search-input" placeholder="Buscar ficha..." value={searchTermFichas} onChange={(e) => setSearchTermFichas(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchFichas()} />
           <button className="btn-search" onClick={handleSearchFichas}>Buscar</button>
           <button className="btn-clear" onClick={handleClearFichas}>Limpiar</button>
         </div>
@@ -322,11 +238,7 @@ const SeguimientoMomentos = () => {
             <p className="sin-registros">No se encontraron fichas con esos datos.</p>
           ) : (
             filteredFichas.map((f) => (
-              <div
-                key={f.idFicha}
-                className="ficha-card-click"
-                onClick={() => handleVerFicha(f.idFicha)}
-              >
+              <div key={f.idFicha} className="ficha-card-click" onClick={() => handleVerFicha(f.idFicha)}>
                 <div className="ficha-card-header">
                   <span className="ficha-numero">{f.idFicha}</span>
                   <span className="ficha-cantidad">{f.aprendices.length} aprendices</span>
@@ -345,30 +257,10 @@ const SeguimientoMomentos = () => {
   // --- Renderizado NIVEL 1: Tarjetas de los momentos ---
   return (
     <div className="momentos-container">
-      {/* MIGA DE PAN - Inicio > Seguimiento por Momentos */}
-      <nav style={{ 
-        padding: '10px 0', 
-        marginBottom: '15px', 
-        fontSize: '14px',
-        background: 'transparent',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <ol style={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          alignItems: 'center', 
-          listStyle: 'none', 
-          margin: 0, 
-          padding: 0, 
-          gap: '4px' 
-        }}>
+      <nav style={{ padding: '10px 0', marginBottom: '15px', fontSize: '14px', background: 'transparent', borderBottom: '1px solid #e5e7eb' }}>
+        <ol style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, gap: '4px' }}>
           <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
-            <span 
-              onClick={goToInicio}
-              style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}
-            >
-              Inicio
-            </span>
+            <span onClick={goToInicio} style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}>Inicio</span>
             <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
           </li>
           <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>
@@ -384,11 +276,7 @@ const SeguimientoMomentos = () => {
 
       <div className="momentos-grid">
         {momentos.map((momento) => (
-          <div
-            key={momento.id}
-            className="momento-card-link"
-            onClick={() => handleVerMomento(momento.id)}
-          >
+          <div key={momento.id} className="momento-card-link" onClick={() => handleVerMomento(momento.id)}>
             <div className="momento-card-header">
               <h3>{momento.titulo}</h3>
               <span className="momento-cantidad">{momento.fichas.length} fichas</span>

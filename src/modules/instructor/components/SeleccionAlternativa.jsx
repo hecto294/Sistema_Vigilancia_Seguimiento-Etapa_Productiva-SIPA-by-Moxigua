@@ -1,8 +1,10 @@
 // src/modules/instructor/components/SeleccionAlternativa.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Breadcrumb from '../../shared/components/Breadcrumb';
+import { apiClient } from '@/core/api/client';
+import { showSuccess, showError } from '@/core/utils/sweetAlert';
 import './SeleccionAlternativa.css';
 
 const SeleccionAlternativa = () => {
@@ -16,7 +18,13 @@ const SeleccionAlternativa = () => {
   const [filtroAlternativa, setFiltroAlternativa] = useState('');
   const [filtroDropdownVisible, setFiltroDropdownVisible] = useState(false);
 
-  // Estado para el modal de asignación
+  const [data, setData] = useState([]);
+  const [modalidades, setModalidades] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
+  const [aprendicesDisponibles, setAprendicesDisponibles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [mostrarModalAsignacion, setMostrarModalAsignacion] = useState(false);
   const [aprendizSeleccionado, setAprendizSeleccionado] = useState(null);
   const [formAsignacion, setFormAsignacion] = useState({
@@ -27,45 +35,50 @@ const SeleccionAlternativa = () => {
     estado: 'Activo'
   });
 
-  // ✅ ALTERNATIVAS DISPONIBLES (fijas)
-  const alternativasDisponibles = [
-    'Contrato de Aprendizaje',
-    'Vínculo Formativo (Pasantía)',
-    'Proyecto Productivo',
-    'Monitoria',
-    'Vínculo Laboral'
-  ];
+  // Modal nuevo aprendiz
+  const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false);
+  const [formNuevo, setFormNuevo] = useState({
+    aprendiz_id: '',
+    modalidad_id: '',
+    empresa_id: '',
+    fecha_inicio: '',
+    fecha_fin: ''
+  });
 
-  // Datos de ejemplo
-  const [data, setData] = useState([
-    {
-      idFicha: '2875901',
-      programa: 'Análisis y Desarrollo de Software',
-      aprendices: [
-        { nombre: 'Laura Sofia Martinez', alternativa: 'Contrato de Aprendizaje', empresa: { nombre: 'TechSoft S.A.S.', nit: '900.123.456-7', arl: 'SURA', fechaInicio: '01/03/2025', fechaFin: '28/02/2026', estado: 'Activo' } },
-        { nombre: 'Juan Diego Ramirez', alternativa: 'Vínculo Formativo (Pasantía)', empresa: { nombre: 'Innovar Solutions', nit: '900.987.654-3', arl: 'Positiva', fechaInicio: '15/04/2025', fechaFin: '14/04/2026', estado: 'Activo' } },
-        { nombre: 'Maria Camila Torres', alternativa: 'Monitoria', empresa: null },
-        { nombre: 'Andres Felipe Gomez', alternativa: null, empresa: null },
-        { nombre: 'Diana Carolina Ruiz', alternativa: null, empresa: null },
-      ]
-    },
-    {
-      idFicha: '2875902',
-      programa: 'Gestión Empresarial',
-      aprendices: [
-        { nombre: 'Carlos Mendoza', alternativa: 'Proyecto Productivo', empresa: { nombre: 'Global Services LTDA', nit: '901.111.222-3', arl: 'Colmena', fechaInicio: '10/01/2025', fechaFin: '09/01/2026', estado: 'Activo' } },
-        { nombre: 'Valentina Rojas', alternativa: 'Vínculo Laboral', empresa: { nombre: 'DataTech Colombia', nit: '901.333.444-5', arl: 'SURA', fechaInicio: '20/02/2025', fechaFin: '19/02/2026', estado: 'Inactivo' } },
-        { nombre: 'Andrés Felipe Castro', alternativa: 'Contrato de Aprendizaje', empresa: { nombre: 'Soluciones Web SAS', nit: '901.555.666-7', arl: 'Positiva', fechaInicio: '05/05/2025', fechaFin: '04/05/2026', estado: 'Activo' } },
-        { nombre: 'Luis Fernando Torres', alternativa: null, empresa: null },
-      ]
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const stored = localStorage.getItem('user');
+      const instructor = stored ? JSON.parse(stored) : null;
+      const instructorId = instructor && instructor.id;
+      if (!instructorId) throw new Error('No se encontro el instructor logueado');
+
+      const [dataFichas, dataModalidades, dataEmpresas, dataDisponibles] = await Promise.all([
+        apiClient.get('/instructor/seleccion-alternativa/' + instructorId),
+        apiClient.get('/instructor/modalidades').catch(() => []),
+        apiClient.get('/instructor/empresas/' + instructorId).catch(() => []),
+        apiClient.get('/instructor/aprendices-disponibles/' + instructorId).catch(() => [])
+      ]);
+
+      setData(Array.isArray(dataFichas) ? dataFichas : []);
+      setModalidades(Array.isArray(dataModalidades) ? dataModalidades : []);
+      setEmpresas(Array.isArray(dataEmpresas) ? dataEmpresas : []);
+      setAprendicesDisponibles(Array.isArray(dataDisponibles) ? dataDisponibles : []);
+    } catch (err) {
+      console.error('Error al cargar datos:', err);
+      setError(err.message || 'Error al cargar seleccion de alternativa');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
+  const alternativasDisponibles = modalidades.map((m) => m.nombre);
   const todasLasAlternativas = [...new Set(data.flatMap(ficha => ficha.aprendices.map(a => a.alternativa)))].filter(Boolean);
-
-  // ==========================================================
-  // FUNCIONES DE NAVEGACIÓN Y BÚSQUEDA
-  // ==========================================================
 
   const handleBack = () => {
     setSelectedFicha(null);
@@ -80,13 +93,9 @@ const SeleccionAlternativa = () => {
 
   const handleSearch = () => setSearchQuery(searchTerm);
   const handleClear = () => { setSearchTerm(''); setSearchQuery(''); setFiltroAlternativa(''); setFiltroDropdownVisible(false); };
-
   const handleSearchAprendiz = () => setSearchAprendizQuery(searchAprendizTerm);
   const handleClearAprendiz = () => { setSearchAprendizTerm(''); setSearchAprendizQuery(''); };
-
-  const toggleEmpresa = (index) => {
-    setEmpresaVisible(empresaVisible === index ? null : index);
-  };
+  const toggleEmpresa = (index) => setEmpresaVisible(empresaVisible === index ? null : index);
 
   const handleCargaMasiva = () => {
     const input = document.createElement('input');
@@ -95,7 +104,13 @@ const SeleccionAlternativa = () => {
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
-        alert(`✅ Archivo "${file.name}" seleccionado correctamente.\n\nIniciando proceso de carga masiva...`);
+        Swal.fire({
+          title: 'Carga Masiva',
+          text: 'Archivo "' + file.name + '" seleccionado. Procesando...',
+          icon: 'info',
+          confirmButtonColor: '#3ca203',
+          timer: 2000
+        });
       }
     };
     input.click();
@@ -106,82 +121,108 @@ const SeleccionAlternativa = () => {
     setFiltroDropdownVisible(false);
   };
 
-  // ==========================================================
-  // FUNCIONES DE ASIGNACIÓN DE ALTERNATIVA
-  // ==========================================================
-
   const handleAsignarAlternativa = (aprendiz) => {
     setAprendizSeleccionado(aprendiz);
-    setFormAsignacion({
-      alternativa: '',
-      empresa: '',
-      fechaInicio: '',
-      fechaFin: '',
-      estado: 'Activo'
-    });
+    setFormAsignacion({ alternativa: '', empresa: '', fechaInicio: '', fechaFin: '', estado: 'Activo' });
     setMostrarModalAsignacion(true);
   };
 
-  const handleGuardarAsignacion = () => {
-    // Actualizar el estado local
-    setData(prevData => {
-      return prevData.map(ficha => {
-        if (ficha.idFicha === selectedFicha.idFicha) {
-          const aprendizIndex = ficha.aprendices.findIndex(a => a.nombre === aprendizSeleccionado.nombre);
-          if (aprendizIndex !== -1) {
-            const aprendizActualizado = { ...ficha.aprendices[aprendizIndex] };
-            aprendizActualizado.alternativa = formAsignacion.alternativa;
-            aprendizActualizado.empresa = {
-              nombre: formAsignacion.empresa,
-              nit: '900.123.456-7',
-              arl: 'SURA',
-              fechaInicio: formAsignacion.fechaInicio,
-              fechaFin: formAsignacion.fechaFin,
-              estado: formAsignacion.estado
-            };
-            const nuevosAprendices = [...ficha.aprendices];
-            nuevosAprendices[aprendizIndex] = aprendizActualizado;
-            return { ...ficha, aprendices: nuevosAprendices };
-          }
-        }
-        return ficha;
-      });
-    });
+  const handleGuardarAsignacion = async () => {
+    if (!formAsignacion.alternativa) { showError('Selecciona una alternativa.'); return; }
+    try {
+      const modalidad = modalidades.find((m) => m.nombre === formAsignacion.alternativa);
+      if (!modalidad) { showError('Modalidad no valida.'); return; }
+      const empresa = empresas.find((e) => e.razon_social === formAsignacion.empresa);
 
-    setMostrarModalAsignacion(false);
-    setAprendizSeleccionado(null);
-    Swal.fire({
-      title: '✅ Alternativa asignada',
-      text: `La alternativa "${formAsignacion.alternativa}" ha sido asignada correctamente.`,
-      icon: 'success',
-      confirmButtonColor: '#3ca203',
-      timer: 2000,
-      timerProgressBar: true
-    });
+      await apiClient.put('/instructor/seleccion-alternativa/asignar/' + aprendizSeleccionado.proceso_id, {
+        proceso_id: aprendizSeleccionado.proceso_id,
+        modalidad_id: modalidad.id,
+        empresa_id: empresa ? empresa.id : null,
+        fecha_inicio: formAsignacion.fechaInicio || null,
+        fecha_fin: formAsignacion.fechaFin || null
+      });
+
+      setMostrarModalAsignacion(false);
+      setAprendizSeleccionado(null);
+      await showSuccess('Alternativa asignada correctamente.', 'Guardado');
+
+      await cargarDatos();
+      if (selectedFicha) {
+        const stored = localStorage.getItem('user');
+        const instructor = stored ? JSON.parse(stored) : null;
+        const nuevasFichas = await apiClient.get('/instructor/seleccion-alternativa/' + instructor.id);
+        const fichaActualizada = nuevasFichas.find((f) => f.ficha_id === selectedFicha.ficha_id);
+        if (fichaActualizada) setSelectedFicha(fichaActualizada);
+      }
+    } catch (err) {
+      console.error('Error al asignar:', err);
+      const msg = (err && err.response && err.response.data && err.response.data.detail) || 'No se pudo asignar.';
+      showError(msg);
+    }
   };
 
   // ==========================================================
-  // FUNCIONES AUXILIARES
+  // AGREGAR APRENDIZ NUEVO
   // ==========================================================
+  const handleAbrirModalNuevo = () => {
+    setFormNuevo({ aprendiz_id: '', modalidad_id: '', empresa_id: '', fecha_inicio: '', fecha_fin: '' });
+    setMostrarModalNuevo(true);
+  };
+
+  const handleGuardarNuevo = async () => {
+    if (!formNuevo.aprendiz_id) { showError('Selecciona un aprendiz.'); return; }
+    if (!formNuevo.modalidad_id) { showError('Selecciona una alternativa.'); return; }
+    if (!formNuevo.fecha_inicio || !formNuevo.fecha_fin) { showError('Las fechas son obligatorias.'); return; }
+
+    try {
+      const stored = localStorage.getItem('user');
+      const instructor = stored ? JSON.parse(stored) : null;
+      const instructorId = instructor && instructor.id;
+
+      await apiClient.post('/instructor/seleccion-alternativa/crear-proceso', {
+        aprendiz_id: parseInt(formNuevo.aprendiz_id),
+        ficha_id: selectedFicha.ficha_id,
+        modalidad_id: parseInt(formNuevo.modalidad_id),
+        empresa_id: formNuevo.empresa_id ? parseInt(formNuevo.empresa_id) : null,
+        fecha_inicio: formNuevo.fecha_inicio,
+        fecha_fin: formNuevo.fecha_fin,
+        instructor_id: instructorId
+      });
+
+      setMostrarModalNuevo(false);
+      await showSuccess('Aprendiz asignado correctamente.', 'Guardado');
+
+      await cargarDatos();
+      // Refrescar ficha actual
+      const nuevasFichas = await apiClient.get('/instructor/seleccion-alternativa/' + instructorId);
+      const fichaActualizada = nuevasFichas.find((f) => f.ficha_id === selectedFicha.ficha_id);
+      if (fichaActualizada) setSelectedFicha(fichaActualizada);
+      else handleBack();
+    } catch (err) {
+      console.error('Error al crear:', err);
+      const msg = (err && err.response && err.response.data && err.response.data.detail) || 'No se pudo crear el proceso.';
+      showError(msg);
+    }
+  };
 
   const getColorAlternativa = (alternativa) => {
     const colores = {
-      'Contrato de Aprendizaje': '#10b981',
-      'Vínculo Formativo (Pasantía)': '#0ea5e9',
+      'Contrato de aprendizaje': '#10b981', 'Contrato de Aprendizaje': '#10b981',
+      'Vinculo formativo (pasantia)': '#0ea5e9', 'Vínculo Formativo (Pasantía)': '#0ea5e9',
       'Monitoria': '#8b5cf6',
-      'Proyecto Productivo': '#f59e0b',
-      'Vínculo Laboral': '#ef4444'
+      'Proyecto productivo': '#f59e0b', 'Proyecto Productivo': '#f59e0b',
+      'Vinculo laboral': '#ef4444', 'Vínculo Laboral': '#ef4444'
     };
     return colores[alternativa] || '#6b7280';
   };
 
   const getIconoAlternativa = (alternativa) => {
     const iconos = {
-      'Contrato de Aprendizaje': 'fa-file-signature',
-      'Vínculo Formativo (Pasantía)': 'fa-handshake',
+      'Contrato de aprendizaje': 'fa-file-signature', 'Contrato de Aprendizaje': 'fa-file-signature',
+      'Vinculo formativo (pasantia)': 'fa-handshake', 'Vínculo Formativo (Pasantía)': 'fa-handshake',
       'Monitoria': 'fa-chalkboard-teacher',
-      'Proyecto Productivo': 'fa-project-diagram',
-      'Vínculo Laboral': 'fa-briefcase'
+      'Proyecto productivo': 'fa-project-diagram', 'Proyecto Productivo': 'fa-project-diagram',
+      'Vinculo laboral': 'fa-briefcase', 'Vínculo Laboral': 'fa-briefcase'
     };
     return iconos[alternativa] || 'fa-tag';
   };
@@ -189,9 +230,7 @@ const SeleccionAlternativa = () => {
   const contarAlternativas = (aprendices) => {
     const conteo = {};
     aprendices.forEach(a => {
-      if (a.alternativa) {
-        conteo[a.alternativa] = (conteo[a.alternativa] || 0) + 1;
-      }
+      if (a.alternativa) conteo[a.alternativa] = (conteo[a.alternativa] || 0) + 1;
     });
     return conteo;
   };
@@ -200,7 +239,7 @@ const SeleccionAlternativa = () => {
     .map(ficha => {
       const aprendicesFiltrados = ficha.aprendices.filter(a =>
         (filtroAlternativa === '' || a.alternativa === filtroAlternativa) &&
-        (searchQuery === '' || 
+        (searchQuery === '' ||
           ficha.idFicha.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ficha.programa.toLowerCase().includes(searchQuery.toLowerCase()) ||
           a.nombre.toLowerCase().includes(searchQuery.toLowerCase())
@@ -210,15 +249,33 @@ const SeleccionAlternativa = () => {
     })
     .filter(ficha => ficha.aprendices.length > 0);
 
-  const goToInicio = () => {
-    navigate('/instructor');
-    window.location.reload();
-  };
+  const goToInicio = () => { navigate('/instructor'); window.location.reload(); };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+        <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
+        <p style={{ marginTop: '15px' }}>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '60px', textAlign: 'center' }}>
+        <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
+        <h3 style={{ color: '#dc2626' }}>Error</h3>
+        <p style={{ color: '#6b7280' }}>{error}</p>
+        <button onClick={cargarDatos} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', marginTop: '15px' }}>
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
   // ==========================================================
   // RENDER: DETALLE DE FICHA
   // ==========================================================
-
   if (selectedFicha) {
     const filteredAprendices = selectedFicha.aprendices.filter(a =>
       a.nombre.toLowerCase().includes(searchAprendizQuery.toLowerCase())
@@ -236,27 +293,34 @@ const SeleccionAlternativa = () => {
             <button className="btn-back" onClick={handleBack}>
               <i className="fas fa-arrow-left"></i> Volver a fichas
             </button>
-            <h2>Ficha {selectedFicha.idFicha} - {selectedFicha.programa}</h2>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-              <span style={{ background: '#10b98120', color: '#10b981', padding: '2px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
-                ✅ {conAlternativa} con alternativa
-              </span>
-              <span style={{ background: '#ef444420', color: '#ef4444', padding: '2px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
-                ⚠️ {sinAlternativa} sin alternativa
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+              <div>
+                <h2>Ficha {selectedFicha.idFicha} - {selectedFicha.programa}</h2>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                  <span style={{ background: '#10b98120', color: '#10b981', padding: '2px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
+                    {conAlternativa} con alternativa
+                  </span>
+                  <span style={{ background: '#ef444420', color: '#ef4444', padding: '2px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
+                    {sinAlternativa} sin alternativa
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={handleAbrirModalNuevo}
+                style={{
+                  background: '#3ca203', color: 'white', border: 'none',
+                  padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+                }}
+              >
+                <i className="fas fa-user-plus" /> Agregar aprendiz
+              </button>
             </div>
           </div>
         </div>
 
         <div className="search-container" style={{ marginBottom: '15px' }}>
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="Buscar aprendiz por nombre..." 
-            value={searchAprendizTerm}
-            onChange={(e) => setSearchAprendizTerm(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchAprendiz()}
-          />
+          <input type="text" className="search-input" placeholder="Buscar aprendiz por nombre..." value={searchAprendizTerm} onChange={(e) => setSearchAprendizTerm(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchAprendiz()} />
           <button className="btn-search" onClick={handleSearchAprendiz}>Buscar</button>
           <button className="btn-clear" onClick={handleClearAprendiz}>Limpiar</button>
         </div>
@@ -269,7 +333,7 @@ const SeleccionAlternativa = () => {
                   <th>#</th>
                   <th>Aprendiz</th>
                   <th>Alternativa Seleccionada</th>
-                  <th style={{ textAlign: 'center' }}>Acción</th>
+                  <th style={{ textAlign: 'center' }}>Accion</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,12 +351,12 @@ const SeleccionAlternativa = () => {
                       </td>
                       <td>
                         {aprendiz.alternativa ? (
-                          <span className="alternativa-badge" style={{ 
-                            background: `${getColorAlternativa(aprendiz.alternativa)}20`,
+                          <span className="alternativa-badge" style={{
+                            background: getColorAlternativa(aprendiz.alternativa) + '20',
                             color: getColorAlternativa(aprendiz.alternativa),
-                            border: `1px solid ${getColorAlternativa(aprendiz.alternativa)}`
+                            border: '1px solid ' + getColorAlternativa(aprendiz.alternativa)
                           }}>
-                            <i className={`fas ${getIconoAlternativa(aprendiz.alternativa)}`} style={{ marginRight: '6px' }} />
+                            <i className={'fas ' + getIconoAlternativa(aprendiz.alternativa)} style={{ marginRight: '6px' }} />
                             {aprendiz.alternativa}
                           </span>
                         ) : (
@@ -303,25 +367,12 @@ const SeleccionAlternativa = () => {
                         )}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        {aprendiz.alternativa ? (
+                        {aprendiz.alternativa && aprendiz.empresa ? (
                           <button className="btn-asociacion" onClick={() => toggleEmpresa(index)} style={{ marginRight: '8px' }}>
                             <i className="fas fa-building"></i> Empresa
                           </button>
                         ) : (
-                          <button 
-                            className="btn-asignar" 
-                            onClick={() => handleAsignarAlternativa(aprendiz)}
-                            style={{
-                              background: '#3ca203',
-                              color: 'white',
-                              border: 'none',
-                              padding: '6px 14px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '13px',
-                              fontWeight: '500'
-                            }}
-                          >
+                          <button className="btn-asignar" onClick={() => handleAsignarAlternativa(aprendiz)} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
                             <i className="fas fa-plus"></i> Asignar
                           </button>
                         )}
@@ -333,11 +384,11 @@ const SeleccionAlternativa = () => {
                           <div className="empresa-panel">
                             <div className="empresa-info-grid">
                               <div className="empresa-item"><span className="empresa-label">Empresa</span><span className="empresa-value">{aprendiz.empresa.nombre}</span></div>
-                              <div className="empresa-item"><span className="empresa-label">NIT</span><span className="empresa-value">{aprendiz.empresa.nit}</span></div>
-                              <div className="empresa-item"><span className="empresa-label">ARL</span><span className="empresa-value">{aprendiz.empresa.arl}</span></div>
-                              <div className="empresa-item"><span className="empresa-label">Fecha de inicio</span><span className="empresa-value">{aprendiz.empresa.fechaInicio}</span></div>
-                              <div className="empresa-item"><span className="empresa-label">Fecha fin</span><span className="empresa-value">{aprendiz.empresa.fechaFin}</span></div>
-                              <div className="empresa-item"><span className="empresa-label">Estado</span><span className={`empresa-status ${aprendiz.empresa.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>{aprendiz.empresa.estado}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">NIT</span><span className="empresa-value">{aprendiz.empresa.nit || '--'}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">ARL</span><span className="empresa-value">{aprendiz.empresa.arl || '--'}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">Fecha de inicio</span><span className="empresa-value">{aprendiz.empresa.fecha_inicio || '--'}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">Fecha fin</span><span className="empresa-value">{aprendiz.empresa.fecha_fin || '--'}</span></div>
+                              <div className="empresa-item"><span className="empresa-label">Estado</span><span className={'empresa-status ' + (aprendiz.empresa.estado === 'ACTIVO' ? 'status-activo' : 'status-inactivo')}>{aprendiz.empresa.estado}</span></div>
                             </div>
                           </div>
                         </td>
@@ -350,88 +401,52 @@ const SeleccionAlternativa = () => {
           </div>
         </div>
 
-        {/* MODAL DE ASIGNACIÓN DE ALTERNATIVA */}
-        {mostrarModalAsignacion && (
-          <div className="modal-overlay" style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000
-          }}>
-            <div className="modal-content" style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '32px',
-              width: '100%',
-              maxWidth: '550px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px',
-                paddingBottom: '16px',
-                borderBottom: '2px solid #e5e7eb'
-              }}>
+        {/* MODAL: AGREGAR APRENDIZ */}
+        {mostrarModalNuevo && (
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div className="modal-content" style={{ background: 'white', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '550px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid #e5e7eb' }}>
                 <h3 style={{ margin: 0, fontSize: '18px' }}>
-                  <i className="fas fa-plus-circle" style={{ color: '#3ca203', marginRight: '8px' }} />
-                  Asignar Alternativa
+                  <i className="fas fa-user-plus" style={{ color: '#3ca203', marginRight: '8px' }} />
+                  Agregar Aprendiz a Ficha
                 </h3>
-                <button
-                  onClick={() => setMostrarModalAsignacion(false)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    color: '#6b7280'
-                  }}
-                >
+                <button onClick={() => setMostrarModalNuevo(false)} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}>
                   <i className="fas fa-times" />
                 </button>
               </div>
 
               <div style={{ marginBottom: '20px' }}>
                 <p style={{ margin: 0, fontSize: '14px', color: '#6b7280' }}>
-                  <strong>Aprendiz:</strong> {aprendizSeleccionado?.nombre}
-                </p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
-                  <strong>Ficha:</strong> {selectedFicha.idFicha}
-                </p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#ef4444' }}>
-                  <strong>Estado actual:</strong> Sin alternativa asignada
+                  <strong>Ficha:</strong> {selectedFicha.idFicha} - {selectedFicha.programa}
                 </p>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>
+                    Aprendiz <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <select value={formNuevo.aprendiz_id} onChange={(e) => setFormNuevo({ ...formNuevo, aprendiz_id: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }}>
+                    <option value="">Seleccionar aprendiz</option>
+                    {aprendicesDisponibles.map(ap => (
+                      <option key={ap.id} value={ap.id}>{ap.nombre} - {ap.documento_identidad || 'Sin doc'}</option>
+                    ))}
+                  </select>
+                  {aprendicesDisponibles.length === 0 && (
+                    <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                      No hay aprendices disponibles sin asignar
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>
                     Alternativa <span style={{ color: '#ef4444' }}>*</span>
                   </label>
-                  <select
-                    value={formAsignacion.alternativa}
-                    onChange={(e) => setFormAsignacion({...formAsignacion, alternativa: e.target.value})}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      outline: 'none'
-                    }}
-                  >
+                  <select value={formNuevo.modalidad_id} onChange={(e) => setFormNuevo({ ...formNuevo, modalidad_id: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }}>
                     <option value="">Seleccionar alternativa</option>
-                    {alternativasDisponibles.map(alt => (
-                      <option key={alt} value={alt}>{alt}</option>
+                    {modalidades.map(m => (
+                      <option key={m.id} value={m.id}>{m.nombre}</option>
                     ))}
                   </select>
                 </div>
@@ -440,125 +455,105 @@ const SeleccionAlternativa = () => {
                   <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>
                     Empresa
                   </label>
-                  <select
-                    value={formAsignacion.empresa}
-                    onChange={(e) => setFormAsignacion({...formAsignacion, empresa: e.target.value})}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="">Seleccionar empresa</option>
-                    <option value="TechSoft S.A.S.">TechSoft S.A.S.</option>
-                    <option value="Innovar Solutions">Innovar Solutions</option>
-                    <option value="Global Services LTDA">Global Services LTDA</option>
-                    <option value="DataTech Colombia">DataTech Colombia</option>
-                    <option value="Soluciones Web SAS">Soluciones Web SAS</option>
+                  <select value={formNuevo.empresa_id} onChange={(e) => setFormNuevo({ ...formNuevo, empresa_id: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }}>
+                    <option value="">Seleccionar empresa (opcional)</option>
+                    {empresas.map(emp => (
+                      <option key={emp.id} value={emp.id}>{emp.razon_social}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>
-                      Fecha Inicio
+                      Fecha Inicio <span style={{ color: '#ef4444' }}>*</span>
                     </label>
-                    <input
-                      type="date"
-                      value={formAsignacion.fechaInicio}
-                      onChange={(e) => setFormAsignacion({...formAsignacion, fechaInicio: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none'
-                      }}
-                    />
+                    <input type="date" value={formNuevo.fecha_inicio} onChange={(e) => setFormNuevo({ ...formNuevo, fecha_inicio: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }} />
                   </div>
                   <div>
                     <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>
-                      Fecha Fin
+                      Fecha Fin <span style={{ color: '#ef4444' }}>*</span>
                     </label>
-                    <input
-                      type="date"
-                      value={formAsignacion.fechaFin}
-                      onChange={(e) => setFormAsignacion({...formAsignacion, fechaFin: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none'
-                      }}
-                    />
+                    <input type="date" value={formNuevo.fecha_fin} onChange={(e) => setFormNuevo({ ...formNuevo, fecha_fin: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }} />
                   </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>
-                    Estado
-                  </label>
-                  <select
-                    value={formAsignacion.estado}
-                    onChange={(e) => setFormAsignacion({...formAsignacion, estado: e.target.value})}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Finalizado">Finalizado</option>
-                  </select>
                 </div>
               </div>
 
-              <div style={{
-                display: 'flex',
-                gap: '10px',
-                marginTop: '24px',
-                paddingTop: '16px',
-                borderTop: '1px solid #e5e7eb',
-                justifyContent: 'flex-end'
-              }}>
-                <button
-                  onClick={() => setMostrarModalAsignacion(false)}
-                  style={{
-                    background: '#e5e7eb',
-                    border: 'none',
-                    padding: '10px 24px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}
-                >
+              <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb', justifyContent: 'flex-end' }}>
+                <button onClick={() => setMostrarModalNuevo(false)} style={{ background: '#e5e7eb', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', fontSize: '14px' }}>
                   Cancelar
                 </button>
-                <button
-                  onClick={handleGuardarAsignacion}
-                  style={{
-                    background: '#3ca203',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 24px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '14px'
-                  }}
-                >
+                <button onClick={handleGuardarNuevo} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}>
+                  <i className="fas fa-save" /> Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: ASIGNAR (existente) */}
+        {mostrarModalAsignacion && (
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div className="modal-content" style={{ background: 'white', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '550px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid #e5e7eb' }}>
+                <h3 style={{ margin: 0, fontSize: '18px' }}>
+                  <i className="fas fa-plus-circle" style={{ color: '#3ca203', marginRight: '8px' }} />
+                  Asignar Alternativa
+                </h3>
+                <button onClick={() => setMostrarModalAsignacion(false)} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}>
+                  <i className="fas fa-times" />
+                </button>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <p style={{ margin: 0, fontSize: '14px', color: '#6b7280' }}>
+                  <strong>Aprendiz:</strong> {aprendizSeleccionado && aprendizSeleccionado.nombre}
+                </p>
+                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+                  <strong>Ficha:</strong> {selectedFicha.idFicha}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>
+                    Alternativa <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <select value={formAsignacion.alternativa} onChange={(e) => setFormAsignacion({ ...formAsignacion, alternativa: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }}>
+                    <option value="">Seleccionar alternativa</option>
+                    {alternativasDisponibles.map(alt => (
+                      <option key={alt} value={alt}>{alt}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>Empresa</label>
+                  <select value={formAsignacion.empresa} onChange={(e) => setFormAsignacion({ ...formAsignacion, empresa: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }}>
+                    <option value="">Seleccionar empresa</option>
+                    {empresas.map(emp => (
+                      <option key={emp.id} value={emp.razon_social}>{emp.razon_social}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>Fecha Inicio</label>
+                    <input type="date" value={formAsignacion.fechaInicio} onChange={(e) => setFormAsignacion({ ...formAsignacion, fechaInicio: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '4px' }}>Fecha Fin</label>
+                    <input type="date" value={formAsignacion.fechaFin} onChange={(e) => setFormAsignacion({ ...formAsignacion, fechaFin: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', outline: 'none' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb', justifyContent: 'flex-end' }}>
+                <button onClick={() => setMostrarModalAsignacion(false)} style={{ background: '#e5e7eb', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', fontSize: '14px' }}>
+                  Cancelar
+                </button>
+                <button onClick={handleGuardarAsignacion} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}>
                   <i className="fas fa-save" /> Guardar
                 </button>
               </div>
@@ -572,92 +567,44 @@ const SeleccionAlternativa = () => {
   // ==========================================================
   // RENDER: VISTA PRINCIPAL
   // ==========================================================
-
   return (
     <div className="seleccion-container">
-      <nav style={{ padding: '10px 0', marginBottom: '15px', fontSize: '14px', background: 'transparent', borderBottom: '1px solid #e5e7eb' }}>
-        <ol style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, gap: '4px' }}>
-          <li style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '14px' }}>
-            <span onClick={goToInicio} style={{ color: '#3ca203', textDecoration: 'none', fontWeight: '500', cursor: 'pointer' }}>Inicio</span>
-            <span style={{ margin: '0 4px', color: '#9ca3af' }}> &gt; </span>
-          </li>
-          <li style={{ display: 'flex', alignItems: 'center', color: '#1f2937', fontSize: '14px', fontWeight: '600' }}>Selección de Alternativa</li>
-        </ol>
-      </nav>
+      <Breadcrumb />
 
       <div className="seleccion-header">
         <div className="header-top-row">
           <div>
-            <h2>Selección de Alternativa</h2>
-            <p className="subtitulo">Selecciona una ficha para ver qué alternativa eligieron los aprendices.</p>
+            <h2>Seleccion de Alternativa</h2>
+            <p className="subtitulo">Selecciona una ficha para ver que alternativa eligieron los aprendices.</p>
           </div>
-          {/* ✅ SOLO BOTÓN DE CARGA MASIVA (verde) */}
-          <button 
-            className="btn-carga-masiva" 
-            onClick={handleCargaMasiva}
-            style={{
-              background: '#3ca203',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#2d8a00'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#3ca203'}
-          >
+          <button className="btn-carga-masiva" onClick={handleCargaMasiva} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <i className="fas fa-upload" /> Carga Masiva
           </button>
         </div>
       </div>
 
-      {/* BARRA DE BÚSQUEDA CON FILTRO */}
       <div className="search-container">
-        <input 
-          type="text" 
-          className="search-input" 
-          placeholder="Buscar por código de ficha o programa..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-        />
+        <input type="text" className="search-input" placeholder="Buscar por codigo de ficha o programa..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} />
         <button className="btn-search" onClick={handleSearch}>Buscar</button>
         <button className="btn-clear" onClick={handleClear}>Limpiar</button>
 
         <div className="filtro-dropdown-wrapper">
-          <button 
-            className="btn-filtro-verde"
-            onClick={() => setFiltroDropdownVisible(!filtroDropdownVisible)}
-          >
+          <button className="btn-filtro-verde" onClick={() => setFiltroDropdownVisible(!filtroDropdownVisible)}>
             <i className="fas fa-filter" />
             Filtrar
-            <i className={`fas fa-chevron-down ${filtroDropdownVisible ? 'rotate' : ''}`} />
+            <i className={'fas fa-chevron-down ' + (filtroDropdownVisible ? 'rotate' : '')} />
           </button>
           {filtroDropdownVisible && (
             <div className="filtro-dropdown-menu">
-              <div className="filtro-dropdown-header">
-                <span>Filtrar por alternativa</span>
-              </div>
+              <div className="filtro-dropdown-header"><span>Filtrar por alternativa</span></div>
               <div className="filtro-dropdown-options">
-                <div 
-                  className={`filtro-dropdown-option ${filtroAlternativa === '' ? 'active' : ''}`}
-                  onClick={() => handleFiltroAlternativa('')}
-                >
+                <div className={'filtro-dropdown-option ' + (filtroAlternativa === '' ? 'active' : '')} onClick={() => handleFiltroAlternativa('')}>
                   <i className="fas fa-th-list" />
                   Todas las alternativas
                   {filtroAlternativa === '' && <i className="fas fa-check filtro-check" />}
                 </div>
                 {todasLasAlternativas.map(alt => (
-                  <div 
-                    key={alt}
-                    className={`filtro-dropdown-option ${filtroAlternativa === alt ? 'active' : ''}`}
-                    onClick={() => handleFiltroAlternativa(alt)}
-                  >
+                  <div key={alt} className={'filtro-dropdown-option ' + (filtroAlternativa === alt ? 'active' : '')} onClick={() => handleFiltroAlternativa(alt)}>
                     <span className="filtro-dropdown-dot" style={{ background: getColorAlternativa(alt) }} />
                     {alt}
                     {filtroAlternativa === alt && <i className="fas fa-check filtro-check" />}
@@ -669,12 +616,11 @@ const SeleccionAlternativa = () => {
         </div>
       </div>
 
-      {/* TARJETAS DE FICHAS */}
       <div className="fichas-grid">
         {filteredFichas.length === 0 ? (
           <div className="not-found" style={{ gridColumn: '1 / -1' }}>
             <h2><i className="fas fa-exclamation-circle"></i> Dato no encontrado</h2>
-            <p>No existe ninguna ficha con el criterio de búsqueda seleccionado.</p>
+            <p>No existe ninguna ficha con el criterio de busqueda seleccionado.</p>
           </div>
         ) : (
           filteredFichas.map((ficha) => {
@@ -692,7 +638,7 @@ const SeleccionAlternativa = () => {
                   <span className="ficha-programa">{ficha.programa}</span>
                 </div>
                 <div className="ficha-alternativas-resumen">
-                  {Object.entries(conteo).length > 0 ? (
+                  {Object.entries(conteo).length > 0 || sinAlternativa > 0 ? (
                     <>
                       {Object.entries(conteo).map(([alt, cantidad]) => {
                         const porcentaje = totalAprendices > 0 ? Math.round((cantidad / totalAprendices) * 100) : 0;
