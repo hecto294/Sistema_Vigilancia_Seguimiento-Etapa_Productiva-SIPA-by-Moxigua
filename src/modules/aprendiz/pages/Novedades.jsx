@@ -1,30 +1,88 @@
 // src/modules/aprendiz/pages/Novedades.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import Breadcrumb from '../../shared/components/Breadcrumb'; // ← Import agregado
+import Breadcrumb from '../../shared/components/Breadcrumb';
+import { apiClient } from '@/core/api/client';
+import { validarPdf } from '@/core/utils/validarPdf';
 
 const Novedades = () => {
-  const [novedades, setNovedades] = useState([
-    {
-      id: 1,
-      titulo: 'Incapacidad médica',
-      descripcion: 'Presento incapacidad médica del 12 al 15 de septiembre. Adjunto certificado.',
-      fecha: '10/09/2026',
-      tipo: 'Incapacidad médica',
-      estado: 'Pendiente',
-      archivo: 'incapacidad.pdf'
-    },
-    {
-      id: 2,
-      titulo: 'Cambio de horario en la empresa',
-      descripcion: 'La empresa solicita cambio de horario de 8:00 am a 10:00 am.',
-      fecha: '05/09/2026',
-      tipo: 'Cambio de horario',
-      estado: 'Aprobada',
-      archivo: 'cambio_horario.pdf'
-    }
-  ]);
+  const [novedades, setNovedades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // ==========================================================
+  // CARGAR NOVEDADES DEL BACKEND
+  // ==========================================================
+  useEffect(() => {
+    cargarNovedades();
+  }, []);
+
+  const cargarNovedades = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await apiClient.get('/usuarios/me/novedades');
+      console.log('📢 Novedades reales:', data);
+
+      const novedadesFormateadas = (data.novedades || []).map(n => ({
+        id: n.id,
+        titulo: tituloDesdeTipo(n.tipo),
+        descripcion: n.descripcion,
+        fecha: formatearFecha(n.fecha),
+        tipo: tipoBonito(n.tipo),
+        estado: n.estado || 'Pendiente',
+        archivo: n.archivo,
+        documento_soporte_url: n.documento_soporte_url,
+      }));
+
+      setNovedades(novedadesFormateadas);
+    } catch (err) {
+      console.error('Error al cargar novedades:', err);
+      setError(err.message || 'Error al cargar las novedades');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helpers
+  const tituloDesdeTipo = (tipo) => {
+    const map = {
+      RENUNCIA: 'Renuncia',
+      INCAPACIDAD: 'Incapacidad médica',
+      CAMBIO_EMPRESA: 'Cambio de empresa',
+      PRORROGA: 'Prórroga',
+      OTRO: 'Otra novedad',
+    };
+    return map[tipo] || tipo;
+  };
+
+  const tipoBonito = (tipo) => {
+    const map = {
+      RENUNCIA: 'Renuncia',
+      INCAPACIDAD: 'Incapacidad médica',
+      CAMBIO_EMPRESA: 'Cambio de empresa',
+      PRORROGA: 'Prórroga',
+      OTRO: 'Otro',
+    };
+    return map[tipo] || tipo;
+  };
+
+  const formatearFecha = (fechaStr) => {
+    if (!fechaStr) return '—';
+    try {
+      const d = new Date(fechaStr);
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const anio = d.getFullYear();
+      return `${dia}/${mes}/${anio}`;
+    } catch {
+      return fechaStr;
+    }
+  };
+
+  // ==========================================================
+  // REPORTAR NUEVA NOVEDAD
+  // ==========================================================
   const handleNuevaNovedad = () => {
     Swal.fire({
       title: '📢 Reportar Novedad',
@@ -35,19 +93,12 @@ const Novedades = () => {
               <i class="fas fa-tags" style="color: #3ca203; margin-right: 8px;"></i> Tipo de Novedad *
             </label>
             <select id="tipoNovedad" class="swal2-select" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
-              <option value="Incapacidad médica">Incapacidad médica</option>
-              <option value="Excusa médica">Excusa médica</option>
-              <option value="Falta justificada">Falta justificada</option>
-              <option value="Cambio de horario">Cambio de horario</option>
-              <option value="No puedo continuar">No puedo continuar</option>
-              <option value="Otro">Otro</option>
+              <option value="INCAPACIDAD">Incapacidad médica</option>
+              <option value="RENUNCIA">Renuncia</option>
+              <option value="CAMBIO_EMPRESA">Cambio de empresa</option>
+              <option value="PRORROGA">Prórroga</option>
+              <option value="OTRO">Otro</option>
             </select>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-heading" style="color: #3ca203; margin-right: 8px;"></i> Título de la novedad *
-            </label>
-            <input id="tituloNovedad" class="swal2-input" placeholder="Ej: Incapacidad médica" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
@@ -57,9 +108,12 @@ const Novedades = () => {
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1f2937; font-size: 14px;">
-              <i class="fas fa-paperclip" style="color: #3ca203; margin-right: 8px;"></i> Adjuntar evidencia (opcional)
+              <i class="fas fa-paperclip" style="color: #3ca203; margin-right: 8px;"></i> Adjuntar evidencia (PDF - opcional)
             </label>
-            <input type="file" id="archivoNovedad" class="swal2-file" accept=".pdf,.jpg,.png" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px;">
+            <input type="file" id="archivoNovedad" class="swal2-file" accept="application/pdf" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px;">
+            <p id="archivoNovedad-error" style="font-size: 12px; color: #dc2626; margin: 4px 0 0 0; display: none; font-weight: 600;">
+              ❌ Solo se permiten archivos PDF
+            </p>
           </div>
         </div>
       `,
@@ -69,37 +123,58 @@ const Novedades = () => {
       cancelButtonColor: '#6b7280',
       showCancelButton: true,
       width: '520px',
-      preConfirm: () => {
+
+      didOpen: () => {
+        const input = document.getElementById('archivoNovedad');
+        const errorMsg = document.getElementById('archivoNovedad-error');
+        if (input) {
+          input.value = '';
+          if (errorMsg) errorMsg.style.display = 'none';
+          input.addEventListener('change', async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            const r = await validarPdf(f, 5);
+            if (!r.ok) {
+              if (errorMsg) { errorMsg.textContent = r.msg; errorMsg.style.display = 'block'; }
+              input.value = '';
+            } else {
+              if (errorMsg) errorMsg.style.display = 'none';
+            }
+          });
+        }
+      },
+
+      preConfirm: async () => {
         const tipo = document.getElementById('tipoNovedad').value;
-        const titulo = document.getElementById('tituloNovedad').value.trim();
         const descripcion = document.getElementById('descripcionNovedad').value.trim();
-        const archivo = document.getElementById('archivoNovedad').files[0];
+        const archivoInput = document.getElementById('archivoNovedad');
+        const archivo = archivoInput.files[0];
 
         if (!tipo) {
           Swal.showValidationMessage('⚠️ Por favor selecciona el tipo de novedad');
-          return false;
-        }
-        if (!titulo) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa el título');
           return false;
         }
         if (!descripcion) {
           Swal.showValidationMessage('⚠️ Por favor ingresa la justificación');
           return false;
         }
+        if (archivo) {
+          const r = await validarPdf(archivo, 5);
+          if (!r.ok) { Swal.showValidationMessage(r.msg); return false; }
+        }
 
-        return { tipo, titulo, descripcion, archivo: archivo ? archivo.name : null };
+        return { tipo, descripcion, archivo: archivo ? archivo.name : null };
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const nuevaNovedad = {
           id: Date.now(),
-          titulo: result.value.titulo,
+          titulo: tituloDesdeTipo(result.value.tipo),
           descripcion: result.value.descripcion,
-          tipo: result.value.tipo,
-          fecha: new Date().toLocaleDateString('es-ES'),
+          tipo: tipoBonito(result.value.tipo),
+          fecha: formatearFecha(new Date()),
           estado: 'Pendiente',
-          archivo: result.value.archivo
+          archivo: result.value.archivo,
         };
 
         setNovedades([nuevaNovedad, ...novedades]);
@@ -115,6 +190,9 @@ const Novedades = () => {
     });
   };
 
+  // ==========================================================
+  // VER ARCHIVO
+  // ==========================================================
   const handleVerArchivo = (novedad) => {
     if (!novedad.archivo) {
       Swal.fire({
@@ -123,6 +201,16 @@ const Novedades = () => {
         icon: 'warning',
         confirmButtonColor: '#f59e0b'
       });
+      return;
+    }
+
+    // Si hay URL real, abrirla
+    if (novedad.documento_soporte_url) {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const url = novedad.documento_soporte_url.startsWith('http')
+        ? novedad.documento_soporte_url
+        : `${baseUrl}${novedad.documento_soporte_url}`;
+      window.open(url, '_blank');
       return;
     }
 
@@ -140,21 +228,13 @@ const Novedades = () => {
             </div>
           </div>
           <div style="margin-bottom: 10px;">
-            <p style="margin: 0; font-size: 13px; color: #6b7280;">
-              <strong>Tipo:</strong> ${novedad.tipo}
-            </p>
-            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">
-              <strong>Novedad:</strong> ${novedad.titulo}
-            </p>
-            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">
-              <strong>Fecha:</strong> ${novedad.fecha}
-            </p>
-            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">
-              <strong>Estado:</strong> ${novedad.estado}
-            </p>
+            <p style="margin: 0; font-size: 13px; color: #6b7280;"><strong>Tipo:</strong> ${novedad.tipo}</p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;"><strong>Novedad:</strong> ${novedad.titulo}</p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;"><strong>Fecha:</strong> ${novedad.fecha}</p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;"><strong>Estado:</strong> ${novedad.estado}</p>
           </div>
           <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #e5e7eb; text-align: center; font-size: 13px; color: #9ca3af;">
-            <i class="fas fa-info-circle"></i> Haz clic en "Descargar" para obtener el archivo
+            <i class="fas fa-info-circle"></i> El archivo aún no está disponible en el servidor
           </div>
         </div>
       `,
@@ -191,6 +271,43 @@ const Novedades = () => {
     return 'fa-clock';
   };
 
+  // ==========================================================
+  // RENDER: LOADING / ERROR
+  // ==========================================================
+  if (loading) {
+    return (
+      <div className="novedades-container" style={{ width: '100%', padding: '20px 0' }}>
+        <Breadcrumb />
+        <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+          <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
+          <p style={{ marginTop: '15px' }}>Cargando novedades...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="novedades-container" style={{ width: '100%', padding: '20px 0' }}>
+        <Breadcrumb />
+        <div style={{ padding: '60px', textAlign: 'center' }}>
+          <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
+          <h3 style={{ color: '#dc2626' }}>Error</h3>
+          <p style={{ color: '#6b7280' }}>{error}</p>
+          <button
+            onClick={cargarNovedades}
+            style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', marginTop: '15px' }}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================================
+  // RENDER PRINCIPAL
+  // ==========================================================
   return (
     <div className="novedades-container" style={{ width: '100%', padding: '20px 0' }}>
       

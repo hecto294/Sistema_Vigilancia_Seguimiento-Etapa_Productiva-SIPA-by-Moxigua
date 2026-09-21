@@ -1,22 +1,22 @@
 // src/pages/aprendiz/MisBitacoras.jsx
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { jsPDF } from 'jspdf';
+import { apiClient } from '@/core/api/client';
+import { validarPdf } from '@/core/utils/validarPdf';
 import './MisBitacoras.css';
 
 const MisBitacoras = () => {
   const navigate = useNavigate();
 
   // ==========================================================
-  // 🔥 FUNCIÓN PARA GENERAR PDF REAL SIMULADO (con texto)
+  // 🔥 GENERAR PDF SIMULADO
   // ==========================================================
   const generarPDFSimulado = (titulo, contenido, fecha) => {
     const doc = new jsPDF();
-    
     doc.setFillColor(60, 162, 3);
     doc.rect(0, 0, 210, 30, 'F');
-    
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
@@ -24,28 +24,22 @@ const MisBitacoras = () => {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
     doc.text('Etapa Productiva - Bitácora', 105, 20, { align: 'center' });
-
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(titulo, 20, 45);
-    
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.text(`Fecha: ${fecha}`, 20, 52);
-    
     doc.setFontSize(12);
     doc.text('Actividades realizadas:', 20, 70);
-    
     doc.setFontSize(10);
     const maxWidth = 170;
     const splitText = doc.splitTextToSize(contenido, maxWidth);
     doc.text(splitText, 20, 78);
-    
     doc.setFontSize(10);
     doc.text('Firma del Aprendiz:', 20, 270);
     doc.line(60, 270, 130, 270);
-    
     return doc;
   };
 
@@ -61,140 +55,175 @@ const MisBitacoras = () => {
   };
 
   // ==========================================================
-  // 📅 DATOS INICIALES
+  // 📅 ESTADO
   // ==========================================================
-  const [bimestres, setBimestres] = useState([
-    {
-      id: 1,
-      nombre: '1er Bimestre',
-      estado: 'Completo',
-      descripcion: 'Bitácoras correspondientes al primer bimestre del proceso formativo.',
-      fechaInicio: '22/08/2026',
-      fechaFin: '05/09/2026',
-      progreso: 100,
-      semanas: [
-        {
-          id: 1,
-          nombre: 'Semana 1',
-          fecha: '22/08/2026',
-          estado: 'Aprobada',
-          descripcion: 'Bitácora de inducción y diagnóstico inicial',
-          observacion: 'Excelente trabajo. Se evidencia comprensión de los temas.',
-          evidencias: [
-            { 
-              nombre: 'Evidencia_Induccion.pdf', 
-              titulo: 'Bitácora Semana 1',
-              contenido: 'En esta semana se realizó la inducción al sistema, se presentaron las normas de convivencia y se realizó el diagnóstico inicial de conocimientos.',
-              fecha: '22/08/2026'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: 2,
-      nombre: '2do Bimestre',
-      estado: 'En proceso',
-      descripcion: 'Bitácoras correspondientes al segundo bimestre del proceso formativo.',
-      fechaInicio: '06/09/2026',
-      fechaFin: '20/09/2026',
-      progreso: 60,
-      semanas: [
-        {
-          id: 4,
-          nombre: 'Semana 4',
-          fecha: '06/09/2026',
-          estado: 'Aprobada',
-          descripcion: 'Bitácora de desarrollo de proyecto formativo',
-          observacion: 'Buen avance en el proyecto. Continúa así.',
-          evidencias: [
-            { 
-              nombre: 'Evidencia_Proyecto.pdf', 
-              titulo: 'Bitácora Semana 4',
-              contenido: 'En esta semana se realizó el desarrollo del proyecto, se documentaron los avances y se compartieron los resultados con el instructor.',
-              fecha: '06/09/2026'
-            }
-          ]
-        },
-        {
-          id: 5,
-          nombre: 'Semana 5',
-          fecha: '13/09/2026',
-          estado: 'Requiere corrección',
-          descripcion: 'Bitácora de actividades complementarias',
-          observacion: 'Faltan las evidencias de la actividad práctica. Debes subir nuevamente el archivo con las correcciones.',
-          evidencias: [
-            { 
-              nombre: 'Evidencia_Corregir.pdf', 
-              titulo: 'Bitácora Semana 5',
-              contenido: 'En esta semana se realizaron actividades complementarias, pero faltaron las evidencias de la práctica.',
-              fecha: '13/09/2026'
-            }
-          ]
-        },
-        {
-          id: 6,
-          nombre: 'Semana 6',
-          fecha: '20/09/2026',
-          estado: 'Pendiente de revisión',
-          descripcion: 'Bitácora de seguimiento de competencias',
-          observacion: null,
-          evidencias: [
-            { 
-              nombre: 'Evidencia_Seguimiento.pdf', 
-              titulo: 'Bitácora Semana 6',
-              contenido: 'En esta semana se realizó el seguimiento de las competencias, se documentaron los avances y se entregaron al instructor.',
-              fecha: '20/09/2026'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: 3,
-      nombre: '3er Bimestre',
-      estado: 'Próximo',
-      descripcion: 'Bitácoras correspondientes al tercer bimestre del proceso formativo.',
-      fechaInicio: '21/09/2026',
-      fechaFin: '05/10/2026',
-      progreso: 0,
-      semanas: []
-    }
-  ]);
+  const [bimestres, setBimestres] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 🔥 Fecha "hoy" en tiempo real (se actualiza cada 60 seg)
+  const [hoy, setHoy] = useState(new Date());
 
   // ==========================================================
-  // 🔥 FORZAMOS EL BIMESTRE ACTIVO = 2
+  // 🔥 CARGAR BITÁCORAS DEL BACKEND
   // ==========================================================
-  const [bimestreActivoId, setBimestreActivoId] = useState(2);
+  useEffect(() => {
+    cargarBitacoras();
+  }, []);
 
   // ==========================================================
-  // 🔥 FUNCIÓN PARA CALCULAR EL ESTADO SEGÚN LA FECHA (VISUAL)
+  // 🔥 ACTUALIZAR "HOY" CADA 60 SEGUNDOS (tiempo real)
   // ==========================================================
-  const calcularEstadoBimestre = (bimestre) => {
-    const hoy = new Date();
-    const inicio = new Date(bimestre.fechaInicio.split('/').reverse().join('-'));
-    const fin = new Date(bimestre.fechaFin.split('/').reverse().join('-'));
-    
-    if (bimestre.id === 1) {
-      return 'Completo';
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setHoy(new Date());
+    }, 60 * 1000);
+    return () => clearInterval(intervalo);
+  }, []);
+
+  // ==========================================================
+  // 🔥 RECALCULAR ESTADOS DE BIMESTRES CUANDO CAMBIA "HOY"
+  // ==========================================================
+  useEffect(() => {
+    if (bimestres.length > 0) {
+      setBimestres(prev => prev.map(b => ({
+        ...b,
+        estado: calcularEstadoBimestre(b.id),
+      })));
     }
-    if (bimestre.id === 2) {
-      return 'En proceso';
-    }
-    if (hoy < inicio) {
-      return 'Próximo';
-    } else if (hoy > fin) {
-      return 'Completo';
-    } else {
-      return 'En proceso';
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hoy]);
+
+  const cargarBitacoras = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const userStr = localStorage.getItem('user');
+      if (!userStr) throw new Error('Usuario no autenticado');
+      const user = JSON.parse(userStr);
+
+      const bitacoras = await apiClient.get(`/bitacoras/aprendiz/${user.id}`);
+      console.log('📚 Bitácoras reales:', bitacoras);
+
+      const bimestresAgrupados = agruparEnBimestres(bitacoras);
+      setBimestres(bimestresAgrupados);
+    } catch (err) {
+      console.error('Error al cargar bitácoras:', err);
+      setError(err.message || 'Error al cargar las bitácoras');
+    } finally {
+      setLoading(false);
     }
   };
 
   // ==========================================================
-  // FUNCIÓN PARA CARGAR BITÁCORA NUEVA
+  // 🔥 CALCULAR ESTADO DEL BIMESTRE POR FECHAS
+  //   1er Bimestre: ene - abr
+  //   2do Bimestre: may - sep
+  //   3er Bimestre: oct - dic
+  // Usa el estado "hoy" para recalcular en tiempo real
+  // ==========================================================
+  const calcularEstadoBimestre = (numBimestre) => {
+    const fechaActual = hoy;
+    const anio = fechaActual.getFullYear();
+
+    const RANGOS = {
+      1: { inicio: new Date(anio, 0, 1),  fin: new Date(anio, 3, 30, 23, 59, 59) }, // ene-abr
+      2: { inicio: new Date(anio, 4, 1),  fin: new Date(anio, 8, 30, 23, 59, 59) }, // may-sep
+      3: { inicio: new Date(anio, 9, 1),  fin: new Date(anio, 11, 31, 23, 59, 59) }, // oct-dic
+    };
+
+    const rango = RANGOS[numBimestre];
+    if (!rango) return 'Próximo';
+
+    if (fechaActual > rango.fin) return 'Completo';
+    if (fechaActual >= rango.inicio && fechaActual <= rango.fin) return 'En proceso';
+    return 'Próximo';
+  };
+
+  // ==========================================================
+  // 🔥 AGRUPAR EN BIMESTRES
+  // ==========================================================
+  const agruparEnBimestres = (bitacoras) => {
+    const NOMBRES = ['1er Bimestre', '2do Bimestre', '3er Bimestre'];
+    const DESCRIPCIONES = [
+      'Bitácoras correspondientes al primer bimestre del proceso formativo.',
+      'Bitácoras correspondientes al segundo bimestre del proceso formativo.',
+      'Bitácoras correspondientes al tercer bimestre del proceso formativo.',
+    ];
+
+    return [1, 2, 3].map((numBimestre, idx) => {
+      const bitacorasDelBim = bitacoras.filter(b => b.bimestre === numBimestre);
+      const semanas = bitacorasDelBim.map(b => transformarBitacoraASemana(b));
+
+      const aprobadas = semanas.filter(s => s.estado === 'Aprobada').length;
+      const progreso = semanas.length > 0
+        ? Math.round((aprobadas / semanas.length) * 100)
+        : 0;
+
+      // 🔥 Fechas del bimestre según CALENDARIO SENA (no de las bitácoras)
+      const anioActual = new Date().getFullYear();
+      const RANGOS_FECHAS = {
+        1: { inicio: new Date(anioActual, 0, 1),  fin: new Date(anioActual, 3, 30) },  // ene-abr
+        2: { inicio: new Date(anioActual, 4, 1),  fin: new Date(anioActual, 8, 30) },  // may-sep
+        3: { inicio: new Date(anioActual, 9, 1),  fin: new Date(anioActual, 11, 31) }, // oct-dic
+      };
+
+      const rangoFechas = RANGOS_FECHAS[numBimestre];
+      const fechaInicio = rangoFechas ? formatearFecha(rangoFechas.inicio) : '—';
+      const fechaFin = rangoFechas ? formatearFecha(rangoFechas.fin) : '—';
+
+      return {
+        id: numBimestre,
+        nombre: NOMBRES[idx],
+        estado: calcularEstadoBimestre(numBimestre),
+        descripcion: DESCRIPCIONES[idx],
+        fechaInicio,
+        fechaFin,
+        progreso,
+        semanas,
+      };
+    });
+  };
+
+  const transformarBitacoraASemana = (b) => {
+    const mapEstado = {
+      BORRADOR: 'Borrador',
+      ENVIADA: 'Pendiente de revisión',
+      APROBADA: 'Aprobada',
+      CON_OBSERVACION: 'Requiere corrección',
+    };
+
+    return {
+      id: b.id,
+      nombre: `Semana ${b.numero_bitacora}`,
+      fecha: b.fecha_envio ? formatearFecha(new Date(b.fecha_envio)) : '—',
+      estado: mapEstado[b.estado] || 'Pendiente de revisión',
+      descripcion: b.titulo || b.contenido || 'Sin descripción',
+      observacion: b.instructor_retroalimentacion || null,
+      evidencias: (b.archivos || []).map(a => ({
+        nombre: a.nombre,
+        titulo: b.titulo,
+        contenido: b.contenido || '',
+        fecha: b.fecha_envio ? formatearFecha(new Date(b.fecha_envio)) : '',
+        url: a.ruta_objeto,
+      })),
+    };
+  };
+
+  const formatearFecha = (date) => {
+    if (!date) return '—';
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const anio = date.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  };
+
+  // ==========================================================
+  // CARGAR BITÁCORA NUEVA
   // ==========================================================
   const handleCargarBitacora = () => {
-    const bimestreOptions = bimestres.map(b => 
+    const bimestreOptions = bimestres.map(b =>
       `<option value="${b.id}">${b.nombre}</option>`
     ).join('');
 
@@ -243,11 +272,14 @@ const MisBitacoras = () => {
             <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
               Adjunta tus evidencias (PDF) *
             </p>
-            <input type="file" id="evidencia-input" multiple accept=".pdf"
+            <input type="file" id="evidencia-input" multiple accept="application/pdf"
               style="width: 100%; padding: 8px; border: none; font-size: 13px;"
             />
             <p style="font-size: 11px; color: #9ca3af; margin: 4px 0 0 0;">
               Solo se permiten archivos PDF
+            </p>
+            <p id="evidencia-input-error" style="font-size: 12px; color: #dc2626; margin: 4px 0 0 0; display: none; font-weight: 600;">
+              ❌ Solo se permiten archivos PDF
             </p>
           </div>
           <p style="font-size: 11px; color: #9ca3af; margin: 6px 0 0 0; text-align: left;">
@@ -263,7 +295,30 @@ const MisBitacoras = () => {
       cancelButtonColor: '#ef4444',
       width: '500px',
       padding: '1.5rem',
-      preConfirm: () => {
+
+      didOpen: () => {
+        const input = document.getElementById('evidencia-input');
+        const errorMsg = document.getElementById('evidencia-input-error');
+        if (input) {
+          input.value = '';
+          if (errorMsg) errorMsg.style.display = 'none';
+          input.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            for (const f of files) {
+              const r = await validarPdf(f, 5);
+              if (!r.ok) {
+                if (errorMsg) { errorMsg.textContent = r.msg; errorMsg.style.display = 'block'; }
+                input.value = '';
+                return;
+              }
+            }
+            if (errorMsg) errorMsg.style.display = 'none';
+          });
+        }
+      },
+
+      preConfirm: async () => {
         const bimestre = document.getElementById('bimestre-select').value;
         const semana = document.getElementById('semana-input').value;
         const fecha = document.getElementById('fecha-input').value;
@@ -271,54 +326,28 @@ const MisBitacoras = () => {
         const evidenciaInput = document.getElementById('evidencia-input');
         const evidenciaFiles = evidenciaInput.files;
 
-        if (!bimestre) {
-          Swal.showValidationMessage('⚠️ Por favor selecciona un bimestre');
-          return false;
-        }
-        if (!semana.trim()) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa el nombre de la semana');
-          return false;
-        }
-        if (!fecha) {
-          Swal.showValidationMessage('⚠️ Por favor selecciona una fecha');
-          return false;
-        }
-        if (!descripcion.trim()) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa una descripción');
-          return false;
-        }
-        if (evidenciaFiles.length === 0) {
-          Swal.showValidationMessage('⚠️ Por favor adjunta al menos un PDF');
-          return false;
+        if (!bimestre) { Swal.showValidationMessage('⚠️ Por favor selecciona un bimestre'); return false; }
+        if (!semana.trim()) { Swal.showValidationMessage('⚠️ Por favor ingresa el nombre de la semana'); return false; }
+        if (!fecha) { Swal.showValidationMessage('⚠️ Por favor selecciona una fecha'); return false; }
+        if (!descripcion.trim()) { Swal.showValidationMessage('⚠️ Por favor ingresa una descripción'); return false; }
+        if (evidenciaFiles.length === 0) { Swal.showValidationMessage('⚠️ Por favor adjunta al menos un PDF'); return false; }
+
+        for (const f of evidenciaFiles) {
+          const r = await validarPdf(f, 5);
+          if (!r.ok) { Swal.showValidationMessage(r.msg); return false; }
         }
 
-        for (let i = 0; i < evidenciaFiles.length; i++) {
-          if (evidenciaFiles[i].type !== 'application/pdf') {
-            Swal.showValidationMessage(`⚠️ El archivo ${evidenciaFiles[i].name} no es un PDF`);
-            return false;
-          }
-        }
-
-        const evidencias = [];
-        for (let i = 0; i < evidenciaFiles.length; i++) {
-          evidencias.push({ 
-            nombre: evidenciaFiles[i].name,
-            titulo: `Evidencia ${semana.trim()}` 
-          });
-        }
+        const evidencias = Array.from(evidenciaFiles).map(f => ({
+          nombre: f.name,
+          titulo: `Evidencia ${semana.trim()}`,
+        }));
 
         return { bimestre, semana: semana.trim(), fecha, descripcion: descripcion.trim(), evidencias };
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const { bimestre, semana, fecha, descripcion, evidencias } = result.value;
-
-        const fechaObj = new Date(fecha);
-        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
+        const fechaFormateada = formatearFecha(new Date(fecha));
 
         const nuevaSemana = {
           id: Date.now(),
@@ -327,20 +356,15 @@ const MisBitacoras = () => {
           estado: 'Pendiente de revisión',
           descripcion: descripcion,
           observacion: null,
-          evidencias: evidencias
+          evidencias: evidencias,
         };
 
-        setBimestres(prevBimestres => 
-          prevBimestres.map(b => {
-            if (b.id === parseInt(bimestre)) {
-              return {
-                ...b,
-                semanas: [...b.semanas, nuevaSemana]
-              };
-            }
-            return b;
-          })
-        );
+        setBimestres(prev => prev.map(b => {
+          if (b.id === parseInt(bimestre)) {
+            return { ...b, semanas: [...b.semanas, nuevaSemana] };
+          }
+          return b;
+        }));
 
         Swal.fire({
           title: '✅ ¡Bitácora cargada exitosamente!',
@@ -377,7 +401,7 @@ const MisBitacoras = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA REENVIAR BITÁCORA CON CORRECCIÓN
+  // REENVIAR BITÁCORA CON CORRECCIÓN
   // ==========================================================
   const handleReenviarBitacora = (semana, bimestreId) => {
     Swal.fire({
@@ -404,11 +428,14 @@ const MisBitacoras = () => {
             <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
               Adjunta nuevas evidencias (PDF) *
             </p>
-            <input type="file" id="evidencia-corregida" multiple accept=".pdf"
+            <input type="file" id="evidencia-corregida" multiple accept="application/pdf"
               style="width: 100%; padding: 8px; border: none; font-size: 13px;"
             />
             <p style="font-size: 11px; color: #9ca3af; margin: 4px 0 0 0;">
               Solo se permiten archivos PDF
+            </p>
+            <p id="evidencia-corregida-error" style="font-size: 12px; color: #dc2626; margin: 4px 0 0 0; display: none; font-weight: 600;">
+              ❌ Solo se permiten archivos PDF
             </p>
           </div>
         </div>
@@ -421,34 +448,46 @@ const MisBitacoras = () => {
       cancelButtonColor: '#ef4444',
       width: '520px',
       padding: '1.5rem',
-      preConfirm: () => {
+
+      didOpen: () => {
+        const input = document.getElementById('evidencia-corregida');
+        const errorMsg = document.getElementById('evidencia-corregida-error');
+        if (input) {
+          input.value = '';
+          if (errorMsg) errorMsg.style.display = 'none';
+          input.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            for (const f of files) {
+              const r = await validarPdf(f, 5);
+              if (!r.ok) {
+                if (errorMsg) { errorMsg.textContent = r.msg; errorMsg.style.display = 'block'; }
+                input.value = '';
+                return;
+              }
+            }
+            if (errorMsg) errorMsg.style.display = 'none';
+          });
+        }
+      },
+
+      preConfirm: async () => {
         const descripcion = document.getElementById('descripcion-corregida').value;
         const evidenciaInput = document.getElementById('evidencia-corregida');
         const evidenciaFiles = evidenciaInput.files;
 
-        if (!descripcion.trim()) {
-          Swal.showValidationMessage('⚠️ Por favor ingresa la descripción corregida');
-          return false;
-        }
-        if (evidenciaFiles.length === 0) {
-          Swal.showValidationMessage('⚠️ Por favor adjunta al menos un PDF');
-          return false;
+        if (!descripcion.trim()) { Swal.showValidationMessage('⚠️ Por favor ingresa la descripción corregida'); return false; }
+        if (evidenciaFiles.length === 0) { Swal.showValidationMessage('⚠️ Por favor adjunta al menos un PDF'); return false; }
+
+        for (const f of evidenciaFiles) {
+          const r = await validarPdf(f, 5);
+          if (!r.ok) { Swal.showValidationMessage(r.msg); return false; }
         }
 
-        for (let i = 0; i < evidenciaFiles.length; i++) {
-          if (evidenciaFiles[i].type !== 'application/pdf') {
-            Swal.showValidationMessage(`⚠️ El archivo ${evidenciaFiles[i].name} no es un PDF`);
-            return false;
-          }
-        }
-
-        const nuevasEvidencias = [];
-        for (let i = 0; i < evidenciaFiles.length; i++) {
-          nuevasEvidencias.push({ 
-            nombre: evidenciaFiles[i].name,
-            titulo: `Evidencia ${semana.nombre}` 
-          });
-        }
+        const nuevasEvidencias = Array.from(evidenciaFiles).map(f => ({
+          nombre: f.name,
+          titulo: `Evidencia ${semana.nombre}`,
+        }));
 
         return { descripcion: descripcion.trim(), nuevasEvidencias };
       }
@@ -456,28 +495,26 @@ const MisBitacoras = () => {
       if (result.isConfirmed && result.value) {
         const { descripcion, nuevasEvidencias } = result.value;
 
-        setBimestres(prevBimestres =>
-          prevBimestres.map(b => {
-            if (b.id === bimestreId) {
-              return {
-                ...b,
-                semanas: b.semanas.map(s => {
-                  if (s.id === semana.id) {
-                    return {
-                      ...s,
-                      descripcion: descripcion,
-                      estado: 'Pendiente de revisión',
-                      observacion: null,
-                      evidencias: nuevasEvidencias
-                    };
-                  }
-                  return s;
-                })
-              };
-            }
-            return b;
-          })
-        );
+        setBimestres(prev => prev.map(b => {
+          if (b.id === bimestreId) {
+            return {
+              ...b,
+              semanas: b.semanas.map(s => {
+                if (s.id === semana.id) {
+                  return {
+                    ...s,
+                    descripcion: descripcion,
+                    estado: 'Pendiente de revisión',
+                    observacion: null,
+                    evidencias: nuevasEvidencias,
+                  };
+                }
+                return s;
+              }),
+            };
+          }
+          return b;
+        }));
 
         Swal.fire({
           title: '✅ ¡Bitácora reenviada!',
@@ -511,10 +548,10 @@ const MisBitacoras = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA VER DETALLES (BLOQUEAR BIMESTRE 1 Y ABRIR BIMESTRE 2)
+  // VER DETALLES
   // ==========================================================
   const handleVerDetalles = (bimestre) => {
-    if (bimestre.id !== bimestreActivoId) {
+    if (bimestre.estado !== 'En proceso') {
       Swal.fire({
         title: '🔒 Bimestre No Activo',
         text: `El ${bimestre.nombre} no está activo actualmente. Podrás ver las bitácoras cuando esté en su periodo.`,
@@ -525,7 +562,12 @@ const MisBitacoras = () => {
       return;
     }
 
-    const semanasHtml = bimestre.semanas.map((semana, index) => `
+    const semanasHtml = bimestre.semanas.length === 0
+      ? `<div style="text-align: center; padding: 30px; color: #9ca3af;">
+           <i class="fas fa-inbox" style="font-size: 40px; margin-bottom: 10px;"></i>
+           <p style="margin: 0;">No hay bitácoras cargadas en este bimestre</p>
+         </div>`
+      : bimestre.semanas.map((semana) => `
       <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e5e7eb;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div>
@@ -554,13 +596,13 @@ const MisBitacoras = () => {
                 <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 14px;"></i>
                 <span style="font-size: 12px; color: #6b7280;">${ev.nombre}</span>
                 <button 
-                  onclick="window.verPDFSimulado('${ev.titulo}', '${ev.contenido.replace(/'/g, "\\'")}', '${ev.fecha}')"
+                  onclick="window.verPDFSimulado('${ev.titulo}', '${(ev.contenido || '').replace(/'/g, "\\'")}', '${ev.fecha}')"
                   style="background: #3ca203; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;"
                 >
                   <i class="fas fa-eye"></i> Ver
                 </button>
                 <button 
-                  onclick="window.descargarPDFSimulado('${ev.titulo}', '${ev.contenido.replace(/'/g, "\\'")}', '${ev.fecha}', '${ev.nombre}')"
+                  onclick="window.descargarPDFSimulado('${ev.titulo}', '${(ev.contenido || '').replace(/'/g, "\\'")}', '${ev.fecha}', '${ev.nombre}')"
                   style="background: #3ca203; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;"
                 >
                   <i class="fas fa-download"></i> Descargar
@@ -581,12 +623,10 @@ const MisBitacoras = () => {
     `).join('');
 
     window.reenviarBitacora = (semanaId, bimestreId) => {
-      const bimestre = bimestres.find(b => b.id === bimestreId);
-      if (bimestre) {
-        const semana = bimestre.semanas.find(s => s.id === semanaId);
-        if (semana) {
-          handleReenviarBitacora(semana, bimestreId);
-        }
+      const b = bimestres.find(x => x.id === bimestreId);
+      if (b) {
+        const s = b.semanas.find(x => x.id === semanaId);
+        if (s) handleReenviarBitacora(s, bimestreId);
       }
     };
 
@@ -631,7 +671,7 @@ const MisBitacoras = () => {
   };
 
   // ==========================================================
-  // FUNCIONES DE COLORES
+  // COLORES
   // ==========================================================
   const getColorEstadoBimestre = (estado) => {
     if (estado === 'Completo') return '#10b981';
@@ -654,7 +694,7 @@ const MisBitacoras = () => {
   };
 
   // ==========================================================
-  // CALCULAR ESTADÍSTICAS
+  // ESTADÍSTICAS
   // ==========================================================
   const totalSemanas = (semanas) => semanas.length;
   const aprobadas = (semanas) => semanas.filter(s => s.estado === 'Aprobada').length;
@@ -662,13 +702,42 @@ const MisBitacoras = () => {
   const correcciones = (semanas) => semanas.filter(s => s.estado === 'Requiere corrección').length;
 
   // ==========================================================
-  // RENDERIZAR
+  // RENDER: LOADING / ERROR
+  // ==========================================================
+  if (loading) {
+    return (
+      <div className="mis-bitacoras-container">
+        <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+          <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
+          <p style={{ marginTop: '15px' }}>Cargando bitácoras...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mis-bitacoras-container">
+        <div style={{ padding: '60px', textAlign: 'center' }}>
+          <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
+          <h3 style={{ color: '#dc2626' }}>Error</h3>
+          <p style={{ color: '#6b7280' }}>{error}</p>
+          <button
+            onClick={cargarBitacoras}
+            style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', marginTop: '15px' }}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================================
+  // RENDER PRINCIPAL
   // ==========================================================
   return (
     <div className="mis-bitacoras-container">
-      {/* ========================================================== */}
-      {/* MIGA DE PAN */}
-      {/* ========================================================== */}
       <nav className="breadcrumb">
         <ol>
           <li>
@@ -704,14 +773,14 @@ const MisBitacoras = () => {
 
       <div className="bimestres-grid">
         {bimestres.map((bimestre) => {
-          const estadoCalculado = calcularEstadoBimestre(bimestre);
+          const estadoCalculado = bimestre.estado;
           const total = totalSemanas(bimestre.semanas);
           const aprobadasCount = aprobadas(bimestre.semanas);
           const pendientesCount = pendientes(bimestre.semanas);
           const correccionesCount = correcciones(bimestre.semanas);
           const color = getColorEstadoBimestre(estadoCalculado);
-          
-          const esActivo = bimestre.id === bimestreActivoId;
+
+          const esActivo = estadoCalculado === 'En proceso';
 
           return (
             <div 
@@ -732,7 +801,11 @@ const MisBitacoras = () => {
                   className={`bimestre-estado ${estadoCalculado.toLowerCase().replace(' ', '-')}`}
                   style={{ background: `${color}15`, color: color }}
                 >
-                  <i className={`fas ${estadoCalculado === 'Completo' ? 'fa-check-circle' : estadoCalculado === 'En proceso' ? 'fa-spinner' : 'fa-clock'}`}></i>
+                  <i className={`fas ${
+                    estadoCalculado === 'Completo' ? 'fa-check-circle' : 
+                    estadoCalculado === 'En proceso' ? 'fa-spinner' : 
+                    'fa-clock'
+                  }`}></i>
                   {estadoCalculado}
                 </span>
               </div>
@@ -742,42 +815,20 @@ const MisBitacoras = () => {
                   <>
                     <p className="bimestre-descripcion">{bimestre.descripcion}</p>
                     <div className="bimestre-fechas">
-                      <span>
-                        <i className="fas fa-calendar-alt"></i>
-                        Inicio: {bimestre.fechaInicio}
-                      </span>
-                      <span>
-                        <i className="fas fa-calendar-check"></i>
-                        Fin: {bimestre.fechaFin}
-                      </span>
+                      <span><i className="fas fa-calendar-alt"></i> Inicio: {bimestre.fechaInicio}</span>
+                      <span><i className="fas fa-calendar-check"></i> Fin: {bimestre.fechaFin}</span>
                     </div>
-
-                    <button 
-                      className="btn-ver-detalles-bimestre"
-                      style={{
-                        background: '#9ca3af',
-                        cursor: 'not-allowed'
-                      }}
-                    >
-                      <i className="fas fa-eye"></i> 
-                      Se activará el {bimestre.fechaInicio}
+                    <button className="btn-ver-detalles-bimestre" style={{ background: '#9ca3af', cursor: 'not-allowed' }} disabled>
+                      <i className="fas fa-eye"></i> Se activará el {bimestre.fechaInicio}
                     </button>
                   </>
                 ) : (
                   <>
                     <p className="bimestre-descripcion">{bimestre.descripcion}</p>
-                    
                     <div className="bimestre-fechas">
-                      <span>
-                        <i className="fas fa-calendar-alt"></i>
-                        Inicio: {bimestre.fechaInicio}
-                      </span>
-                      <span>
-                        <i className="fas fa-calendar-check"></i>
-                        Fin: {bimestre.fechaFin}
-                      </span>
+                      <span><i className="fas fa-calendar-alt"></i> Inicio: {bimestre.fechaInicio}</span>
+                      <span><i className="fas fa-calendar-check"></i> Fin: {bimestre.fechaFin}</span>
                     </div>
-
                     <div className="bimestre-stats">
                       <span className="stat-item" style={{ color: '#10b981' }}>
                         <i className="fas fa-check-circle"></i> {aprobadasCount} aprobadas
@@ -792,7 +843,6 @@ const MisBitacoras = () => {
                         <i className="fas fa-book"></i> {total} total
                       </span>
                     </div>
-
                     <div className="bimestre-progreso">
                       <div className="progreso-info">
                         <span className="progreso-label">Progreso de bitácoras</span>
@@ -801,23 +851,19 @@ const MisBitacoras = () => {
                         </span>
                       </div>
                       <div className="progreso-barra">
-                        <div 
-                          className="progreso-llenado" 
-                          style={{ 
-                            width: `${bimestre.progreso}%`,
-                            background: color
-                          }}
-                        />
+                        <div className="progreso-llenado" style={{ width: `${bimestre.progreso}%`, background: color }} />
                       </div>
                     </div>
-
                     <button 
                       className="btn-ver-detalles-bimestre"
-                      onClick={() => handleVerDetalles(bimestre)}
-                      style={{
-                        background: esActivo ? '#3ca203' : '#9ca3af',
-                        cursor: esActivo ? 'pointer' : 'not-allowed'
+                      onClick={() => esActivo && handleVerDetalles(bimestre)}
+                      disabled={!esActivo}
+                      style={{ 
+                        background: esActivo ? '#3ca203' : '#9ca3af', 
+                        cursor: esActivo ? 'pointer' : 'not-allowed',
+                        opacity: esActivo ? 1 : 0.7
                       }}
+                      title={esActivo ? 'Ver detalles' : 'Este bimestre no está activo'}
                     >
                       <i className="fas fa-eye"></i> 
                       {esActivo ? 'Ver detalles del bimestre' : `Se activará el ${bimestre.fechaInicio}`}

@@ -1,50 +1,67 @@
 // src/pages/aprendiz/MisMomentos.jsx
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { apiClient } from '@/core/api/client';
+import { validarPdf } from '@/core/utils/validarPdf';
 import './MisMomentos.css';
 
 const MisMomentos = () => {
   const navigate = useNavigate();
 
-  const [momentos, setMomentos] = useState([
-    {
-      id: 1,
-      nombre: 'Momento 1',
-      titulo: 'Inducción y Diagnóstico Inicial',
-      estado: 'Completo',
-      descripcion: 'Bienvenida al programa, inducción general y diagnóstico de competencias iniciales.',
-      fechaInicio: '15/01/2025',
-      fechaFin: '15/02/2025',
-      progreso: 100,
-      formatoCargado: true,
-      nombreArchivo: 'F023_Momento1_Laura.pdf'
-    },
-    {
-      id: 2,
-      nombre: 'Momento 2',
-      titulo: 'Ejecución y Seguimiento',
-      estado: 'En proceso',
-      descripcion: 'Desarrollo de actividades formativas, seguimiento y acompañamiento personalizado.',
-      fechaInicio: '16/02/2025',
-      fechaFin: '15/06/2025',
-      progreso: 65,
-      formatoCargado: false,
-      nombreArchivo: null
-    },
-    {
-      id: 3,
-      nombre: 'Momento 3',
-      titulo: 'Evaluación y Cierre',
-      estado: 'Pendiente',
-      descripcion: 'Evaluación final, retroalimentación y cierre del proceso formativo.',
-      fechaInicio: '16/06/2025',
-      fechaFin: '15/07/2025',
-      progreso: 0,
-      formatoCargado: false,
-      nombreArchivo: null
+  const [momentos, setMomentos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // ==========================================================
+  // CARGAR MOMENTOS DEL BACKEND
+  // ==========================================================
+  useEffect(() => {
+    cargarMomentos();
+  }, []);
+
+  const cargarMomentos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await apiClient.get('/usuarios/me/momentos');
+      console.log('📅 Momentos reales:', data);
+
+      const momentosFormateados = (data.momentos || []).map(m => ({
+        id: m.id,
+        nombre: m.nombre,
+        titulo: m.titulo,
+        estado: m.estado,
+        descripcion: m.descripcion,
+        fechaInicio: formatearFecha(m.fechaInicio),
+        fechaFin: formatearFecha(m.fechaFin),
+        progreso: m.progreso,
+        formatoCargado: m.formatoCargado,
+        nombreArchivo: m.archivoF023Url ? m.archivoF023Url.split('/').pop() : null,
+        archivoF023Url: m.archivoF023Url,
+      }));
+
+      setMomentos(momentosFormateados);
+    } catch (err) {
+      console.error('Error al cargar momentos:', err);
+      setError(err.message || 'Error al cargar los momentos');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const formatearFecha = (fechaStr) => {
+    if (!fechaStr) return '—';
+    try {
+      const d = new Date(fechaStr);
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const anio = d.getFullYear();
+      return `${dia}/${mes}/${anio}`;
+    } catch {
+      return fechaStr;
+    }
+  };
 
   const goToInicio = () => {
     navigate('/aprendiz');
@@ -52,10 +69,10 @@ const MisMomentos = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA CARGAR FORMATO F023
+  // CARGAR FORMATO F023
   // ==========================================================
   const handleCargarFormato = () => {
-    const momentoOptions = momentos.map(m => 
+    const momentoOptions = momentos.map(m =>
       `<option value="${m.id}" ${m.formatoCargado ? 'disabled' : ''}>
         ${m.nombre} - ${m.titulo} ${m.formatoCargado ? '(Ya cargado)' : ''}
       </option>`
@@ -85,16 +102,21 @@ const MisMomentos = () => {
               Arrastra o haz clic para seleccionar el formato F023
             </p>
             <p style="font-size: 12px; color: #9ca3af;">
-              Formato permitido: .pdf (Máx. 5MB)
+              Formato permitido: <strong>.pdf</strong> (Máx. 5MB)
             </p>
           </div>
           <div style="margin: 15px 0;">
             <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
-              Selecciona tu archivo *
+              Selecciona tu archivo PDF *
             </label>
-            <input type="file" id="formato-file" accept=".pdf"
+            <input type="file" id="formato-file" 
+              accept="application/pdf"
+              autocomplete="off"
               style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
             />
+            <p id="formato-file-error" style="font-size: 12px; color: #dc2626; margin: 4px 0 0 0; display: none; font-weight: 600;">
+              ❌ Solo se permiten archivos PDF
+            </p>
           </div>
           <div style="margin: 12px 0;">
             <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 5px;">
@@ -118,39 +140,58 @@ const MisMomentos = () => {
       cancelButtonColor: '#ef4444',
       width: '520px',
       padding: '1.5rem',
-      preConfirm: () => {
+
+      // 🆕 Listener en tiempo real
+      didOpen: () => {
+        const fileInput = document.getElementById('formato-file');
+        const errorMsg = document.getElementById('formato-file-error');
+
+        if (fileInput) {
+          fileInput.value = '';
+          if (errorMsg) errorMsg.style.display = 'none';
+
+          fileInput.addEventListener('change', async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+
+            const r = await validarPdf(f, 5);
+            if (!r.ok) {
+              if (errorMsg) {
+                errorMsg.textContent = r.msg;
+                errorMsg.style.display = 'block';
+              }
+              fileInput.value = '';
+            } else {
+              if (errorMsg) errorMsg.style.display = 'none';
+            }
+          });
+        }
+      },
+
+      // 🔒 Validación estricta al confirmar
+      preConfirm: async () => {
         const momentoId = document.getElementById('momento-select').value;
         const fileInput = document.getElementById('formato-file');
-        const file = fileInput?.files[0];
+        const file = fileInput?.files?.[0];
 
         if (!momentoId) {
           Swal.showValidationMessage('⚠️ Por favor selecciona un momento');
           return false;
         }
 
-        if (!file) {
-          Swal.showValidationMessage('⚠️ Por favor selecciona un archivo');
-          return false;
-        }
-
-        if (file.type !== 'application/pdf') {
-          Swal.showValidationMessage('⚠️ Solo se permiten archivos PDF');
-          return false;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-          Swal.showValidationMessage('⚠️ El archivo no debe superar los 5MB');
+        const validacion = await validarPdf(file, 5);
+        if (!validacion.ok) {
+          if (fileInput) fileInput.value = '';
+          Swal.showValidationMessage(validacion.msg);
           return false;
         }
 
         const comentarios = document.getElementById('comentarios-input').value;
-
         return { momentoId: parseInt(momentoId), file, fileName: file.name, comentarios };
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const { momentoId, file, fileName, comentarios } = result.value;
-
         const momento = momentos.find(m => m.id === momentoId);
 
         setMomentos(prevMomentos =>
@@ -204,9 +245,60 @@ const MisMomentos = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA VER FORMATO F023
+  // VER FORMATO F023
   // ==========================================================
   const handleVerFormato = (momento) => {
+    // 🆕 Si NO hay formato cargado, mostrar aviso informativo
+    if (!momento.formatoCargado) {
+      Swal.fire({
+        title: '📄 Sin formato F023',
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 12px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
+              <i class="fas fa-clock" style="font-size: 40px; color: #f59e0b;"></i>
+              <div>
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">
+                  Formato pendiente
+                </p>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: #6b7280;">
+                  <i class="fas fa-info-circle"></i> Aún no has cargado el formato F023 para este momento
+                </p>
+              </div>
+            </div>
+            <div style="margin-bottom: 10px;">
+              <p style="margin: 0; font-size: 13px; color: #6b7280;">
+                <strong>Momento:</strong> ${momento.titulo}
+              </p>
+              <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">
+                <strong>Estado:</strong> ${momento.estado}
+              </p>
+            </div>
+            <div style="margin-top: 15px; padding: 12px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+              <p style="margin: 0; font-size: 13px; color: #1e40af; text-align: center;">
+                <i class="fas fa-upload"></i> Usa el botón <strong>"Cargar Formato F023"</strong> para subir tu archivo PDF
+              </p>
+            </div>
+          </div>
+        `,
+        icon: 'info',
+        confirmButtonText: '✅ Entendido',
+        confirmButtonColor: '#3ca203',
+        width: '480px'
+      });
+      return;
+    }
+
+    // Si hay URL real, abrirla
+    if (momento.archivoF023Url) {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const url = momento.archivoF023Url.startsWith('http')
+        ? momento.archivoF023Url
+        : `${baseUrl}${momento.archivoF023Url}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Si tiene formato cargado pero no URL (subida local), mostrar modal informativo
     Swal.fire({
       title: `📄 Formato F023 - ${momento.nombre}`,
       html: `
@@ -214,7 +306,7 @@ const MisMomentos = () => {
           <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 12px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
             <i class="fas fa-file-pdf" style="font-size: 40px; color: #ef4444;"></i>
             <div>
-              <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">${momento.nombreArchivo}</p>
+              <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;">${momento.nombreArchivo || 'Sin archivo'}</p>
               <p style="margin: 2px 0 0 0; font-size: 12px; color: #6b7280;">
                 <i class="fas fa-check-circle" style="color: #10b981;"></i> Cargado correctamente
               </p>
@@ -227,14 +319,9 @@ const MisMomentos = () => {
             <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">
               <strong>Estado:</strong> ${momento.estado}
             </p>
-            ${momento.comentariosFormato ? `
-              <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">
-                <strong>Comentarios:</strong> ${momento.comentariosFormato}
-              </p>
-            ` : ''}
           </div>
           <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #e5e7eb; text-align: center; font-size: 13px; color: #9ca3af;">
-            <i class="fas fa-info-circle"></i> Haz clic en "Descargar" para obtener el archivo
+            <i class="fas fa-info-circle"></i> El archivo aún no está disponible en el servidor
           </div>
         </div>
       `,
@@ -261,7 +348,7 @@ const MisMomentos = () => {
   };
 
   // ==========================================================
-  // FUNCIÓN PARA ELIMINAR FORMATO F023
+  // ELIMINAR FORMATO F023
   // ==========================================================
   const handleEliminarFormato = (momento) => {
     Swal.fire({
@@ -302,19 +389,49 @@ const MisMomentos = () => {
     });
   };
 
-  // Función para obtener el color del estado
   const getColorEstado = (estado) => {
     if (estado === 'Completo') return '#10b981';
     if (estado === 'En proceso') return '#f59e0b';
     return '#6b7280';
   };
 
-  // Función para obtener el icono del estado
   const getIconoEstado = (estado) => {
     if (estado === 'Completo') return 'fa-check-circle';
     if (estado === 'En proceso') return 'fa-spinner';
     return 'fa-clock';
   };
+
+  // ==========================================================
+  // RENDER: LOADING / ERROR
+  // ==========================================================
+  if (loading) {
+    return (
+      <div className="mis-momentos-container">
+        <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+          <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
+          <p style={{ marginTop: '15px' }}>Cargando momentos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mis-momentos-container">
+        <div style={{ padding: '60px', textAlign: 'center' }}>
+          <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
+          <h3 style={{ color: '#dc2626' }}>Error</h3>
+          <p style={{ color: '#6b7280' }}>{error}</p>
+          <button
+            onClick={cargarMomentos}
+            style={{ background: '#3ca203', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', marginTop: '15px' }}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mis-momentos-container">
@@ -380,7 +497,7 @@ const MisMomentos = () => {
 
       <div className="momentos-grid">
         {momentos.map((momento) => (
-          <div key={momento.id} className="momento-card">
+          <div key={momento.id || momento.nombre} className="momento-card">
             <div className="momento-header">
               <div className="momento-titulo">
                 <span className="momento-numero">{momento.nombre}</span>
@@ -436,7 +553,7 @@ const MisMomentos = () => {
                   {momento.formatoCargado ? (
                     <span className="formato-cargado">
                       <i className="fas fa-check-circle" style={{ color: '#10b981' }}></i>
-                      {momento.nombreArchivo}
+                      {momento.nombreArchivo || 'Cargado'}
                     </span>
                   ) : (
                     <span className="formato-pendiente">
@@ -445,22 +562,24 @@ const MisMomentos = () => {
                     </span>
                   )}
                 </div>
-                {momento.formatoCargado && (
-                  <div className="formato-acciones">
-                    <button 
-                      className="btn-ver-formato"
-                      onClick={() => handleVerFormato(momento)}
-                    >
-                      <i className="fas fa-eye"></i> Ver Formato
-                    </button>
+
+                {/* 🆕 Botón "Ver Formato" SIEMPRE visible */}
+                <div className="formato-acciones">
+                  <button 
+                    className="btn-ver-formato"
+                    onClick={() => handleVerFormato(momento)}
+                  >
+                    <i className="fas fa-eye"></i> Ver Formato
+                  </button>
+                  {momento.formatoCargado && (
                     <button 
                       className="btn-eliminar-formato"
                       onClick={() => handleEliminarFormato(momento)}
                     >
                       <i className="fas fa-trash-alt"></i>
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
