@@ -142,11 +142,11 @@ const GestionFichas = () => {
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;">
             <div>
-              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Inicio *</label>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Inicio Productiva *</label>
               <input id="new-fecha-inicio" type="date" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;" />
             </div>
             <div>
-              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Fin *</label>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Fin Productiva *</label>
               <input id="new-fecha-fin" type="date" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;" />
             </div>
           </div>
@@ -247,11 +247,11 @@ const GestionFichas = () => {
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;">
             <div>
-              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Inicio *</label>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Inicio Productiva *</label>
               <input id="edit-fecha-inicio" type="date" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;" value="${ficha.fecha_inicio || ''}" />
             </div>
             <div>
-              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Fin *</label>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Fin Productiva *</label>
               <input id="edit-fecha-fin" type="date" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;" value="${ficha.fecha_fin || ''}" />
             </div>
           </div>
@@ -423,8 +423,8 @@ const GestionFichas = () => {
               <th>Nivel</th>
               <th style={{ textAlign: 'center' }}>Aprendices</th>
               <th style={{ textAlign: 'center' }}>Estado</th>
-              <th style={{ textAlign: 'center' }}>Fecha Inicio</th>
-              <th style={{ textAlign: 'center' }}>Fecha Fin</th>
+              <th style={{ textAlign: 'center' }}>Inicio Productiva</th>
+              <th style={{ textAlign: 'center' }}>Fin Productiva</th>
               <th style={{ textAlign: 'center' }}>Acciones</th>
             </tr>
           </thead>

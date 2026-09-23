@@ -285,11 +285,11 @@ const VerFichas = () => {
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;">
             <div>
-              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Inicio *</label>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Inicio Productiva *</label>
               <input id="new-fecha-inicio" type="date" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
             </div>
             <div>
-              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Fin *</label>
+              <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px;">Fecha Fin Productiva *</label>
               <input id="new-fecha-fin" type="date" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;" />
             </div>
           </div>
@@ -498,8 +498,8 @@ const VerFichas = () => {
                 <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Programa</th>
                 <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Nivel</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Aprendices</th>
-                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Fecha Inicio</th>
-                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Fecha Fin</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Inicio Productiva</th>
+                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Fin Productiva</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Estado</th>
                 <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Acciones</th>
               </tr>
