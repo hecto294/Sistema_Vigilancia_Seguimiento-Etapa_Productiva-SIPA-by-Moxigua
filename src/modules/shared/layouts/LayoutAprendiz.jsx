@@ -9,7 +9,7 @@ import '../../../App.css';
 import DashboardAprendiz from "@/modules/aprendiz/pages/DashboardAprendiz";
 import MisMomentos from "@/modules/aprendiz/pages/MisMomentos";
 import MisBitacoras from "@/modules/aprendiz/pages/MisBitacoras";
-import MisCertificados from "@/modules/aprendiz/pages/MisCertificados";
+import MisCartasPresentacion from "@/modules/aprendiz/pages/MisCartasPresentacion";
 import MiPerfil from "@/modules/aprendiz/pages/MiPerfil";
 import Novedades from "@/modules/aprendiz/pages/Novedades";
 
@@ -22,7 +22,7 @@ const LayoutAprendiz = ({ user }) => {
     const path = location.pathname;
     if (path.includes('/mis-momentos')) return 'momentos';
     if (path.includes('/mis-bitacoras')) return 'bitacoras';
-    if (path.includes('/mis-certificados')) return 'certificados';
+    if (path.includes('/mis-cartas-presentacion')) return 'cartas-presentacion';
     if (path.includes('/novedades')) return 'novedades';
     if (path.includes('/mi-perfil')) return 'perfil';
     return 'dashboard';
@@ -33,7 +33,7 @@ const LayoutAprendiz = ({ user }) => {
       dashboard: '/aprendiz',
       momentos: '/aprendiz/mis-momentos',
       bitacoras: '/aprendiz/mis-bitacoras',
-      certificados: '/aprendiz/mis-certificados',
+      'cartas-presentacion': '/aprendiz/mis-cartas-presentacion',
       novedades: '/aprendiz/novedades',
       perfil: '/aprendiz/mi-perfil',
     };
@@ -42,14 +42,7 @@ const LayoutAprendiz = ({ user }) => {
 
   return (
     <div className="app-layout">
-      <Header 
-        user={{ nombre: 'Andrés Felipe Castro', role: 'Aprendiz', avatar: 'https://i.pravatar.cc/150?img=11' }}
-        notifications={[
-          { id: 1, mensaje: 'Momentos completados', tiempo: 'Hoy, 09:30 a.m.' },
-          { id: 2, mensaje: 'Bitácora aprobada por instructor', tiempo: 'Ayer, 03:45 p.m.' },
-          { id: 3, mensaje: 'Bitácora pendiente por revisar', tiempo: 'Ayer, 02:00 p.m.' },
-        ]}
-      />
+      <Header notifications={[]} />
       <div className="main-body">
         <SidebarAprendiz 
           setActivePage={handleSidebarClick} 
@@ -61,11 +54,9 @@ const LayoutAprendiz = ({ user }) => {
               <Route path="/" element={<DashboardAprendiz user={user} />} />
               <Route path="/mis-momentos" element={<MisMomentos />} />
               <Route path="/mis-bitacoras" element={<MisBitacoras />} />
-              <Route path="/mis-certificados" element={<MisCertificados />} />
+              <Route path="/mis-cartas-presentacion" element={<MisCartasPresentacion />} />
               <Route path="/novedades" element={<Novedades />} />
-              <Route path="/mi-perfil" element={
-                <MiPerfil user={{ nombre: 'Andrés Felipe Castro', role: 'Aprendiz', avatar: 'https://i.pravatar.cc/150?img=11' }} />
-              } />
+              <Route path="/mi-perfil" element={<MiPerfil />} />
               <Route path="*" element={<Navigate to="/aprendiz" replace />} />
             </Routes>
           </div>

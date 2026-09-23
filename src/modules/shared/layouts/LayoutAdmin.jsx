@@ -3,7 +3,6 @@ import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import SidebarAdmin from '../../admin/components/SidebarAdmin';
-import { useAuth } from '@/providers/useAuth';
 import '../../../App.css';
 
 // Páginas del Admin
@@ -16,7 +15,6 @@ import MiPerfil from '@/modules/admin/pages/MiPerfil';
 const LayoutAdmin = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
 
   const handleNavigation = (url) => {
     navigate(url);
@@ -27,19 +25,11 @@ const LayoutAdmin = () => {
   else if (location.pathname.includes('/fichas')) activePage = 'fichas';
   else if (location.pathname.includes('/reportes')) activePage = 'reportes';
 
-  // Datos del usuario real desde el AuthContext
-  const userHeader = {
-    nombre: user?.nombre || 'Administrador',
-    role: user?.rol_nombre || 'Administrador',
-    avatar: 'https://i.pravatar.cc/150?img=12',
-  };
-
   return (
     <div className="app-layout">
-      <Header
-        user={userHeader}
-        notifications={[]}
-      />
+      {/* 🔥 El Header lee el usuario directamente de localStorage */}
+      <Header notifications={[]} />
+
       <div className="main-body">
         <SidebarAdmin
           onNavigate={handleNavigation}
@@ -51,7 +41,7 @@ const LayoutAdmin = () => {
             <Route path="/usuarios" element={<GestionUsuarios />} />
             <Route path="/fichas" element={<GestionFichas />} />
             <Route path="/reportes" element={<ReportesGlobales />} />
-            <Route path="/mi-perfil" element={<MiPerfil user={userHeader} />} />
+            <Route path="/mi-perfil" element={<MiPerfil />} />
           </Routes>
         </div>
       </div>

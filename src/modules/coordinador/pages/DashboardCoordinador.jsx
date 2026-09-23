@@ -1,314 +1,309 @@
 // src/modules/coordinador/pages/DashboardCoordinador.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '@/core/services/dashboardService';
-import { fichaService } from '@/core/services/fichaService';
+import WidgetAlertas from '@/shared/components/WidgetAlertas';
 
-const DashboardCoordinador = () => {
-  const navigate = useNavigate();
+// ============================================================
+// Estilos inline
+// ============================================================
+const COORD_KPI_STYLES = `
+  .kpis-grid-coord {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card-coord {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 22px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e8ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    cursor: pointer;
+    transform: translateY(0) scale(1);
+  }
+  .kpi-card-coord::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--kpi-color, #d1d5db);
+    transition: height 0.3s ease;
+  }
+  .kpi-card-coord:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+    border-color: var(--kpi-color, #d1d5db);
+  }
+  .kpi-card-coord:hover::before { height: 6px; }
+  .kpi-card-coord:hover .kpi-icono-coord {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  .kpi-card-coord:hover .kpi-valor-coord {
+    transform: scale(1.08);
+    color: var(--kpi-color, #1a1a1a);
+  }
+  .kpi-icono-coord {
+    font-size: 32px;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .kpi-info-coord {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+  .kpi-valor-coord {
+    font-size: 30px;
+    font-weight: 800;
+    color: #1a1a1a;
+    line-height: 1;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left center;
+  }
+  .kpi-label-coord {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+  .kpi-sublabel-coord {
+    font-size: 11px;
+    color: #8b95a1;
+    font-weight: 500;
+  }
+  .kpi-skeleton-coord {
+    pointer-events: none;
+  }
+  .kpi-skeleton-coord .kpi-icono-coord,
+  .kpi-skeleton-coord .kpi-valor-coord,
+  .kpi-skeleton-coord .kpi-label-coord {
+    background: #eef0f3;
+    color: transparent;
+    border-radius: 6px;
+    animation: pulse-coord 1.5s ease-in-out infinite;
+  }
+  .kpi-skeleton-coord .kpi-icono-coord { width: 32px; height: 32px; }
+  .kpi-skeleton-coord .kpi-valor-coord { width: 60%; height: 20px; margin-bottom: 8px; }
+  .kpi-skeleton-coord .kpi-label-coord { width: 80%; height: 12px; }
+  @keyframes pulse-coord {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .kpis-error-coord {
+    padding: 20px;
+    background: #fef5f5;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    color: #dc2626;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 1100px) {
+    .kpis-grid-coord { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .kpis-grid-coord { grid-template-columns: 1fr; }
+    .kpi-valor-coord { font-size: 26px; }
+    .kpi-icono-coord { font-size: 28px; }
+    .kpi-card-coord:hover { transform: translateY(-3px) scale(1.01); }
+  }
+`;
 
-  const [stats, setStats] = useState([]);
-  const [fichas, setFichas] = useState([]);
-  const [programas, setProgramas] = useState([]);
-  const [conteoAprendices, setConteoAprendices] = useState({});
+// ============================================================
+// Componente KPIs
+// ============================================================
+const KPIsCoordinador = () => {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    cargarDatos();
+    let activo = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await dashboardService.getCoordinador();
+        if (activo) setData(res);
+      } catch (err) {
+        console.error('[DashboardCoordinador] Error KPIs:', err);
+        if (activo) setError(err.message || 'Error al cargar métricas');
+      } finally {
+        if (activo) setLoading(false);
+      }
+    })();
+    return () => { activo = false; };
   }, []);
-
-  const cargarDatos = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const [dashData, fichasData, programasData] = await Promise.all([
-        dashboardService.getCoordinador().catch((e) => {
-          console.error('Error en dashboard:', e);
-          return {};
-        }),
-        fichaService.getFichas().catch(() => []),
-        fichaService.getProgramas().catch(() => []),
-      ]);
-
-      console.log('📊 Dashboard data desde backend:', dashData);
-      console.log('📋 Fichas:', fichasData);
-      console.log('📚 Programas:', programasData);
-
-      const fichasArray = Array.isArray(fichasData) ? fichasData : [];
-      const programasArray = Array.isArray(programasData) ? programasData : [];
-
-      setFichas(fichasArray);
-      setProgramas(programasArray);
-
-      // 🔥 Cargar la cantidad REAL de aprendices por cada ficha
-      // Usando el ID interno de la ficha
-      const conteos = {};
-      await Promise.all(
-        fichasArray.map(async (ficha) => {
-          try {
-            const aprendicesFicha = await fichaService.getAprendicesByFicha(ficha.id);
-            conteos[ficha.id] = Array.isArray(aprendicesFicha) ? aprendicesFicha.length : 0;
-            console.log(`👥 Ficha ${ficha.numero_ficha} (id=${ficha.id}): ${conteos[ficha.id]} aprendices`);
-          } catch (err) {
-            console.error(`Error al contar aprendices de ficha ${ficha.numero_ficha}:`, err);
-            conteos[ficha.id] = 0;
-          }
-        })
-      );
-
-      console.log('👥 Conteo real de aprendices por ficha:', conteos);
-      setConteoAprendices(conteos);
-
-      const totalFichas = 
-        dashData.total_fichas_asignadas ?? 
-        dashData.fichas_activas ?? 
-        dashData.total_fichas ?? 
-        fichasArray.length;
-
-      const totalAprendices = 
-        dashData.total_procesos_activos ?? 
-        dashData.aprendices_activos ?? 
-        dashData.total_aprendices ?? 
-        dashData.procesos_activos ?? 
-        Object.values(conteos).reduce((sum, n) => sum + n, 0);
-
-      const totalInstructores = 
-        dashData.total_instructores_activos ?? 
-        dashData.instructores_activos ?? 
-        dashData.total_instructores ?? 
-        0;
-
-      const totalPendientes = 
-        dashData.total_procesos_pendientes ?? 
-        dashData.procesos_pendientes ?? 
-        dashData.total_pendientes ?? 
-        0;
-
-      const nuevasStats = [
-        {
-          id: 1,
-          numero: totalFichas,
-          etiqueta: 'Fichas Activas',
-          icono: 'fa-layer-group',
-          color: '#3ca203',
-        },
-        {
-          id: 2,
-          numero: totalAprendices,
-          etiqueta: 'Aprendices en Etapa',
-          icono: 'fa-users',
-          color: '#0ea5e9',
-        },
-        {
-          id: 3,
-          numero: totalInstructores,
-          etiqueta: 'Instructores Activos',
-          icono: 'fa-user-tie',
-          color: '#8b5cf6',
-        },
-        {
-          id: 4,
-          numero: totalPendientes,
-          etiqueta: 'Procesos Pendientes',
-          icono: 'fa-certificate',
-          color: '#f59e0b',
-        },
-      ];
-
-      setStats(nuevasStats);
-    } catch (err) {
-      console.error('Error al cargar dashboard:', err);
-      setError(err.message || 'Error al cargar datos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getNombrePrograma = (programaId) => {
-    const p = programas.find((x) => x.id === programaId);
-    return p ? p.nombre : `Programa #${programaId}`;
-  };
-
-  const formatearFecha = (fecha) => {
-    if (!fecha) return '-';
-    try {
-      return new Date(fecha).toLocaleDateString('es-ES');
-    } catch {
-      return fecha;
-    }
-  };
 
   if (loading) {
     return (
-      <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
-        <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
-        <p style={{ marginTop: '15px' }}>Cargando panel del coordinador...</p>
+      <div className="kpis-grid-coord">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="kpi-card-coord kpi-skeleton-coord">
+            <div className="kpi-icono-coord"></div>
+            <div className="kpi-info-coord">
+              <div className="kpi-valor-coord">0</div>
+              <div className="kpi-label-coord">Cargando...</div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: '60px', textAlign: 'center' }}>
-        <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
-        <h3 style={{ color: '#dc2626', marginTop: '15px' }}>Error al cargar</h3>
-        <p style={{ color: '#6b7280' }}>{error}</p>
-        <button
-          onClick={cargarDatos}
-          style={{
-            background: '#3ca203',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            marginTop: '15px',
-          }}
-        >
-          <i className="fas fa-redo" /> Reintentar
-        </button>
+      <div className="kpis-error-coord">
+        ⚠️ No se pudieron cargar las métricas: {error}
       </div>
     );
   }
 
+  const {
+    total_fichas_asignadas = 0,
+    total_instructores_activos = 0,
+    total_procesos_activos = 0,
+    total_procesos_pendientes = 0,
+    alertas_criticas = 0,
+    aprendices_pendientes_iniciar = 0,
+    aprendices_sin_alternativa = 0,
+    seguimientos_pendientes = 0,
+    documentos_pendientes = 0,
+    medidas_formativas_pendientes = 0,
+  } = data || {};
+
+  const kpis = [
+    {
+      id: 'fichas',
+      icono: '🏫',
+      valor: total_fichas_asignadas,
+      label: 'Fichas',
+      sublabel: 'asignadas',
+      color: '#4a90e2',
+    },
+    {
+      id: 'instructores',
+      icono: '👨‍🏫',
+      valor: total_instructores_activos,
+      label: 'Instructores',
+      sublabel: 'activos',
+      color: '#9b59b6',
+    },
+    {
+      id: 'procesos',
+      icono: '📋',
+      valor: total_procesos_activos,
+      label: 'Procesos activos',
+      sublabel: 'en curso',
+      color: '#3ca203',
+    },
+    {
+      id: 'alertas',
+      icono: '🚨',
+      valor: alertas_criticas,
+      label: 'Alertas críticas',
+      sublabel: 'requieren atención',
+      color: '#e63946',
+      destacado: alertas_criticas > 0,
+    },
+    {
+      id: 'pendientes',
+      icono: '⏳',
+      valor: total_procesos_pendientes,
+      label: 'Procesos pendientes',
+      sublabel: 'por evaluar',
+      color: '#f4a261',
+    },
+    {
+      id: 'seguimientos',
+      icono: '📅',
+      valor: seguimientos_pendientes,
+      label: 'Seguimientos',
+      sublabel: 'pendientes',
+      color: '#0ea5e9',
+    },
+    {
+      id: 'documentos',
+      icono: '📄',
+      valor: documentos_pendientes,
+      label: 'Documentos',
+      sublabel: 'pendientes',
+      color: '#f59e0b',
+    },
+    {
+      id: 'medidas',
+      icono: '⚖️',
+      valor: medidas_formativas_pendientes,
+      label: 'Medidas formativas',
+      sublabel: 'pendientes',
+      color: '#8b5cf6',
+      destacado: medidas_formativas_pendientes > 0,
+    },
+  ];
+
   return (
-    <div style={{ width: '100%', padding: '20px 0' }}>
-      <div style={{ marginBottom: '25px' }}>
-        <h2 style={{ fontSize: '26px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 5px 0' }}>
-          Panel Global - Coordinador
-        </h2>
-        <p style={{ color: '#6b7280', fontSize: '15px', margin: 0 }}>
-          Visión general del estado de la etapa productiva.
-        </p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
-        {stats.map((stat) => (
-          <div
-            key={stat.id}
-            style={{
-              background: 'white',
-              padding: '20px',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-              textAlign: 'center',
-              transition: 'all 0.25s ease',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-          >
-            <i
-              className={`fas ${stat.icono}`}
-              style={{ fontSize: '30px', color: stat.color, marginBottom: '10px', display: 'block' }}
-            />
-            <h3 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1f2937', margin: '0' }}>
-              {stat.numero}
-            </h3>
-            <p style={{ color: '#6b7280', fontSize: '14px', margin: '0' }}>{stat.etiqueta}</p>
+    <div className="kpis-grid-coord">
+      {kpis.map((kpi) => (
+        <div
+          key={kpi.id}
+          className={`kpi-card-coord ${kpi.destacado ? 'kpi-card-destacado-coord' : ''}`}
+          style={{ '--kpi-color': kpi.color }}
+        >
+          <div className="kpi-icono-coord">{kpi.icono}</div>
+          <div className="kpi-info-coord">
+            <div className="kpi-valor-coord">{kpi.valor}</div>
+            <div className="kpi-label-coord">{kpi.label}</div>
+            <div className="kpi-sublabel-coord">{kpi.sublabel}</div>
           </div>
-        ))}
-      </div>
-
-      <div style={{ background: 'white', borderRadius: '12px', padding: '20px', border: '1px solid #e5e7eb' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
-            <i className="fas fa-layer-group" style={{ color: '#3ca203', marginRight: '8px' }} />
-            Estado de Fichas ({fichas.length})
-          </h3>
-          <button
-            onClick={() => navigate('/coordinador/fichas')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#3ca203',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            Ver todas →
-          </button>
         </div>
+      ))}
+    </div>
+  );
+};
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Ficha</th>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Programa</th>
-                <th style={{ textAlign: 'left', padding: '12px', color: '#6b7280' }}>Nivel</th>
-                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>
-                  Aprendices (reales)
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Finalización</th>
-                <th style={{ textAlign: 'center', padding: '12px', color: '#6b7280' }}>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fichas.length === 0 ? (
-                <tr>
-                  <td colSpan="6" style={{ padding: '30px', textAlign: 'center', color: '#9ca3af' }}>
-                    No hay fichas registradas
-                  </td>
-                </tr>
-              ) : (
-                fichas.map((ficha) => {
-                  const totalReales = conteoAprendices[ficha.id] ?? 0;
-                  const esperados = ficha.aprendices_esperados || 0;
+// ============================================================
+// Componente Principal
+// ============================================================
+const DashboardCoordinador = () => {
+  const navigate = useNavigate();
 
-                  return (
-                    <tr key={ficha.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#3ca203' }}>
-                        {ficha.numero_ficha}
-                      </td>
-                      <td style={{ padding: '12px' }}>{getNombrePrograma(ficha.programa_id)}</td>
-                      <td style={{ padding: '12px' }}>{ficha.nivel || 'N/A'}</td>
-                      <td style={{ textAlign: 'center', padding: '12px' }}>
-                        <span
-                          style={{
-                            background: '#e0f2fe',
-                            color: '#0369a1',
-                            padding: '4px 12px',
-                            borderRadius: '12px',
-                            fontSize: '13px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {totalReales}
-                        </span>
-                        <small style={{ color: '#9ca3af', marginLeft: '6px', fontSize: '11px' }}>
-                          / {esperados} esperados
-                        </small>
-                      </td>
-                      <td style={{ textAlign: 'center', padding: '12px' }}>
-                        {formatearFecha(ficha.fecha_fin)}
-                      </td>
-                      <td style={{ textAlign: 'center', padding: '12px' }}>
-                        <span
-                          style={{
-                            background: ficha.is_active ? '#d1fae5' : '#f3f4f6',
-                            color: ficha.is_active ? '#047857' : '#6b7280',
-                            padding: '4px 14px',
-                            borderRadius: '20px',
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {ficha.is_active ? 'Activa' : 'Inactiva'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  const handleVerRecurso = (alerta, nav) => {
+    const mapa = {
+      bitacora: '/coordinador/reporte-bitacoras',
+      proceso: '/coordinador/reporte-bitacoras',
+      ficha: '/coordinador/fichas',
+      aprendiz: '/coordinador/aprendices',
+      instructor: '/coordinador/instructores',
+    };
+    const ruta = mapa[alerta.entidad_relacionada];
+    if (ruta) nav(ruta);
+  };
+
+  return (
+    <div>
+      <style>{COORD_KPI_STYLES}</style>
+
+      {/* 🔔 ALERTAS */}
+      <WidgetAlertas
+        titulo="Alertas de Seguimiento"
+        onVerRecurso={handleVerRecurso}
+        onVerHistorial={() => navigate('/coordinador/reporte-bitacoras')}
+      />
+
+      {/* 📊 KPIs */}
+      <KPIsCoordinador />
     </div>
   );
 };

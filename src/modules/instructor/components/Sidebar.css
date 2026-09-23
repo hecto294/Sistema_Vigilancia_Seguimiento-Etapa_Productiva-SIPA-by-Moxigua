@@ -1,17 +1,41 @@
-/* src/components/Sidebar.css */
+/* src/modules/instructor/components/Sidebar.css */
+
 .sidebar {
   width: 260px;
-  background-color: #ebebeb; /* Fondo gris claro */
-  height: 100vh;
+  background-color: #ebebeb;
+  height: calc(100vh - 70px);      /* 🔥 Altura MENOS el header */
   position: fixed;
   top: 70px;
   left: 0;
   border-right: 1px solid #d1d5db;
   overflow-y: auto;
+  overflow-x: hidden;
   z-index: 100;
 }
 
-.sidebar-menu ul { list-style: none; padding: 0; margin: 0; }
+/* 🔥 Scroll personalizado (delgado y gris) */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #b0b0b0;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #8b8b8b;
+}
+
+.sidebar-menu ul { 
+  list-style: none; 
+  padding: 0; 
+  margin: 0; 
+}
 
 .sidebar-menu > ul > li { 
   padding: 14px 24px; 
@@ -24,6 +48,7 @@
   position: relative; 
   transition: all 0.2s ease;
 }
+
 .sidebar-menu > ul > li i:first-child { 
   width: 25px; 
   margin-right: 12px; 
@@ -33,9 +58,9 @@
 /* --- EL COLOR DEL SELECTOR (OPCIÓN ACTIVA) --- */
 .sidebar-menu > ul > li.active,
 .sidebar-menu .submenu li.active {
-  background-color: #39A900 !important; /* Mismo color que la barra superior */
-  color: #ffffff !important;            /* Texto blanco */
-  border-left: none !important;         /* Sin borde blanco */
+  background-color: #39A900 !important;
+  color: #ffffff !important;
+  border-left: none !important;
   border-radius: 0; 
 }
 
@@ -51,10 +76,12 @@
   font-size: 12px;
   color: #6b7280;
 }
+
 .menu-arrow.rotate {
   transform: rotate(180deg);
   color: #6b7280;
 }
+
 .sidebar-menu > ul > li.active .menu-arrow {
   color: #ffffff !important;
 }
@@ -69,6 +96,7 @@
   background-color: #e2e2e2; 
   padding: 5px 0; 
 }
+
 .submenu li { 
   padding: 10px 24px 10px 60px; 
   cursor: pointer; 
@@ -76,6 +104,7 @@
   color: #4b5563;
   transition: 0.2s;
 }
+
 .submenu li:hover:not(.active) { 
   background-color: #e5e7eb; 
 }

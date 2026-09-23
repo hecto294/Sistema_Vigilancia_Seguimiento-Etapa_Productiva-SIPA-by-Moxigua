@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import Breadcrumb from '../../shared/components/Breadcrumb';
 import { apiClient } from '@/core/api/client';
 import { showSuccess, showError } from '@/core/utils/sweetAlert';
+import { f165Service } from '@/core/services/f165Service';
 import './SeleccionAlternativa.css';
 
 const SeleccionAlternativa = () => {
@@ -205,6 +206,46 @@ const SeleccionAlternativa = () => {
     }
   };
 
+  // ==========================================================
+  // F165 INDIVIDUAL (Instructor)
+  // ==========================================================
+  const handleGenerarF165Individual = async (aprendiz) => {
+    if (!aprendiz?.proceso_id) {
+      Swal.fire({
+        title: '⚠️ Sin proceso',
+        text: 'Este aprendiz no tiene un proceso asociado',
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b',
+      });
+      return;
+    }
+
+    try {
+      Swal.fire({
+        title: '📄 Generando F165...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      await f165Service.descargarIndividual(aprendiz.proceso_id);
+
+      Swal.fire({
+        title: '✅ F165 descargado',
+        text: `El formato de ${aprendiz.nombre} se descargó exitosamente.`,
+        icon: 'success',
+        confirmButtonColor: '#3ca203',
+        timer: 2500,
+      });
+    } catch (err) {
+      Swal.fire({
+        title: '❌ Error',
+        text: err.message || 'No se pudo generar el F165',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+      });
+    }
+  };
+
   const getColorAlternativa = (alternativa) => {
     const colores = {
       'Contrato de aprendizaje': '#10b981', 'Contrato de Aprendizaje': '#10b981',
@@ -367,15 +408,36 @@ const SeleccionAlternativa = () => {
                         )}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        {aprendiz.alternativa && aprendiz.empresa ? (
-                          <button className="btn-asociacion" onClick={() => toggleEmpresa(index)} style={{ marginRight: '8px' }}>
-                            <i className="fas fa-building"></i> Empresa
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                          {aprendiz.alternativa && aprendiz.empresa ? (
+                            <button className="btn-asociacion" onClick={() => toggleEmpresa(index)}>
+                              <i className="fas fa-building"></i> Empresa
+                            </button>
+                          ) : (
+                            <button className="btn-asignar" onClick={() => handleAsignarAlternativa(aprendiz)} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
+                              <i className="fas fa-plus"></i> Asignar
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleGenerarF165Individual(aprendiz)}
+                            title="Generar F165"
+                            style={{
+                              background: '#fef3c7',
+                              color: '#d97706',
+                              border: 'none',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <i className="fas fa-file-pdf"></i> F165
                           </button>
-                        ) : (
-                          <button className="btn-asignar" onClick={() => handleAsignarAlternativa(aprendiz)} style={{ background: '#3ca203', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
-                            <i className="fas fa-plus"></i> Asignar
-                          </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
                     {empresaVisible === index && aprendiz.empresa && (

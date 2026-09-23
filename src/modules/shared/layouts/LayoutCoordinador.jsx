@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿// src/modules/shared/layouts/LayoutCoordinador.jsx
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Header from '@/modules/shared/components/Header';
 import SidebarCoordinador from '@/modules/coordinador/components/SidebarCoordinador';
@@ -7,7 +8,7 @@ import '@/App.css';
 import DashboardCoordinador from "@/modules/coordinador/pages/DashboardCoordinador";
 import VerFichas from "@/modules/coordinador/pages/VerFichas";
 import VerAprendices from "@/modules/coordinador/pages/VerAprendices";
-import VerCertificados from "@/modules/coordinador/pages/VerCertificados";
+import CartasPresentacion from "@/modules/coordinador/pages/CartasPresentacion";
 import ReportesGlobales from "@/modules/coordinador/pages/ReportesGlobales";
 import Parametrizacion from "@/modules/coordinador/pages/Parametrizacion";
 import EmpresasGlobales from "@/modules/coordinador/pages/EmpresasGlobales";
@@ -27,6 +28,12 @@ import ReporteBitacoras from "@/modules/coordinador/pages/ReporteBitacoras";
 import ReporteFichaBitacoras from "@/modules/coordinador/pages/ReporteFichaBitacoras";
 import ReporteAprendizBitacoras from "@/modules/coordinador/pages/ReporteAprendizBitacoras";
 
+// 🔥 Instructores EP
+import InstructoresEP from "@/modules/coordinador/pages/InstructoresEP";
+
+// 🔥 Centros de Formación (NUEVO)
+import CentrosFormacion from "@/modules/coordinador/pages/CentrosFormacion";
+
 const LayoutCoordinador = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,7 +44,6 @@ const LayoutCoordinador = () => {
     if (stored) {
       const parsed = JSON.parse(stored);
       const nombreCompleto = (parsed.nombre + ' ' + (parsed.apellido || '')).trim();
-      const iniciales = ((parsed.nombre || 'U').charAt(0) + (parsed.apellido || '').charAt(0)).toUpperCase();
       setUser({
         id: parsed.id,
         nombre: nombreCompleto,
@@ -53,9 +59,11 @@ const LayoutCoordinador = () => {
   let activePage = 'dashboard';
   if (location.pathname.includes('/parametrizacion')) activePage = 'parametrizacion';
   else if (location.pathname.includes('/fichas')) activePage = 'fichas';
-  else if (location.pathname.includes('/certificados')) activePage = 'certificados';
+  else if (location.pathname.includes('/cartas-presentacion')) activePage = 'cartas-presentacion';
   else if (location.pathname.includes('/reportes')) activePage = 'reportes';
   else if (location.pathname.includes('/reporte-bitacoras')) activePage = 'reporte-bitacoras';
+  else if (location.pathname.includes('/instructores-ep')) activePage = 'instructores-ep';
+  else if (location.pathname.includes('/centros-formacion')) activePage = 'centros-formacion'; // 🔥 NUEVO
   else if (location.pathname.includes('/empresas')) activePage = 'empresas';
   else if (location.pathname.includes('/aprendices')) activePage = 'aprendices';
   else if (location.pathname.includes('/instructores')) activePage = 'instructores';
@@ -75,18 +83,26 @@ const LayoutCoordinador = () => {
             <Route path="/" element={<DashboardCoordinador />} />
             <Route path="/parametrizacion" element={<Parametrizacion />} />
             <Route path="/fichas" element={<VerFichas />} />
-            <Route path="/certificados" element={<VerCertificados />} />
+            <Route path="/cartas-presentacion" element={<CartasPresentacion />} />
             <Route path="/ficha/:idFicha" element={<VerAprendices />} />
             <Route path="/reportes" element={<ReportesGlobales />} />
             <Route path="/reportes/ficha/:idFicha" element={<ReporteFichaDetalle />} />
             <Route path="/reporte-bitacoras" element={<ReporteBitacoras />} />
             <Route path="/reporte-bitacoras/ficha/:idFicha" element={<ReporteFichaBitacoras />} />
             <Route path="/reporte-bitacoras/aprendiz/:aprendizId" element={<ReporteAprendizBitacoras />} />
+
+            {/* 🔥 Centros de Formación (NUEVO) */}
+            <Route path="/centros-formacion" element={<CentrosFormacion />} />
+
             <Route path="/empresas" element={<EmpresasGlobales />} />
             <Route path="/aprendices" element={<AprendicesGlobales />} />
             <Route path="/aprendices/:aprendizId" element={<DetalleAprendiz />} />
             <Route path="/instructores" element={<InstructoresGlobales />} />
             <Route path="/instructores/:instructorId/asignar" element={<AsignarFichasInstructor />} />
+
+            {/* 🔥 Instructores EP */}
+            <Route path="/instructores-ep" element={<InstructoresEP />} />
+
             <Route path="/ficha-completa/:idFicha" element={<DetalleFichaGlobal />} />
             <Route path="/ficha-completa/:idFicha/aprendiz/:aprendizId/asignar-empresa" element={<AsignarEmpresaAprendiz />} />
             <Route path="/subir-alternativa" element={<SubirAlternativa />} />

@@ -26,7 +26,7 @@ export const userService = {
   },
 
   // ============ PERFIL DEL USUARIO ACTUAL ============
-  
+
   // Obtener datos del usuario logueado
   getMe: async () => {
     return await apiClient.get(API_ENDPOINTS.AUTH.ME);
@@ -40,6 +40,15 @@ export const userService = {
   // Cambiar contraseña
   changePassword: async (passwordData) => {
     return await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, passwordData);
+  },
+
+  // 🔥 NUEVO: Subir foto de perfil
+  uploadAvatar: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return await apiClient.post('/usuarios/me/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 
   // ============ FILTROS POR ROL ============

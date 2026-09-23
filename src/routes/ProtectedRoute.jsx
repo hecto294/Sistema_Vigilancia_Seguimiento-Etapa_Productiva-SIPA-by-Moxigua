@@ -12,38 +12,80 @@ const ROLE_ROUTES = {
   6: '/apoyo',
 };
 
+const ROL_NOMBRE_A_ID = {
+  'administrador': 1,
+  'admin': 1,
+  'coordinador': 2,
+  'instructor': 3,
+  'aprendiz': 4,
+  'apoyo': 5,
+  'apoyo administrativo': 5,
+  'consulta': 6,
+};
+
+// 🔥 Extraer el ID del rol de forma robusta
+const obtenerRolId = (user) => {
+  if (!user) return null;
+
+  // 1. rol_id directo
+  if (user.rol_id != null) {
+    const n = Number(user.rol_id);
+    if (!isNaN(n)) return n;
+  }
+
+  // 2. rol (número o nombre)
+  if (user.rol != null) {
+    const n = Number(user.rol);
+    if (!isNaN(n)) return n;
+    if (typeof user.rol === 'string') {
+      const key = user.rol.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      if (ROL_NOMBRE_A_ID[key]) return ROL_NOMBRE_A_ID[key];
+    }
+  }
+
+  // 3. rol_nombre
+  if (user.rol_nombre) {
+    const key = user.rol_nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    if (ROL_NOMBRE_A_ID[key]) return ROL_NOMBRE_A_ID[key];
+  }
+
+  return null;
+};
+
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading, isAuthenticated } = useAuth();
 
-  console.log('🛡️ [ProtectedRoute] user:', user);
-  console.log('🛡️ [ProtectedRoute] isAuthenticated:', isAuthenticated);
-  console.log('🛡️ [ProtectedRoute] loading:', loading);
-  console.log('🛡️ [ProtectedRoute] allowedRoles:', allowedRoles);
-
-  // 1. Mientras carga → mostrar "Cargando..."
+  // ⏳ Mientras carga el usuario → spinner
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center' }}>Cargando...</div>;
+    return (
+      <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>
+        <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
+        <p style={{ marginTop: '15px' }}>Cargando...</p>
+      </div>
+    );
   }
 
-  // 2. Si NO está autenticado → login
+  // 🚪 No autenticado → login
   if (!isAuthenticated || !user) {
-    console.log('❌ [ProtectedRoute] No auth → /login');
     return <Navigate to="/login" replace />;
   }
 
-  // 3. Convertir SIEMPRE el rol a número
-  const rolId = Number(user.rol_id);
-  console.log('🛡️ [ProtectedRoute] rolId convertido:', rolId);
+  // 🎯 Obtener rol
+  const rolId = obtenerRolId(user);
 
-  // 4. Si el rol no está permitido → redirigir a SU dashboard
+  // ⚠️ No se pudo determinar el rol → login
+  if (rolId == null) {
+    console.error('❌ No se pudo determinar el rol del usuario');
+    return <Navigate to="/login" replace />;
+  }
+
+  // 🚫 Rol no permitido → redirigir a SU dashboard
   if (allowedRoles.length > 0 && !allowedRoles.includes(rolId)) {
     const destino = ROLE_ROUTES[rolId] || '/login';
-    console.log('❌ [ProtectedRoute] Rol no permitido →', destino);
     return <Navigate to={destino} replace />;
   }
 
-  // 5. ✅ Todo OK → mostrar children
-  console.log('✅ [ProtectedRoute] Acceso OK');
+  // ✅ Todo OK
   return children;
 };
 

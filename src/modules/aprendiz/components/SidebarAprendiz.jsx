@@ -25,14 +25,16 @@ const SidebarAprendiz = ({ setActivePage, activePage }) => {
           >
             <i className="fas fa-book"></i> Mis Bitácoras
           </li>
+
+          {/* 🔥 CAMBIO: Certificados → Mis Cartas de Presentación */}
           <li 
-            className={activePage === 'certificados' ? 'active' : ''} 
-            onClick={() => setActivePage('certificados')}
+            className={activePage === 'cartas-presentacion' ? 'active' : ''} 
+            onClick={() => setActivePage('cartas-presentacion')}
           >
-            <i className="fas fa-certificate"></i> Mis Certificados
+            <i className="fas fa-envelope-open-text"></i> Mis Cartas de Presentación
           </li>
 
-          {/* ⬇️ NUEVA OPCIÓN: NOVEDADES */}
+          {/* NOVEDADES */}
           <li 
             className={activePage === 'novedades' ? 'active' : ''} 
             onClick={() => setActivePage('novedades')}

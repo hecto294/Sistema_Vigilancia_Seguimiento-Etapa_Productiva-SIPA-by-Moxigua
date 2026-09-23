@@ -1,362 +1,305 @@
 // src/modules/admin/pages/DashboardAdmin.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '@/core/services/dashboardService';
-import { userService } from '@/core/services/userService';
+import WidgetAlertas from '@/shared/components/WidgetAlertas';
 
-const DashboardAdmin = () => {
-  const navigate = useNavigate();
+// ============================================================
+// Estilos inline (se inyectan solo una vez)
+// ============================================================
+const ADMIN_KPI_STYLES = `
+  .kpis-grid-admin {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card-admin {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 22px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e8ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    cursor: pointer;
+    transform: translateY(0) scale(1);
+  }
+  .kpi-card-admin::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--kpi-color, #d1d5db);
+    transition: height 0.3s ease;
+  }
+  .kpi-card-admin:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+    border-color: var(--kpi-color, #d1d5db);
+  }
+  .kpi-card-admin:hover::before { height: 6px; }
+  .kpi-card-admin:hover .kpi-icono-admin {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  .kpi-card-admin:hover .kpi-valor-admin {
+    transform: scale(1.08);
+    color: var(--kpi-color, #1a1a1a);
+  }
+  .kpi-icono-admin {
+    font-size: 32px;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .kpi-info-admin {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+  .kpi-valor-admin {
+    font-size: 30px;
+    font-weight: 800;
+    color: #1a1a1a;
+    line-height: 1;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left center;
+  }
+  .kpi-label-admin {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+  .kpi-sublabel-admin {
+    font-size: 11px;
+    color: #8b95a1;
+    font-weight: 500;
+  }
+  .kpi-skeleton-admin {
+    pointer-events: none;
+  }
+  .kpi-skeleton-admin .kpi-icono-admin,
+  .kpi-skeleton-admin .kpi-valor-admin,
+  .kpi-skeleton-admin .kpi-label-admin {
+    background: #eef0f3;
+    color: transparent;
+    border-radius: 6px;
+    animation: pulse-admin 1.5s ease-in-out infinite;
+  }
+  .kpi-skeleton-admin .kpi-icono-admin { width: 32px; height: 32px; }
+  .kpi-skeleton-admin .kpi-valor-admin { width: 60%; height: 20px; margin-bottom: 8px; }
+  .kpi-skeleton-admin .kpi-label-admin { width: 80%; height: 12px; }
+  @keyframes pulse-admin {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .kpis-error-admin {
+    padding: 20px;
+    background: #fef5f5;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    color: #dc2626;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 1100px) {
+    .kpis-grid-admin { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .kpis-grid-admin { grid-template-columns: 1fr; }
+    .kpi-valor-admin { font-size: 26px; }
+    .kpi-icono-admin { font-size: 28px; }
+    .kpi-card-admin:hover { transform: translateY(-3px) scale(1.01); }
+  }
+`;
 
-  // Estados
-  const [stats, setStats] = useState([]);
-  const [usuariosRecientes, setUsuariosRecientes] = useState([]);
+// ============================================================
+// Componente KPIs (dentro del mismo archivo)
+// ============================================================
+const KPIsAdmin = () => {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modal
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [tituloModal, setTituloModal] = useState('');
-  const [detallesModal, setDetallesModal] = useState([]);
-
-  // Cargar datos del backend
   useEffect(() => {
-    const cargarDatos = async () => {
+    let activo = true;
+    (async () => {
       try {
         setLoading(true);
-        setError(null);
-
-        const [dashboardData, usuariosData] = await Promise.all([
-          dashboardService.getAdmin(),
-          userService.getUsers({ limit: 5 }).catch(() => []),
-        ]);
-
-        const nuevasStats = [
-          {
-            id: 1,
-            numero: dashboardData.total_usuarios_activos || 0,
-            etiqueta: 'Usuarios Totales',
-            icono: 'fa-users',
-            color: '#3ca203',
-            detalles: [
-              `Instructores: ${dashboardData.total_instructores || 0}`,
-              `Aprendices: ${dashboardData.total_aprendices_etapa_productiva || 0}`,
-            ],
-          },
-          {
-            id: 2,
-            numero: dashboardData.total_fichas || 0,
-            etiqueta: 'Fichas Activas',
-            icono: 'fa-layer-group',
-            color: '#3ca203',
-            ruta: '/admin/fichas',
-          },
-          {
-            id: 3,
-            numero: dashboardData.total_procesos_activos || 0,
-            etiqueta: 'Procesos Activos',
-            icono: 'fa-user-shield',
-            color: '#3ca203',
-            detalles: [
-              `Finalizados: ${dashboardData.total_procesos_finalizados || 0}`,
-              `En riesgo: ${(dashboardData.procesos_en_riesgo || []).length}`,
-            ],
-          },
-          {
-            id: 4,
-            numero: dashboardData.seguimientos_pendientes || 0,
-            etiqueta: 'Seguimientos Pendientes',
-            icono: 'fa-clock',
-            color: '#3ca203',
-            detalles: [
-              `Documentos pendientes: ${dashboardData.documentos_pendientes || 0}`,
-              `Novedades: ${dashboardData.total_novedades || 0}`,
-            ],
-          },
-        ];
-
-        setStats(nuevasStats);
-
-        const lista = Array.isArray(usuariosData) ? usuariosData.slice(0, 5) : [];
-        setUsuariosRecientes(
-          lista.map((u) => ({
-            nombre: `${u.nombre || ''} ${u.apellido || ''}`.trim() || u.email,
-            rol: u.rol_nombre || mapearRol(u.rol_id),
-            email: u.email,
-          }))
-        );
+        const res = await dashboardService.getAdmin();
+        if (activo) setData(res);
       } catch (err) {
-        console.error('Error al cargar dashboard:', err);
-        setError(err.message || 'Error al cargar datos');
+        console.error('[DashboardAdmin] Error KPIs:', err);
+        if (activo) setError(err.message || 'Error al cargar métricas');
       } finally {
-        setLoading(false);
+        if (activo) setLoading(false);
       }
-    };
-
-    cargarDatos();
+    })();
+    return () => { activo = false; };
   }, []);
-
-  const mapearRol = (rolId) => {
-    const roles = {
-      1: 'Administrador',
-      2: 'Coordinador',
-      3: 'Instructor',
-      4: 'Aprendiz',
-      5: 'Apoyo Administrativo',
-      6: 'Consulta',
-    };
-    return roles[rolId] || 'Usuario';
-  };
-
-  const abrirModal = (id) => {
-    const tarjeta = stats.find((item) => item.id === id);
-    if (tarjeta) {
-      if (tarjeta.ruta) {
-        navigate(tarjeta.ruta);
-      } else {
-        setTituloModal(tarjeta.etiqueta);
-        setDetallesModal(tarjeta.detalles || []);
-        setModalAbierto(true);
-      }
-    }
-  };
-
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setTituloModal('');
-    setDetallesModal([]);
-  };
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
-        <i className="fas fa-spinner fa-spin" style={{ fontSize: '32px', color: '#3ca203' }}></i>
-        <p style={{ marginTop: '15px' }}>Cargando panel de control...</p>
+      <div className="kpis-grid-admin">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="kpi-card-admin kpi-skeleton-admin">
+            <div className="kpi-icono-admin"></div>
+            <div className="kpi-info-admin">
+              <div className="kpi-valor-admin">0</div>
+              <div className="kpi-label-admin">Cargando...</div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <i className="fas fa-exclamation-circle" style={{ fontSize: '40px', color: '#dc2626' }}></i>
-        <h3 style={{ color: '#dc2626', marginTop: '15px' }}>Error al cargar datos</h3>
-        <p style={{ color: '#6b7280' }}>{error}</p>
+      <div className="kpis-error-admin">
+        ⚠️ No se pudieron cargar las métricas: {error}
       </div>
     );
   }
 
+  const {
+    total_usuarios_activos = 0,
+    total_aprendices_etapa_productiva = 0,
+    total_instructores = 0,
+    total_fichas = 0,
+    total_procesos_activos = 0,
+    total_procesos_finalizados = 0,
+    documentos_pendientes = 0,
+    total_novedades = 0,
+  } = data || {};
+
+  const kpis = [
+    {
+      id: 'usuarios',
+      icono: '👥',
+      valor: total_usuarios_activos,
+      label: 'Usuarios activos',
+      sublabel: 'en el sistema',
+      color: '#4a90e2',
+    },
+    {
+      id: 'aprendices',
+      icono: '🎓',
+      valor: total_aprendices_etapa_productiva,
+      label: 'Aprendices',
+      sublabel: 'en etapa productiva',
+      color: '#3ca203',
+    },
+    {
+      id: 'instructores',
+      icono: '👨‍🏫',
+      valor: total_instructores,
+      label: 'Instructores',
+      sublabel: 'activos',
+      color: '#9b59b6',
+    },
+    {
+      id: 'fichas',
+      icono: '🏫',
+      valor: total_fichas,
+      label: 'Fichas',
+      sublabel: 'registradas',
+      color: '#f4a261',
+    },
+    {
+      id: 'procesos_activos',
+      icono: '📋',
+      valor: total_procesos_activos,
+      label: 'Procesos activos',
+      sublabel: 'en curso',
+      color: '#0ea5e9',
+    },
+    {
+      id: 'procesos_finalizados',
+      icono: '✅',
+      valor: total_procesos_finalizados,
+      label: 'Procesos finalizados',
+      sublabel: 'completados',
+      color: '#22c55e',
+    },
+    {
+      id: 'documentos',
+      icono: '📄',
+      valor: documentos_pendientes,
+      label: 'Documentos',
+      sublabel: 'pendientes',
+      color: '#f59e0b',
+      destacado: documentos_pendientes > 0,
+    },
+    {
+      id: 'novedades',
+      icono: '📢',
+      valor: total_novedades,
+      label: 'Novedades',
+      sublabel: 'registradas',
+      color: '#ef4444',
+    },
+  ];
+
   return (
-    <div style={{ width: '100%', padding: '20px 0' }}>
-      <div style={{ marginBottom: '25px' }}>
-        <h2 style={{ fontSize: '26px', fontWeight: 'bold', color: '#1f2937', margin: '0 0 5px 0' }}>
-          Panel de Control - Administrador
-        </h2>
-        <p style={{ color: '#6b7280', fontSize: '15px', margin: 0 }}>
-          Gestión centralizada de usuarios, fichas y configuración del sistema.
-        </p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
-        {stats.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => abrirModal(item.id)}
-            style={{
-              background: 'white',
-              padding: '25px',
-              borderRadius: '12px',
-              textAlign: 'center',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
-              transition: 'all 0.25s ease',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-          >
-            <i
-              className={`fas ${item.icono}`}
-              style={{ fontSize: '30px', color: item.color, marginBottom: '10px', display: 'block' }}
-            />
-            <h3 style={{ fontSize: '32px', fontWeight: 'bold', color: item.color, margin: '0 0 5px 0' }}>
-              {item.numero}
-            </h3>
-            <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>{item.etiqueta}</p>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-          <h4 style={{ color: '#3ca203', marginBottom: '15px' }}>Resumen del sistema</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
-              <span>Procesos activos</span>
-              <strong>{stats[2]?.numero || 0}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
-              <span>Seguimientos pendientes</span>
-              <strong>{stats[3]?.numero || 0}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h4 style={{ color: '#3ca203', margin: 0 }}>Últimos usuarios</h4>
-            <button
-              onClick={() => navigate('/admin/usuarios')}
-              style={{ background: 'transparent', border: 'none', color: '#3ca203', fontWeight: 'bold', cursor: 'pointer' }}
-            >
-              Ver todos →
-            </button>
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '8px', color: '#6b7280' }}>Nombre</th>
-                <th style={{ textAlign: 'left', padding: '8px', color: '#6b7280' }}>Rol</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usuariosRecientes.length === 0 ? (
-                <tr>
-                  <td colSpan="2" style={{ padding: '15px', textAlign: 'center', color: '#9ca3af' }}>
-                    No hay usuarios para mostrar
-                  </td>
-                </tr>
-              ) : (
-                usuariosRecientes.map((u, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '8px', fontWeight: '500' }}>{u.nombre}</td>
-                    <td style={{ padding: '8px' }}>
-                      <span
-                        style={{
-                          background:
-                            u.rol === 'Instructor' ? '#d1fae5' :
-                            u.rol === 'Coordinador' ? '#e0f2fe' :
-                            u.rol === 'Administrador' ? '#fce7f3' :
-                            '#fef3c7',
-                          color:
-                            u.rol === 'Instructor' ? '#047857' :
-                            u.rol === 'Coordinador' ? '#0ea5e9' :
-                            u.rol === 'Administrador' ? '#be185d' :
-                            '#d97706',
-                          padding: '2px 10px',
-                          borderRadius: '12px',
-                          fontSize: '11px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {u.rol}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: '30px' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1f2937', marginBottom: '15px' }}>
-          Acciones Rápidas
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px' }}>
-          <div
-            onClick={() => navigate('/admin/usuarios')}
-            style={{ background: '#f8fafc', padding: '20px', borderRadius: '10px', border: '1px solid #e5e7eb', textAlign: 'center', cursor: 'pointer', transition: '0.2s' }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#3ca203')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
-          >
-            <i className="fas fa-user-plus" style={{ fontSize: '24px', color: '#3ca203', marginBottom: '10px' }} />
-            <p style={{ fontWeight: '500' }}>Nuevo Usuario</p>
-          </div>
-          <div
-            onClick={() => navigate('/admin/fichas')}
-            style={{ background: '#f8fafc', padding: '20px', borderRadius: '10px', border: '1px solid #e5e7eb', textAlign: 'center', cursor: 'pointer', transition: '0.2s' }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#3ca203')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
-          >
-            <i className="fas fa-layer-group" style={{ fontSize: '24px', color: '#3ca203', marginBottom: '10px' }} />
-            <p style={{ fontWeight: '500' }}>Nueva Ficha</p>
-          </div>
-          <div
-            onClick={() => navigate('/admin/reportes')}
-            style={{ background: '#f8fafc', padding: '20px', borderRadius: '10px', border: '1px solid #e5e7eb', textAlign: 'center', cursor: 'pointer', transition: '0.2s' }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#3ca203')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
-          >
-            <i className="fas fa-chart-bar" style={{ fontSize: '24px', color: '#3ca203', marginBottom: '10px' }} />
-            <p style={{ fontWeight: '500' }}>Ver Reportes</p>
-          </div>
-        </div>
-      </div>
-
-      {modalAbierto && (
+    <div className="kpis-grid-admin" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+      {kpis.slice(0, 8).map((kpi) => (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 2000,
-          }}
-          onClick={cerrarModal}
+          key={kpi.id}
+          className={`kpi-card-admin ${kpi.destacado ? 'kpi-card-destacado-admin' : ''}`}
+          style={{ '--kpi-color': kpi.color }}
         >
-          <div
-            style={{
-              background: 'white',
-              borderRadius: '16px',
-              maxWidth: '500px',
-              width: '90%',
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
-              padding: '30px',
-              position: 'relative',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={cerrarModal}
-              style={{
-                position: 'absolute',
-                top: '15px',
-                right: '20px',
-                background: 'transparent',
-                border: 'none',
-                fontSize: '28px',
-                color: '#6b7280',
-                cursor: 'pointer',
-              }}
-            >
-              ×
-            </button>
-
-            <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1f2937', marginBottom: '15px' }}>
-              {tituloModal}
-            </h3>
-
-            <div style={{ marginBottom: '20px' }}>
-              <ul style={{ paddingLeft: '20px', color: '#374151', lineHeight: '1.8' }}>
-                {detallesModal.length > 0 ? (
-                  detallesModal.map((item, idx) => <li key={idx}>{item}</li>)
-                ) : (
-                  <li style={{ color: '#6b7280', fontStyle: 'italic' }}>No hay detalles disponibles.</li>
-                )}
-              </ul>
-            </div>
+          <div className="kpi-icono-admin">{kpi.icono}</div>
+          <div className="kpi-info-admin">
+            <div className="kpi-valor-admin">{kpi.valor}</div>
+            <div className="kpi-label-admin">{kpi.label}</div>
+            <div className="kpi-sublabel-admin">{kpi.sublabel}</div>
           </div>
         </div>
-      )}
+      ))}
+    </div>
+  );
+};
+
+// ============================================================
+// Componente Principal
+// ============================================================
+const DashboardAdmin = () => {
+  const navigate = useNavigate();
+
+  const handleVerRecurso = (alerta, nav) => {
+    const mapa = {
+      usuario: '/admin/usuarios',
+      ficha: '/admin/fichas',
+      proceso: '/admin/fichas',
+      bitacora: '/admin/fichas',
+    };
+    const ruta = mapa[alerta.entidad_relacionada];
+    if (ruta) nav(ruta);
+  };
+
+  return (
+    <div>
+      <style>{ADMIN_KPI_STYLES}</style>
+
+      {/* 🔔 ALERTAS */}
+      <WidgetAlertas
+        titulo="Alertas del Sistema"
+        onVerRecurso={handleVerRecurso}
+        onVerHistorial={() => navigate('/admin')}
+      />
+
+      {/* 📊 KPIs */}
+      <KPIsAdmin />
     </div>
   );
 };

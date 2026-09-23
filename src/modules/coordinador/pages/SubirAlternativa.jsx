@@ -6,6 +6,7 @@ import Breadcrumb from '../../shared/components/Breadcrumb';
 import { fichaService } from '@/core/services/fichaService';
 import { procesoService } from '@/core/services/procesoService';
 import { importacionService } from '@/core/services/importacionService';
+import { f165Service } from '@/core/services/f165Service';
 import './SubirAlternativa.css';
 
 const SubirAlternativa = () => {
@@ -225,6 +226,103 @@ const SubirAlternativa = () => {
     }
   };
 
+  // ==========================================================
+  // F165 INDIVIDUAL
+  // ==========================================================
+  const handleGenerarF165Individual = async (aprendiz) => {
+    if (!aprendiz?.proceso_id) {
+      Swal.fire({
+        title: '⚠️ Sin proceso',
+        text: 'Este aprendiz no tiene un proceso asociado',
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b',
+      });
+      return;
+    }
+
+    try {
+      Swal.fire({
+        title: '📄 Generando F165...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      await f165Service.descargarIndividual(aprendiz.proceso_id);
+
+      Swal.fire({
+        title: '✅ F165 descargado',
+        text: `El formato de ${aprendiz.nombre} se descargó exitosamente.`,
+        icon: 'success',
+        confirmButtonColor: '#3ca203',
+        timer: 2500,
+      });
+    } catch (err) {
+      Swal.fire({
+        title: '❌ Error',
+        text: err.message || 'No se pudo generar el F165',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+      });
+    }
+  };
+
+  // ==========================================================
+  // F165 MASIVO
+  // ==========================================================
+  const handleGenerarF165Masivo = async () => {
+    if (!selectedFicha?.fichaId) {
+      Swal.fire({
+        title: '⚠️ Sin ficha',
+        text: 'No hay ficha seleccionada',
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b',
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: '📦 Generar F165 de toda la ficha',
+      html: `
+        <p>Se generará un ZIP con los F165 de todos los aprendices de la ficha:</p>
+        <p style="font-weight:bold; color:#3ca203; font-size:16px">${selectedFicha.id}</p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3ca203',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, generar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      Swal.fire({
+        title: '📦 Generando ZIP...',
+        html: 'Esto puede tardar unos segundos.',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      await f165Service.descargarMasivoPorFicha(selectedFicha.fichaId);
+
+      Swal.fire({
+        title: '✅ ZIP descargado',
+        text: 'El archivo con todos los F165 se descargó exitosamente.',
+        icon: 'success',
+        confirmButtonColor: '#3ca203',
+        timer: 2500,
+      });
+    } catch (err) {
+      Swal.fire({
+        title: '❌ Error',
+        text: err.message || 'No se pudo generar el ZIP',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+      });
+    }
+  };
+
   const handleCargaMasiva = () => {
     Swal.fire({
       title: '📤 Carga Masiva de Alternativas',
@@ -419,6 +517,23 @@ const SubirAlternativa = () => {
           <button className="btn-carga-masiva" onClick={handleCargaMasiva}>
             <i className="fas fa-upload"></i> Carga Masiva
           </button>
+          <button
+            onClick={handleGenerarF165Masivo}
+            style={{
+              background: '#0ea5e9',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <i className="fas fa-file-pdf"></i> F165 Masivo
+          </button>
         </div>
 
         <div className="table-wrapper">
@@ -457,17 +572,38 @@ const SubirAlternativa = () => {
                       </span>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <button
-                        className={`btn-asignar ${aprendiz.alternativa ? 'asignado' : ''}`}
-                        onClick={() => handleAsignarAlternativa(aprendiz)}
-                      >
-                        <i
-                          className={`fas ${
-                            aprendiz.alternativa ? 'fa-check' : 'fa-plus'
-                          }`}
-                        ></i>
-                        {aprendiz.alternativa ? ' Asignado' : ' Asignar'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                        <button
+                          className={`btn-asignar ${aprendiz.alternativa ? 'asignado' : ''}`}
+                          onClick={() => handleAsignarAlternativa(aprendiz)}
+                        >
+                          <i
+                            className={`fas ${
+                              aprendiz.alternativa ? 'fa-check' : 'fa-plus'
+                            }`}
+                          ></i>
+                          {aprendiz.alternativa ? ' Asignado' : ' Asignar'}
+                        </button>
+                        <button
+                          onClick={() => handleGenerarF165Individual(aprendiz)}
+                          title="Generar F165"
+                          style={{
+                            background: '#fef3c7',
+                            color: '#d97706',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <i className="fas fa-file-pdf"></i> F165
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

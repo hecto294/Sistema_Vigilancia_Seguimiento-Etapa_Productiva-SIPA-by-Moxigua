@@ -14,7 +14,7 @@ const Landing = () => {
             <img src="/logo-sena.png" alt="Logo SENA" className="navbar-logo-img" />
           </div>
           <div className="navbar-brand">
-            <h1>SIPA</h1>
+            <h1>SIPA <span style={{ fontWeight: '400', fontSize: '0.75em', opacity: 0.9 }}>by Moxigua</span></h1>
             <span>Sistema de Seguimiento de Etapa Productiva</span>
           </div>
         </div>
@@ -41,7 +41,7 @@ const Landing = () => {
       {/* --- HERO SECTION --- */}
       <section className="hero-section">
         <div className="hero-text">
-          <h1>SIPA</h1>
+          <h1>SIPA <span style={{ fontWeight: '400', fontSize: '0.6em', opacity: 0.85 }}>by Moxigua</span></h1>
           <h2>Sistema de Seguimiento <br /> de Etapa Productiva</h2>
           <p>Herramienta institucional del SENA para gestionar, hacer seguimiento y evaluar la etapa productiva de aprendices de forma eficiente y centralizada.</p>
           <div className="hero-buttons">
@@ -108,7 +108,7 @@ const Landing = () => {
       <footer className="footer-landing">
         <div className="footer-top">
           <div className="footer-brand">
-            <h3>SIPA</h3>
+            <h3>SIPA <span style={{ fontWeight: '400', fontSize: '0.75em', opacity: 0.9 }}>by Moxigua</span></h3>
             <span>Sistema de Seguimiento de Etapa Productiva</span>
           </div>
           <div className="footer-links">
